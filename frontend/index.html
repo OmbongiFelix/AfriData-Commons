@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AfriData - Africa's Premier Data Repository</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     .gradient-bg {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -81,7 +82,323 @@
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-  </style>
+
+    /* Enhanced Footer Styles */
+    .footer-gradient {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      position: relative;
+    }
+    
+    .footer-section {
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 0.8s ease forwards;
+      animation-play-state: paused;
+    }
+    
+    .footer-section:nth-child(1) { animation-delay: 0.1s; }
+    .footer-section:nth-child(2) { animation-delay: 0.2s; }
+    .footer-section:nth-child(3) { animation-delay: 0.3s; }
+    .footer-section:nth-child(4) { animation-delay: 0.4s; }
+    
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .footer-link {
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0;
+      border-radius: 0.25rem;
+    }
+    
+    .footer-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -2px;
+      left: 0;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      transition: width 0.3s ease;
+    }
+    
+    .footer-link:hover::after {
+      width: 100%;
+    }
+    
+    .footer-link:hover {
+      color: #667eea !important;
+      transform: translateX(5px);
+    }
+    
+    .footer-link i {
+      transition: all 0.3s ease;
+    }
+    
+    .footer-link:hover i {
+      transform: scale(1.2);
+      color: #667eea;
+    }
+    
+    .newsletter-input {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      font-size: 0.875rem;
+    }
+    
+    .newsletter-input:focus {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: #667eea;
+      box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+      outline: none;
+    }
+    
+    .newsletter-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .subscribe-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    
+    .subscribe-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .subscribe-btn:hover::before {
+      left: 100%;
+    }
+    
+    .subscribe-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .subscribe-btn:active {
+      transform: translateY(0);
+    }
+    
+    .social-icon {
+      width: 45px;
+      height: 45px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .social-icon::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .social-icon:hover::before {
+      opacity: 1;
+    }
+    
+    .social-icon:hover {
+      transform: translateY(-3px) rotate(5deg);
+      border-color: #667eea;
+      color: #667eea !important;
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .social-icon i {
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .social-icon:hover i {
+      transform: scale(1.1);
+    }
+    
+    .data-stats {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .data-stats:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .floating-particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    
+    .particle {
+      position: absolute;
+      background: rgba(102, 126, 234, 0.3);
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .particle:nth-child(1) { 
+      width: 4px; 
+      height: 4px; 
+      left: 10%; 
+      animation-delay: 0s; 
+    }
+    .particle:nth-child(2) { 
+      width: 6px; 
+      height: 6px; 
+      left: 20%; 
+      animation-delay: 1s; 
+    }
+    .particle:nth-child(3) { 
+      width: 3px; 
+      height: 3px; 
+      left: 60%; 
+      animation-delay: 2s; 
+    }
+    .particle:nth-child(4) { 
+      width: 5px; 
+      height: 5px; 
+      left: 80%; 
+      animation-delay: 3s; 
+    }
+    .particle:nth-child(5) { 
+      width: 4px; 
+      height: 4px; 
+      left: 40%; 
+      animation-delay: 4s; 
+    }
+    
+    @keyframes float {
+      0%, 100% { 
+        transform: translateY(0) rotate(0deg); 
+        opacity: 0; 
+      }
+      50% { 
+        transform: translateY(-100px) rotate(180deg); 
+        opacity: 1; 
+      }
+    }
+    
+    .success-message {
+      display: none;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-top: 10px;
+      animation: slideIn 0.5s ease;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    @keyframes slideIn {
+      from { 
+        transform: translateX(-100%); 
+        opacity: 0; 
+      }
+      to { 
+        transform: translateX(0); 
+        opacity: 1; 
+      }
+    }
+    
+    .continent-badge {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .footer-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      margin: 30px 0;
+    }
+
+    /* Additional improvements for better visual hierarchy */
+    .footer-gradient h4 {
+      color: #ffffff;
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-gradient p {
+      line-height: 1.6;
+    }
+
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      .footer-section {
+        margin-bottom: 2rem;
+      }
+      
+      .social-icon {
+        width: 40px;
+        height: 40px;
+      }
+      
+      .data-stats {
+        padding: 15px;
+      }
+    }
+
+    /* Smooth scrolling for footer links */
+    .footer-link {
+      scroll-behavior: smooth;
+    }
+
+    /* Enhanced focus states for accessibility */
+    .newsletter-input:focus,
+    .subscribe-btn:focus,
+    .social-icon:focus,
+    .footer-link:focus {
+      outline: 2px solid #667eea;
+      outline-offset: 2px;
+    }
+</style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-blue-50 text-gray-900">
   <!-- Mobile Menu Overlay -->
@@ -89,7 +406,8 @@
     <div class="p-4">
       <div class="flex justify-between items-center mb-6">
         <div class="flex items-center space-x-2">
-          <span class="text-2xl">🌍</span>
+          <!-- <span class="text-2xl">🌍</span>-->
+          <span class="fas fa-database text-white"></span>
           <span class="font-bold">AfriData</span>
         </div>
         <button onclick="toggleMobileMenu()" class="text-gray-500">✕</button>
@@ -134,7 +452,7 @@
         <p class="text-xl mb-8 max-w-3xl mx-auto">Access thousands of curated datasets for research, machine learning, and data analysis across the African continent.</p>
         
         <div class="max-w-4xl mx-auto relative">
-          <input id="searchInput" type="text" placeholder="Search datasets, topics, or countries (e.g., Nigeria GDP, climate data)" 
+          <input id="searchInput" type="text" placeholder="Search datasets, topics, or countries (e.g., Geological data, climate data)" 
                  class="w-full px-6 py-4 rounded-full shadow-lg text-gray-900 text-lg search-glow focus:outline-none" />
           <button onclick="performSearch()" class="absolute right-2 top-2 bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors">
             🔍 Search
@@ -442,6 +760,227 @@
               <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">Economics</span>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+    
+        
+
+    <!--footer-->
+    <!-- Enhanced Footer -->
+  <footer class="footer-gradient text-white relative overflow-hidden">
+    <!-- Floating Particles -->
+    <div class="floating-particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <div class="relative z-10">
+      <!-- Main Footer Content -->
+      <div class="max-w-7xl mx-auto px-4 py-16">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          
+          <!-- About Section -->
+          <div class="footer-section">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                <i class="fas fa-database text-white"></i>
+              </div>
+              <h4 class="text-2xl font-bold">AfriData</h4>
+            </div>
+            <p class="text-gray-300 mb-4 leading-relaxed">
+              Empowering Africa through comprehensive, high-quality datasets for researchers, data scientists, and analysts across the continent.
+            </p>
+            <div class="continent-badge mb-4">
+              🌍 Serving 54 African Countries
+            </div>
+            
+            <!-- Data Stats -->
+            <div class="data-stats">
+              <div class="text-2xl font-bold text-blue-400">10,000+</div>
+              <div class="text-sm text-gray-400">Active Datasets</div>
+            </div>
+          </div>
+
+          <!-- Resources Section -->
+          <div class="footer-section">
+            <h4 class="text-xl font-bold mb-6 flex items-center">
+              <i class="fas fa-book-open mr-2 text-blue-400"></i>
+              Resources
+            </h4>
+            <ul class="space-y-3">
+              <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                <i class="fas fa-file-alt mr-2 text-sm"></i>Documentation
+              </a></li>
+              <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                <i class="fas fa-code mr-2 text-sm"></i>API Access
+              </a></li>
+              <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                <i class="fas fa-chart-bar mr-2 text-sm"></i>Data Standards
+              </a></li>
+              <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                <i class="fas fa-graduation-cap mr-2 text-sm"></i>Tutorials
+              </a></li>
+              <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                <i class="fas fa-download mr-2 text-sm"></i>Data Catalog
+              </a></li>
+            </ul>
+          </div>
+
+          <!-- Community Section -->
+          <div class="footer-section">
+            <h4 class="text-xl font-bold mb-6 flex items-center">
+              <i class="fas fa-users mr-2 text-green-400"></i>
+              Community
+            </h4>
+            <ul class="space-y-3">
+              <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                <i class="fas fa-comments mr-2 text-sm"></i>Discussion Forum
+              </a></li>
+              <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                <i class="fab fa-slack mr-2 text-sm"></i>Slack Workspace
+              </a></li>
+              <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                <i class="fas fa-calendar-alt mr-2 text-sm"></i>Events & Workshops
+              </a></li>
+              <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                <i class="fas fa-hands-helping mr-2 text-sm"></i>Contribute Data
+              </a></li>
+              <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                <i class="fas fa-award mr-2 text-sm"></i>Recognition Program
+              </a></li>
+            </ul>
+          </div>
+
+          <!-- Newsletter & Social Section -->
+          <div class="footer-section">
+            <h4 class="text-xl font-bold mb-6 flex items-center">
+              <i class="fas fa-envelope mr-2 text-purple-400"></i>
+              Stay Connected
+            </h4>
+            
+            <!-- Newsletter Signup -->
+            <div class="mb-6">
+              <p class="text-gray-300 text-sm mb-4">Get weekly updates on new datasets and features</p>
+              <div class="space-y-3">
+                <input 
+                  type="email" 
+                  id="newsletterEmail"
+                  placeholder="Enter your email address" 
+                  class="newsletter-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-400 focus:outline-none"
+                />
+                <button 
+                  onclick="subscribeNewsletter()"
+                  class="subscribe-btn w-full px-4 py-3 rounded-lg font-semibold text-white focus:outline-none relative"
+                >
+                  <i class="fas fa-paper-plane mr-2"></i>
+                  Subscribe to Updates
+                </button>
+                <div id="successMessage" class="success-message">
+                  <i class="fas fa-check-circle mr-2"></i>
+                  Successfully subscribed! Welcome to AfriData community.
+                </div>
+              </div>
+            </div>
+
+            <!-- Social Media -->
+            <div>
+              <p class="text-gray-300 text-sm mb-4">Follow us on social media</p>
+              <div class="flex space-x-3">
+                <a href="#" class="social-icon rounded-lg flex items-center justify-center">
+                  <i class="fab fa-twitter"></i>
+                </a>
+                <a href="#" class="social-icon rounded-lg flex items-center justify-center">
+                  <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="#" class="social-icon rounded-lg flex items-center justify-center">
+                  <i class="fab fa-github"></i>
+                </a>
+                <a href="#" class="social-icon rounded-lg flex items-center justify-center">
+                  <i class="fab fa-youtube"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Divider -->
+        <div class="footer-divider"></div>
+
+        <!-- Bottom Section -->
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <div class="text-center md:text-left mb-4 md:mb-0">
+            <p class="text-gray-400 text-sm">
+              © 2025 AfriData. Empowering Africa through data.
+            </p>
+            <p class="text-gray-500 text-xs mt-1">
+              Built with ❤️ for the African research community
+            </p>
+          </div>
+          
+          <div class="flex flex-wrap items-center space-x-6 text-sm">
+            <a href="#" class="footer-link text-gray-400">Privacy Policy</a>
+            <a href="#" class="footer-link text-gray-400">Terms of Service</a>
+            <a href="#" class="footer-link text-gray-400">Data License</a>
+            <a href="#" class="footer-link text-gray-400">Contact</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function subscribeNewsletter() {
+      const email = document.getElementById('newsletterEmail').value;
+      const successMessage = document.getElementById('successMessage');
+      
+      if (email && email.includes('@')) {
+        successMessage.style.display = 'block';
+        document.getElementById('newsletterEmail').value = '';
+        
+        // Hide success message after 3 seconds
+        setTimeout(() => {
+          successMessage.style.display = 'none';
+        }, 3000);
+      } else {
+        alert('Please enter a valid email address');
+      }
+    }
+
+    // Add enter key support for newsletter signup
+    document.getElementById('newsletterEmail').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        subscribeNewsletter();
+      }
+    });
+
+    // Intersection Observer for animation trigger
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+        }
+      });
+    }, observerOptions);
+
+    // Observe footer sections
+    document.querySelectorAll('.footer-section').forEach(section => {
+      observer.observe(section);
+    });
+  </script>
+</body>
+</html>
+
+          
           
 
 
