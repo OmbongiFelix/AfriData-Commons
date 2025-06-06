@@ -1,0 +1,20 @@
+.star-filled { color: #fbbf24; }
+    .star-empty { color: #d1d5db; }
+    .achievement-badge {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .profile-stats {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .dataset-card:hover {
+      transform: translateY(-2px);
+      transition: all 0.3s ease;
+    }
+    .contact-info {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
