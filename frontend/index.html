@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AfriData - Africa's Premier Data Repository</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .trending-card {
+      transition: all 0.3s ease;
+      transform: translateY(0);
+    }
+    .trending-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .topic-tag {
+      transition: all 0.2s ease;
+    }
+    .topic-tag:hover {
+      transform: scale(1.05);
+    }
+    .search-glow:focus {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+    }
+    .stats-counter {
+      animation: countUp 2s ease-out;
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .pulse-dot {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .featured-gradient {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .category-hover:hover {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .mobile-menu {
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+    .mobile-menu.active {
+      transform: translateX(0);
+    }
+    .dataset-card {
+      transition: all 0.3s ease;
+    }
+    .dataset-card:hover {
+      transform: translateY(-2px);
+    }
+    .floating-action {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 50;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-blue-50 text-gray-900">
+  <!-- Mobile Menu Overlay -->
+  <div id="mobileMenu" class="mobile-menu fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-50 lg:hidden">
+    <div class="p-4">
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center space-x-2">
+          <span class="text-2xl">🌍</span>
+          <span class="font-bold">AfriData</span>
+        </div>
+        <button onclick="toggleMobileMenu()" class="text-gray-500">✕</button>
+      </div>
+      <nav class="space-y-4">
+        <a href="#" class="block py-2 text-gray-700 hover:text-blue-600">Home</a>
+        <a href="#" class="block py-2 text-gray-700 hover:text-blue-600">Datasets</a>
+        <a href="#" class="block py-2 text-gray-700 hover:text-blue-600">Analytics</a>
+        <a href="#" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
+        <a href="#" class="block py-2 text-gray-700 hover:text-blue-600">API</a>
+        <a href="#" class="block py-2 text-gray-700 hover:text-blue-600">Login</a>
+        <button class="w-full bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-yellow-300 transition-colors">Sign Up Free</button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="gradient-bg text-white py-8 px-4 relative overflow-hidden">
+    <div class="absolute inset-0 bg-black opacity-10"></div>
+    <div class="relative z-10">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+            <span class="text-2xl">🌍</span>
+          </div>
+          <h1 class="text-2xl font-bold">AfriData</h1>
+        </div>
+        <nav class="hidden md:flex space-x-6">
+          <a href="#" class="hover:text-yellow-300 transition-colors">Home</a>
+          <a href="#" class="hover:text-yellow-300 transition-colors">Datasets</a>
+          <a href="#" class="hover:text-yellow-300 transition-colors">Analytics</a>
+          <a href="#" class="hover:text-yellow-300 transition-colors">Community</a>
+          <a href="#" class="hover:text-yellow-300 transition-colors">API</a>
+          <a href="#" class="hover:text-yellow-300 transition-colors">Login</a>
+          <button class="bg-yellow-400 text-gray-900 px-6 py-2 rounded-full font-medium hover:bg-yellow-300 transition-colors">Sign Up Free</button>
+        </nav>
+        <button onclick="toggleMobileMenu()" class="md:hidden text-white">☰</button>
+      </div>
+      
+      <div class="text-center mt-12 mb-8">
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">Discover Africa's Data Stories</h2>
+        <p class="text-xl mb-8 max-w-3xl mx-auto">Access thousands of curated datasets for research, machine learning, and data analysis across the African continent.</p>
+        
+        <div class="max-w-4xl mx-auto relative">
+          <input id="searchInput" type="text" placeholder="Search datasets, topics, or countries (e.g., Nigeria GDP, climate data)" 
+                 class="w-full px-6 py-4 rounded-full shadow-lg text-gray-900 text-lg search-glow focus:outline-none" />
+          <button onclick="performSearch()" class="absolute right-2 top-2 bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors">
+            🔍 Search
+          </button>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="flex justify-center space-x-8 mt-8 text-center">
+          <div class="stats-counter">
+            <div class="text-3xl font-bold">15,000+</div>
+            <div class="text-sm opacity-90">Datasets</div>
+          </div>
+          <div class="stats-counter">
+            <div class="text-3xl font-bold">54</div>
+            <div class="text-sm opacity-90">Countries</div>
+          </div>
+          <div class="stats-counter">
+            <div class="text-3xl font-bold">250K+</div>
+            <div class="text-sm opacity-90">Downloads</div>
+          </div>
+          <div class="stats-counter">
+            <div class="text-3xl font-bold">5,000+</div>
+            <div class="text-sm opacity-90">Researchers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Trending Section -->
+  <section class="max-w-7xl mx-auto px-4 py-12">
+    <div class="text-center mb-10">
+      <h3 class="text-3xl font-bold text-gray-800 mb-2">What's Trending</h3>
+      <p class="text-gray-600">Discover the most popular datasets and topics this week</p>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Trending Datasets -->
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h4 class="text-xl font-semibold text-gray-800 flex items-center">
+            📈 Trending Datasets
+            <span class="pulse-dot ml-2 w-3 h-3 bg-green-500 rounded-full"></span>
+          </h4>
+          <span class="text-sm text-gray-500">Updated hourly</span>
+        </div>
+        
+        <div class="space-y-4">
+          <div class="trending-card bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border-l-4 border-blue-500 cursor-pointer">
+            <div class="flex justify-between items-start mb-2">
+              <h5 class="font-semibold text-gray-800">African Agricultural Yields 2024</h5>
+              <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">🔥 Hot</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-3">Comprehensive crop production data across 25 African countries with climate correlations.</p>
+            <div class="flex justify-between items-center text-xs text-gray-500">
+              <span>📊 3,235 views • ⬇️ 856 downloads</span>
+              <span class="text-green-600 font-medium">+125% this week</span>
+            </div>
+          </div>
+          
+          <div class="trending-card bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border-l-4 border-green-500 cursor-pointer">
+            <div class="flex justify-between items-start mb-2">
+              <h5 class="font-semibold text-gray-800">Pan-African Health Survey 2024</h5>
+              <span class="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">📈 Rising</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-3">Latest health metrics and healthcare access data from 30+ African nations.</p>
+            <div class="flex justify-between items-center text-xs text-gray-500">
+              <span>📊 2,879 views • ⬇️ 642 downloads</span>
+              <span class="text-green-600 font-medium">+89% this week</span>
+            </div>
+          </div>
+          
+          <div class="trending-card bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border-l-4 border-purple-500 cursor-pointer">
+            <div class="flex justify-between items-start mb-2">
+              <h5 class="font-semibold text-gray-800">Tech Startup Funding Africa</h5>
+              <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">💎 Premium</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-3">Complete funding rounds, valuations, and growth metrics (2020-2024).</p>
+            <div class="flex justify-between items-center text-xs text-gray-500">
+              <span>📊 1,912 views • ⬇️ 423 downloads</span>
+              <span class="text-green-600 font-medium">+67% this week</span>
+            </div>
+          </div>
+        </div>
+        
+        <button class="w-full mt-4 text-blue-600 font-medium hover:text-blue-800 transition-colors">
+          View All Trending Datasets →
+        </button>
+      </div>
+      
+      <!-- Trending Topics -->
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h4 class="text-xl font-semibold text-gray-800 flex items-center">
+            🔥 Trending Topics
+          </h4>
+          <span class="text-sm text-gray-500">Top searches</span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <div class="topic-tag bg-gradient-to-r from-red-400 to-pink-500 text-white p-3 rounded-lg text-center cursor-pointer">
+            <div class="text-lg font-bold">#1</div>
+            <div class="text-sm">Climate Change</div>
+            <div class="text-xs opacity-90">15.2K searches</div>
+          </div>
+          <div class="topic-tag bg-gradient-to-r from-blue-400 to-purple-500 text-white p-3 rounded-lg text-center cursor-pointer">
+            <div class="text-lg font-bold">#2</div>
+            <div class="text-sm">Economic Data</div>
+            <div class="text-xs opacity-90">12.8K searches</div>
+          </div>
+          <div class="topic-tag bg-gradient-to-r from-green-400 to-blue-500 text-white p-3 rounded-lg text-center cursor-pointer">
+            <div class="text-lg font-bold">#3</div>
+            <div class="text-sm">Healthcare</div>
+            <div class="text-xs opacity-90">9.4K searches</div>
+          </div>
+          <div class="topic-tag bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-3 rounded-lg text-center cursor-pointer">
+            <div class="text-lg font-bold">#4</div>
+            <div class="text-sm">Education</div>
+            <div class="text-xs opacity-90">7.9K searches</div>
+          </div>
+        </div>
+        
+        <div class="space-y-3">
+          <h5 class="font-medium text-gray-700 mb-3">Popular Search Terms:</h5>
+          <div class="flex flex-wrap gap-2">
+            <span onclick="quickSearch('Nigeria GDP')" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm hover:bg-blue-200 cursor-pointer">Nigeria GDP</span>
+            <span onclick="quickSearch('Kenya Agriculture')" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm hover:bg-green-200 cursor-pointer">Kenya Agriculture</span>
+            <span onclick="quickSearch('South Africa Mining')" class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm hover:bg-purple-200 cursor-pointer">South Africa Mining</span>
+            <span onclick="quickSearch('Ghana Tech')" class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm hover:bg-red-200 cursor-pointer">Ghana Tech</span>
+            <span onclick="quickSearch('Egypt Tourism')" class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm hover:bg-yellow-200 cursor-pointer">Egypt Tourism</span>
+            <span onclick="quickSearch('Ethiopia Demographics')" class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm hover:bg-indigo-200 cursor-pointer">Ethiopia Demographics</span>
+          </div>
+        </div>
+        
+        <div class="mt-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">AI</div>
+            <div>
+              <div class="font-medium text-gray-800">AI-Powered Topic Discovery</div>
+              <div class="text-sm text-gray-600">Get personalized dataset recommendations</div>
+            </div>
+            <button onclick="showAIRecommendations()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition-colors">Try Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Datasets -->
+  <section class="max-w-7xl mx-auto px-4 py-12">
+    <div class="flex flex-col lg:flex-row gap-8">
+      <!-- Enhanced Sidebar -->
+      <aside class="lg:w-1/4 bg-white rounded-xl shadow-lg p-6">
+        <div class="mb-6">
+          <h4 class="font-semibold mb-4 text-gray-800 flex items-center">
+            🗂️ Browse by Category
+          </h4>
+          <ul class="space-y-2">
+            <li onclick="filterByCategory('all')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">📊 All Categories (15,847)</li>
+            <li onclick="filterByCategory('healthcare')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">🏥 Healthcare & Medicine (2,341)</li>
+            <li onclick="filterByCategory('climate')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">🌍 Climate & Environment (1,987)</li>
+            <li onclick="filterByCategory('economics')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">💰 Economics & Finance (1,654)</li>
+            <li onclick="filterByCategory('social')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">👥 Social Sciences (1,432)</li>
+            <li onclick="filterByCategory('agriculture')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">🌾 Agriculture & Food (1,298)</li>
+            <li onclick="filterByCategory('education')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">🎓 Education (987)</li>
+            <li onclick="filterByCategory('technology')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">🏢 Technology (876)</li>
+          </ul>
+        </div>
+        
+        <div class="mb-6">
+          <h4 class="font-semibold mb-4 text-gray-800">📄 File Format</h4>
+          <div class="space-y-2">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" onchange="filterByFormat('csv')" class="text-blue-600"> <span>CSV (8,234)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" onchange="filterByFormat('json')" class="text-blue-600"> <span>JSON (3,456)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" onchange="filterByFormat('excel')" class="text-blue-600"> <span>Excel (2,987)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" onchange="filterByFormat('parquet')" class="text-blue-600"> <span>Parquet (1,543)</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="mb-6">
+          <h4 class="font-semibold mb-4 text-gray-800">⚖️ License Type</h4>
+          <div class="space-y-2">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="radio" name="license" onchange="filterByLicense('open')" class="text-blue-600"> <span>Open Access</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="radio" name="license" onchange="filterByLicense('cc')" class="text-blue-600"> <span>CC BY</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="radio" name="license" onchange="filterByLicense('public')" class="text-blue-600"> <span>Public Domain</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="p-4 featured-gradient rounded-lg text-white text-center">
+          <div class="text-2xl mb-2">🎯</div>
+          <div class="font-semibold mb-1">Need Custom Data?</div>
+          <div class="text-sm mb-3">Our team can help curate specific datasets for your research</div>
+          <button onclick="showContactForm()" class="bg-white text-purple-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">Contact Us</button>
+        </div>
+      </aside>
+
+      <!-- Enhanced Datasets -->
+      <div class="lg:w-3/4">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-bold text-gray-800">Featured Datasets</h3>
+          <div class="flex space-x-3">
+            <select onchange="sortDatasets(this.value)" class="px-4 py-2 border rounded-lg">
+              <option value="relevance">Sort by: Relevance</option>
+              <option value="downloads">Most Downloaded</option>
+              <option value="recent">Recently Added</option>
+              <option value="rating">Highest Rated</option>
+            </select>
+            <button onclick="showUploadForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">+ Upload Dataset</button>
+          </div>
+        </div>
+        
+        <div id="datasetContainer" class="grid grid-cols-1 gap-6">
+          <div class="dataset-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-shadow">
+            <div class="flex justify-between items-start mb-4">
+              <div class="flex-1">
+                <div class="flex items-center space-x-3 mb-2">
+                  <h4 class="text-xl font-semibold text-gray-800">African COVID-19 Comprehensive Dataset</h4>
+                  <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Verified</span>
+                  <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">Updated Daily</span>
+                </div>
+                <p class="text-gray-600 mb-3">Complete COVID-19 data including cases, testing rates, vaccination progress, and policy responses across all 54 African countries. Updated daily with WHO validation.</p>
+                <div class="flex items-center space-x-4 text-sm text-gray-500 mb-3">
+                  <span class="flex items-center"><span class="text-green-600">📊</span> CSV, JSON, API</span>
+                  <span class="flex items-center"><span class="text-blue-600">⬇️</span> 12,311 downloads</span>
+                  <span class="flex items-center"><span class="text-yellow-600">⭐</span> 4.8 (234 reviews)</span>
+                  <span class="flex items-center"><span class="text-purple-600">👁️</span> 45K views</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-2xl mb-2">🦠</div>
+                <button onclick="viewDataset('covid19')" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">View Dataset</button>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Healthcare</span>
+              <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Epidemiology</span>
+              <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Public Health</span>
+              <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Time Series</span>
+            </div>
+          </div>
+          
+          <div class="dataset-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-shadow">
+            <div class="flex justify-between items-start mb-4">
+              <div class="flex-1">
+                <div class="flex items-center space-x-3 mb-2">
+                  <h4 class="text-xl font-semibold text-gray-800">African Climate Change Impact Data</h4>
+                  <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">Premium</span>
+                </div>
+                <p class="text-gray-600 mb-3">Historical and projected climate data with economic impact analysis. Includes temperature, precipitation, sea level, and agricultural yield correlations.</p>
+                <div class="flex items-center space-x-4 text-sm text-gray-500 mb-3">
+                  <span class="flex items-center"><span class="text-green-600">📊</span> CSV, Parquet, NetCDF</span>
+                  <span class="flex items-center"><span class="text-blue-600">⬇️</span> 10,221 downloads</span>
+                  <span class="flex items-center"><span class="text-yellow-600">⭐</span> 4.9 (189 reviews)</span>
+                  <span class="flex items-center"><span class="text-purple-600">👁️</span> 38K views</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-2xl mb-2">🌍</div>
+                <button onclick="viewDataset('climate')" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">View Dataset</button>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Climate</span>
+              <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Environment</span>
+              <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Agriculture</span>
+              <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">Modeling</span>
+            </div>
+          </div>
+          
+          <div class="dataset-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-shadow">
+            <div class="flex justify-between items-start mb-4">
+              <div class="flex-1">
+                <div class="flex items-center space-x-3 mb-2">
+                  <h4 class="text-xl font-semibold text-gray-800">African Economic Development Indicators</h4>
+                  <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">World Bank</span>
+                </div>
+                <p class="text-gray-600 mb-3">Comprehensive macroeconomic indicators across African regions including GDP, inflation, employment, trade balances, and development indices (1990-2024).</p>
+                <div class="flex items-center space-x-4 text-sm text-gray-500 mb-3">
+                  <span class="flex items-center"><span class="text-green-600">📊</span> CSV, JSON, XML</span>
+                  <span class="flex items-center"><span class="text-blue-600">⬇️</span> 8,842 downloads</span>
+                  <span class="flex items-center"><span class="text-yellow-600">⭐</span> 4.7 (156 reviews)</span>
+                  <span class="flex items-center"><span class="text-purple-600">👁️</span> 32K views</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-2xl mb-2">💰</div>
+                <button onclick="viewDataset('economics')" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">View Dataset</button>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">Economics</span>
+            </div>
+          </div>
+          
+
+
+

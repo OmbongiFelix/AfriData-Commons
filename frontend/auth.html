@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AfriData - Login / Sign Up</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div class="bg-white shadow-lg rounded-lg w-full max-w-md p-8">
+    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Welcome to AfriData</h2>
+
+    <!-- Toggle Links -->
+    <div class="flex justify-center mb-6">
+      <button id="loginTab" class="px-4 py-2 font-semibold text-blue-600 border-b-2 border-blue-600">Login</button>
+      <button id="signupTab" class="px-4 py-2 font-semibold text-gray-600 ml-4">Sign Up</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm">
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-1">Email</label>
+        <input type="email" class="w-full px-4 py-2 border rounded" required />
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-1">Password</label>
+        <input type="password" class="w-full px-4 py-2 border rounded" required />
+      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded">Login</button>
+    </form>
+
+    <!-- Sign Up Form -->
+    <form id="signupForm" class="hidden">
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-1">Full Name</label>
+        <input type="text" class="w-full px-4 py-2 border rounded" required />
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-1">Email</label>
+        <input type="email" class="w-full px-4 py-2 border rounded" required />
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-1">Password</label>
+        <input type="password" class="w-full px-4 py-2 border rounded" required />
+      </div>
+      <button type="submit" class="w-full bg-green-600 text-white py-2 rounded">Sign Up</button>
+    </form>
+  </div>
+
+  <script>
+    const loginTab = document.getElementById('loginTab');
+    const signupTab = document.getElementById('signupTab');
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+
+    loginTab.addEventListener('click', () => {
+      loginTab.classList.add('text-blue-600', 'border-blue-600');
+      signupTab.classList.remove('text-blue-600', 'border-blue-600');
+      signupTab.classList.add('text-gray-600');
+      loginForm.classList.remove('hidden');
+      signupForm.classList.add('hidden');
+    });
+
+    signupTab.addEventListener('click', () => {
+      signupTab.classList.add('text-blue-600', 'border-blue-600');
+      loginTab.classList.remove('text-blue-600', 'border-blue-600');
+      loginTab.classList.add('text-gray-600');
+      signupForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+    });
+  </script>
+</body>
+</html>
+
