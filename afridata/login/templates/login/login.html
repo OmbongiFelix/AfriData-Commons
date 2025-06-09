@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AfriData - Login / Sign Up</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles/login.css">
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+  <!-- Animated background elements -->
+  <!--<div class="absolute inset-0 overflow-hidden">
+    <div class="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-white opacity-10 pulse-ring"></div>
+    <div class="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-white opacity-5 pulse-ring" style="animation-delay: 1s;"></div>
+  </div> -->
+
+  <div class="glass-effect shadow-2xl rounded-2xl w-full max-w-md p-8 relative z-10">
+    <!-- Logo/Header -->
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+        <i class="fas fa-chart-line text-white text-2xl"></i>
+      </div>
+      <h2 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+        Welcome to AfriData
+      </h2>
+      <p class="text-gray-600 text-sm">Your gateway to African market insights</p>
+    </div>
+
+    <!-- Toggle Tabs -->
+    <div class="flex mb-8 bg-gray-100 rounded-xl p-1">
+      <button id="loginTab" class="flex-1 px-4 py-3 font-semibold rounded-lg transition-all duration-300 tab-active">
+        <i class="fas fa-sign-in-alt mr-2"></i>Login
+      </button>
+      <button id="signupTab" class="flex-1 px-4 py-3 font-semibold text-gray-600 rounded-lg transition-all duration-300">
+        <i class="fas fa-user-plus mr-2"></i>Sign Up
+      </button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="slide-in">
+      <div class="input-group relative mb-6">
+        <input type="email" id="loginEmail" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-blue-500 focus:outline-none peer" required />
+        <label for="loginEmail" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
+          <i class="fas fa-envelope mr-2"></i>Email Address
+        </label>
+      </div>
+
+      <div class="input-group relative mb-6">
+        <input type="password" id="loginPassword" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-blue-500 focus:outline-none peer pr-12" required />
+        <label for="loginPassword" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
+          <i class="fas fa-lock mr-2"></i>Password
+        </label>
+        <button type="button" class="absolute right-3 top-3 text-gray-500 hover:text-gray-700" onclick="togglePassword('loginPassword')">
+          <i class="fas fa-eye" id="loginPasswordEye"></i>
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between mb-6">
+        <label class="flex items-center">
+          <input type="checkbox" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
+          <span class="ml-2 text-sm text-gray-600">Remember me</span>
+        </label>
+        <a href="#" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold btn-hover">
+        <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+      </button>
+
+      <div class="mt-6 text-center">
+        <p class="text-gray-600 mb-4">Or continue with</p>
+        <div class="flex space-x-4">
+          <button type="button" class="flex-1 bg-red-500 text-white py-2 rounded-lg btn-hover">
+            <i class="fab fa-google mr-2"></i>Google
+          </button>
+          <button type="button" class="flex-1 bg-blue-800 text-white py-2 rounded-lg btn-hover">
+            <i class="fab fa-facebook mr-2"></i>Facebook
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Sign Up Form -->
+    <form id="signupForm" class="hidden">
+      <div class="input-group relative mb-6">
+        <input type="text" id="signupName" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" required />
+        <label for="signupName" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
+          <i class="fas fa-user mr-2"></i>Full Name
+        </label>
+      </div>
+
+      <div class="input-group relative mb-6">
+        <input type="email" id="signupEmail" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" required />
+        <label for="signupEmail" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
+          <i class="fas fa-envelope mr-2"></i>Email Address
+        </label>
+      </div>
+
+      <div class="input-group relative mb-4">
+        <input type="password" id="signupPassword" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer pr-12" required />
+        <label for="signupPassword" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
+          <i class="fas fa-lock mr-2"></i>Password
+        </label>
+        <button type="button" class="absolute right-3 top-3 text-gray-500 hover:text-gray-700" onclick="togglePassword('signupPassword')">
+          <i class="fas fa-eye" id="signupPasswordEye"></i>
+        </button>
+      </div>
+
+      <!-- Password Strength Meter -->
+      <div class="mb-6">
+        <div class="flex space-x-1 mb-2">
+          <div class="strength-meter flex-1 bg-gray-200" id="strength1"></div>
+          <div class="strength-meter flex-1 bg-gray-200" id="strength2"></div>
+          <div class="strength-meter flex-1 bg-gray-200" id="strength3"></div>
+          <div class="strength-meter flex-1 bg-gray-200" id="strength4"></div>
+        </div>
+        <p class="text-xs text-gray-500" id="strengthText">Password strength: Weak</p>
+      </div>
+
+      <div class="input-group relative mb-6">
+        <input type="password" id="confirmPassword" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer pr-12" required />
+        <label for="confirmPassword" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
+          <i class="fas fa-lock mr-2"></i>Confirm Password
+        </label>
+        <div class="absolute right-3 top-3" id="passwordMatch">
+          <i class="fas fa-times text-red-500 hidden" id="noMatch"></i>
+          <i class="fas fa-check text-green-500 hidden" id="match"></i>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <label class="flex items-start">
+          <input type="checkbox" class="mt-1 rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200" required>
+          <span class="ml-2 text-sm text-gray-600">
+            I agree to the <a href="#" class="text-green-600 hover:text-green-800">Terms of Service</a> and 
+            <a href="#" class="text-green-600 hover:text-green-800">Privacy Policy</a>
+          </span>
+        </label>
+      </div>
+
+      <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 rounded-xl font-semibold btn-hover">
+        <i class="fas fa-user-plus mr-2"></i>Create Account
+      </button>
+
+      <div class="mt-6 text-center">
+        <p class="text-gray-600 mb-4">Or sign up with</p>
+        <div class="flex space-x-4">
+          <button type="button" class="flex-1 bg-red-500 text-white py-2 rounded-lg btn-hover">
+            <i class="fab fa-google mr-2"></i>Google
+          </button>
+          <button type="button" class="flex-1 bg-blue-800 text-white py-2 rounded-lg btn-hover">
+            <i class="fab fa-facebook mr-2"></i>Facebook
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Tab switching functionality
+    const loginTab = document.getElementById('loginTab');
+    const signupTab = document.getElementById('signupTab');
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+
+    function switchToLogin() {
+      loginTab.classList.add('tab-active');
+      signupTab.classList.remove('tab-active');
+      signupTab.classList.add('text-gray-600');
+      loginForm.classList.remove('hidden');
+      loginForm.classList.add('slide-in');
+      signupForm.classList.add('hidden');
+    }
+
+    function switchToSignup() {
+      signupTab.classList.add('tab-active');
+      loginTab.classList.remove('tab-active');
+      loginTab.classList.add('text-gray-600');
+      signupForm.classList.remove('hidden');
+      signupForm.classList.add('slide-in');
+      loginForm.classList.add('hidden');
+    }
+
+    loginTab.addEventListener('click', switchToLogin);
+    signupTab.addEventListener('click', switchToSignup);
+
+    // Password visibility toggle
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      const eye = document.getElementById(inputId + 'Eye');
+      
+      if (input.type === 'password') {
+        input.type = 'text';
+        eye.classList.remove('fa-eye');
+        eye.classList.add('fa-eye-slash');
+      } else {
+        input.type = 'password';
+        eye.classList.remove('fa-eye-slash');
+        eye.classList.add('fa-eye');
+      }
+    }
+
+    // Password strength checker
+    const signupPassword = document.getElementById('signupPassword');
+    const strengthBars = [
+      document.getElementById('strength1'),
+      document.getElementById('strength2'),
+      document.getElementById('strength3'),
+      document.getElementById('strength4')
+    ];
+    const strengthText = document.getElementById('strengthText');
+
+    function checkPasswordStrength(password) {
+      let strength = 0;
+      const checks = [
+        password.length >= 8,
+        /[a-z]/.test(password),
+        /[A-Z]/.test(password),
+        /[0-9]/.test(password),
+        /[^A-Za-z0-9]/.test(password)
+      ];
+      
+      strength = checks.filter(Boolean).length;
+      
+      // Reset all bars
+      strengthBars.forEach(bar => {
+        bar.className = 'strength-meter flex-1 bg-gray-200';
+      });
+      
+      // Color bars based on strength
+      const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
+      const labels = ['Very Weak', 'Weak', 'Good', 'Strong', 'Very Strong'];
+      
+      for (let i = 0; i < Math.min(strength, 4); i++) {
+        strengthBars[i].classList.remove('bg-gray-200');
+        strengthBars[i].classList.add(colors[Math.min(strength - 1, 3)]);
+      }
+      
+      strengthText.textContent = `Password strength: ${labels[Math.min(strength, 4)]}`;
+    }
+
+    signupPassword.addEventListener('input', (e) => {
+      checkPasswordStrength(e.target.value);
+    });
+
+    // Password confirmation checker
+    const confirmPassword = document.getElementById('confirmPassword');
+    const noMatch = document.getElementById('noMatch');
+    const match = document.getElementById('match');
+
+    function checkPasswordMatch() {
+      const password = signupPassword.value;
+      const confirm = confirmPassword.value;
+      
+      if (confirm === '') {
+        noMatch.classList.add('hidden');
+        match.classList.add('hidden');
+        return;
+      }
+      
+      if (password === confirm) {
+        noMatch.classList.add('hidden');
+        match.classList.remove('hidden');
+      } else {
+        match.classList.add('hidden');
+        noMatch.classList.remove('hidden');
+      }
+    }
+
+    confirmPassword.addEventListener('input', checkPasswordMatch);
+    signupPassword.addEventListener('input', checkPasswordMatch);
+
+    // Form submissions
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      alert('Login form submitted! (Demo)');
+    });
+
+    signupForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const password = signupPassword.value;
+      const confirm = confirmPassword.value;
+      
+      if (password !== confirm) {
+        alert('Passwords do not match!');
+        return;
+      }
+      
+      alert('Sign up form submitted! (Demo)');
+    });
+
+    // Floating label animations are handled by CSS
+    // Input focus effects are handled by CSS
+  </script>
+</body>
+</html>
