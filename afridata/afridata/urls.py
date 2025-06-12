@@ -21,7 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('home.urls')),
     path('api/', include('api.urls', namespace = 'api')),
-    path('login/', include('login.urls')),
+    path('accounts/', include('accounts.urls')),
     path('dataset/', include('dataset.urls')),
     path('user/', include('user.urls')),
     path('community/', include('community.urls')),

@@ -44,14 +44,14 @@ def login_signup_page(request):
     context = {
         'page_title': 'Login / Sign Up'
     }
-    return render(request, 'accounts/login_signup.html', context)
+    return render(request, 'login/login.html', context)
 
 
 
 @csrf_protect
 @require_http_methods(["POST"])
 def authenticate_login(request):
-    """Authenticate user login"""
+    """ Handles user authentication with security logging || Authenticate user login"""
     email = request.POST.get('email', '').strip().lower()
     password = request.POST.get('password', '')
     remember_me = request.POST.get('remember_me', False)
@@ -154,7 +154,7 @@ def process_signup(request):
         if not full_name:
             errors.append('Full name is required.')
         elif len(full_name) < 2:
-            errors.append('Full name must
+            errors.append('Full name must be at least 2 characters long.')
         if not username:
             errors.append('Username is required.')
         elif len(username) < 3:
@@ -218,7 +218,7 @@ def process_signup(request):
 
 
 
-@login_required be at least 2 characters long.')
+@login_required
         
 def home_page(request):
     """Render authenticated user's home page"""
@@ -249,7 +249,7 @@ def logout_user(request):
 
 @login_required
 def profile_view(request):
-    """View user profile"""
+    """Displays user profile"""
     user = request.user
     try:
         profile = user.profile

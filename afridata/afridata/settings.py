@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     #my_apps
     'home',
     'dataset',
-    'login',
+    'accounts',
     'user',
     'community',
     'api',
