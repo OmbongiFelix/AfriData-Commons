@@ -14,17 +14,9 @@ import re
 from django.shortcuts import render
 from django.http import HttpResponse
 
-def render_login_page(request):
-    """
-    Basic view that renders a template
-    
-    context = {
-        'title': 'My Page',
-        'message': 'Hello from Django!',
-        'user': request.user if request.user.is_authenticated else None,
-    }"""
-    
-    return render(request, 'login/login.html') 
+def terms(request):
+    """Render the terms and conditions page"""
+    return render(request, 'accounts/terms.html')
 
 def get_client_ip(request):
     """Get client IP address"""
@@ -44,7 +36,7 @@ def login_signup_page(request):
     context = {
         'page_title': 'Login / Sign Up'
     }
-    return render(request, 'login/login.html', context)
+    return render(request, 'accounts/login.html', context)
 
 
 
@@ -278,4 +270,4 @@ def check_username_exists(request):
         username = request.GET.get('username', '').strip().lower()
         exists = CustomUser.objects.filter(username=username).exists()
         return JsonResponse({'exists': exists})
-    return JsonResponse({'error': 'Invalid request'})
+    return JsonResponse({'error': 'Invalid request'})   

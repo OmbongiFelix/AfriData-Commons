@@ -8,7 +8,7 @@
   <title>AfriData - Login / Sign Up</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'login/css/login.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/login.css' %}">
 </head>
 <body class="gradient-bg min-h-screen flex items-center justify-center p-4">
   <!-- Animated background elements -->
@@ -40,16 +40,17 @@
     </div>
 
     <!-- Login Form -->
-    <form id="loginForm" class="slide-in">
+    <form id="loginForm" method="POST" action="{% url 'authenticate_login' %}" class="slide-in">
+      {% csrf_token %}
       <div class="input-group relative mb-6">
-        <input type="email" id="loginEmail" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-blue-500 focus:outline-none peer" required />
+        <input type="email" name="email" id="loginEmail" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-blue-500 focus:outline-none peer" required />
         <label for="loginEmail" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
           <i class="fas fa-envelope mr-2"></i>Email Address
         </label>
       </div>
 
       <div class="input-group relative mb-6">
-        <input type="password" id="loginPassword" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-blue-500 focus:outline-none peer pr-12" required />
+        <input type="password" name="password" id="loginPassword" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-blue-500 focus:outline-none peer pr-12" required />
         <label for="loginPassword" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
           <i class="fas fa-lock mr-2"></i>Password
         </label>
@@ -60,7 +61,7 @@
 
       <div class="flex items-center justify-between mb-6">
         <label class="flex items-center">
-          <input type="checkbox" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
+          <input type="checkbox" name="remember_me" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
           <span class="ml-2 text-sm text-gray-600">Remember me</span>
         </label>
         <a href="#" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">Forgot password?</a>
@@ -84,23 +85,24 @@
     </form>
 
     <!-- Sign Up Form -->
-    <form id="signupForm" class="hidden">
+    <form id="signupForm" method="POST" action="{% url 'process_signup' %}" class="hidden">
+      {% csrf_token %}
       <div class="input-group relative mb-6">
-        <input type="text" id="signupName" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" required />
+        <input type="text" name="full_name" id="signupName" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" required />
         <label for="signupName" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
           <i class="fas fa-user mr-2"></i>Full Name
         </label>
       </div>
 
       <div class="input-group relative mb-6">
-        <input type="email" id="signupEmail" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" required />
+        <input type="email" name="email" id="signupEmail" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" required />
         <label for="signupEmail" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
           <i class="fas fa-envelope mr-2"></i>Email Address
         </label>
       </div>
 
       <div class="input-group relative mb-4">
-        <input type="password" id="signupPassword" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer pr-12" required />
+        <input type="password" name="password" id="signupPassword" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer pr-12" required />
         <label for="signupPassword" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
           <i class="fas fa-lock mr-2"></i>Password
         </label>
@@ -121,7 +123,7 @@
       </div>
 
       <div class="input-group relative mb-6">
-        <input type="password" id="confirmPassword" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer pr-12" required />
+        <input type="password" name="confirm_password" id="confirmPassword" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer pr-12" required />
         <label for="confirmPassword" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
           <i class="fas fa-lock mr-2"></i>Confirm Password
         </label>
@@ -133,9 +135,9 @@
 
       <div class="mb-6">
         <label class="flex items-start">
-          <input type="checkbox" class="mt-1 rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200" required>
+          <input type="checkbox" name="terms" class="mt-1 rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200" required>
           <span class="ml-2 text-sm text-gray-600">
-            I agree to the <a href="#" class="text-green-600 hover:text-green-800">Terms of Service</a> and 
+            I agree to the <a href="{% url 'terms' %}" class="text-green-600 hover:text-green-800">Terms of Service</a> and 
             <a href="#" class="text-green-600 hover:text-green-800">Privacy Policy</a>
           </span>
         </label>
@@ -186,6 +188,16 @@
 
     loginTab.addEventListener('click', switchToLogin);
     signupTab.addEventListener('click', switchToSignup);
+
+
+    //Add this block to trigger signup tab based on URL
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('signup') === 'true') {
+       switchToSignup();
+      }
+    });
+
 
     // Password visibility toggle
     function togglePassword(inputId) {
@@ -275,21 +287,22 @@
 
     // Form submissions
     loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      alert('Login form submitted! (Demo)');
+      // e.preventDefault();
+      // alert('Login form submitted! (Demo)');
     });
 
     signupForm.addEventListener('submit', (e) => {
-      e.preventDefault();
+      // e.preventDefault();
       const password = signupPassword.value;
       const confirm = confirmPassword.value;
       
       if (password !== confirm) {
+        e.preventDefault();
         alert('Passwords do not match!');
         return;
       }
       
-      alert('Sign up form submitted! (Demo)');
+      // alert('Sign up form submitted! (Demo)');
     });
 
     // Floating label animations are handled by CSS
