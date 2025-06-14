@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+#defining a custom user model instead of default auth.User
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 from pathlib import Path
 
