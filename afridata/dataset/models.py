@@ -1,6 +1,7 @@
 # dataset/models.py
 from django.db import models
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User    //since i have a custom user model
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Dataset(models.Model):
@@ -10,7 +11,7 @@ class Dataset(models.Model):
     ]
     
     title = models.CharField(max_length=255)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='datasets')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='authored_datasets')
     file = models.FileField(upload_to='datasets/')
     dataset_type = models.CharField(max_length=10, choices=DATASET_TYPES)
     bio = models.TextField()
@@ -30,7 +31,7 @@ class Dataset(models.Model):
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name='comments')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='authored_comments')
     content = models.TextField()
     upvotes = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
