@@ -18,6 +18,12 @@ def terms(request):
     """Render the terms and conditions page"""
     return render(request, 'accounts/terms.html')
 
+
+def privacy_policy(request):
+    """Render the terms and conditions page"""
+    return render(request, 'accounts/privacy_policy.html')
+
+
 def get_client_ip(request):
     """Get client IP address"""
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
