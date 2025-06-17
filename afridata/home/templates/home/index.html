@@ -51,7 +51,7 @@
           <a href="{% url 'dataset_page' %}" class="hover:text-yellow-300 transition-colors">Datasets</a>
           <a href="{% url 'community' %}" class="hover:text-yellow-300 transition-colors">Community</a>
           <a href="{% url 'api:api_request' %}" class="hover:text-yellow-300 transition-colors">API</a>
-          <a href="{% url 'login_signup' %}" class="hover:text-yellow-300 transition-colors">Login</a>
+          <a href="{% url 'login_signup' %}?next=/" class="hover:text-yellow-300 transition-colors">Login</a>
           <a href="{% url 'login_signup' %}?signup=true">
             <button class="bg-yellow-400 text-gray-900 px-6 py-2 rounded-full font-medium hover:bg-yellow-300 transition-colors">Sign Up Free</button>
           </a>
@@ -379,8 +379,8 @@
     
         
 
-    <!--footer-->
-    <!-- Enhanced Footer -->
+  <!--footer-->
+  <!-- Enhanced Footer -->
   <footer class="footer-gradient text-white relative overflow-hidden">
     <!-- Floating Particles -->
     <div class="floating-particles">
