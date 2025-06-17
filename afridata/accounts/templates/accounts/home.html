@@ -35,8 +35,8 @@
                         <span class="text-gray-700 font-medium">John Doe</span>
                     </div>
                     <a href="{% url 'user_profile' %}" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Profile</a>
-                    <a href="{% url 'logout' %}" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Settings</a>
-                    <a href="#" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Logout</a>
+                    <a href="#" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Settings</a>
+                    <a href="{% url 'logout' %}" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Logout</a>
                 </div>
             </nav>
         </div>
@@ -55,10 +55,10 @@
                 </div>
                 
                 <nav class="hidden md:flex items-center space-x-6">
-                    <a href="#" class="hover:text-yellow-300 transition-colors">Home</a>
-                    <a href="#" class="hover:text-yellow-300 transition-colors">Datasets</a>
-                    <a href="#" class="hover:text-yellow-300 transition-colors">Community</a>
-                    <a href="#" class="hover:text-yellow-300 transition-colors">API</a>
+                    <a href="{% url 'home' %}" class="hover:text-yellow-300 transition-colors">Home</a>
+                    <a href="{% url 'dataset_page' %}" class="hover:text-yellow-300 transition-colors">Datasets</a>
+                    <a href="{% url 'community' %}" class="hover:text-yellow-300 transition-colors">Community</a>
+                    <a href="{% url 'api:api_request' %}" class="hover:text-yellow-300 transition-colors">API</a>
                     
                     <!-- User Profile Dropdown -->
                     <div class="relative">
@@ -72,7 +72,7 @@
                         
                         <!-- Dropdown Menu -->
                         <div id="userDropdown" class="user-dropdown absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
-                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                            <a href="{% url 'user_profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-user mr-2"></i>Profile
                             </a>
                             <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
@@ -82,7 +82,7 @@
                                 <i class="fas fa-chart-bar mr-2"></i>Dashboard
                             </a>
                             <div class="border-t my-1"></div>
-                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-sign-out-alt mr-2"></i>Logout
                             </a>
                         </div>
@@ -568,8 +568,8 @@
           </div>
           
           <div class="flex flex-wrap items-center space-x-6 text-sm">
-            <a href="#" class="footer-link text-gray-400">Privacy Policy</a>
-            <a href="#" class="footer-link text-gray-400">Terms of Service</a>
+            <a href="{% url 'privacy_policy'%}" class="footer-link text-gray-400">Privacy Policy</a>
+            <a href="{% url 'terms'%}" class="footer-link text-gray-400">Terms of Service</a>
             <a href="#" class="footer-link text-gray-400">Data License</a>
             <a href="#" class="footer-link text-gray-400">Contact</a>
           </div>
