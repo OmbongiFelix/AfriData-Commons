@@ -13,6 +13,10 @@ from .models import CustomUser, UserProfile, LoginAttempt
 import re
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.urls import reverse
+import logging
+from django.utils.http import url_has_allowed_host_and_scheme
+
 
 def terms(request):
     """Render the terms and conditions page"""
@@ -50,13 +54,31 @@ def login_signup_page(request):
 @require_http_methods(["POST"])
 def authenticate_login(request):
     """ Handles user authentication with security logging || Authenticate user login"""
+
+    # Add debug logging to see what's happening
+    logger = logging.getLogger(__name__)
+
+    #Get form data
     email = request.POST.get('email', '').strip().lower()
     password = request.POST.get('password', '')
     remember_me = request.POST.get('remember_me', False)
+
+    # DEBUG: Log all form data (remove password from logs in production)
+    logger.debug(f"=== LOGIN ATTEMPT DEBUG ===")
+    logger.debug(f"Email received: '{email}'")
+    logger.debug(f"Password received: {'*' * len(password) if password else 'EMPTY'}")
+    logger.debug(f"Remember me: {remember_me}")
+    logger.debug(f"POST data keys: {list(request.POST.keys())}")
+    
     
     # Get client info for logging
     ip_address = get_client_ip(request)
-    user_agent = request.META.get('HTTP_USER_AGENT', '')
+    user_agent = request.META.get('HTTP_USER_AGENT', '')  #Browser and OS info 
+
+    # Debug: Check what 'next' values we're getting
+    next_post = request.POST.get('next')
+    next_get = request.GET.get('next')
+    logger.debug(f"Next from POST: {next_post}, Next from GET: {next_get}")
     
     if not email or not password:
         messages.error(request, 'Email and password are required.')
@@ -95,23 +117,39 @@ def authenticate_login(request):
             
             messages.success(request, f'Welcome back, {user.get_short_name()}!')
             
-            # Redirect to next page or home
+            # FIXED: Better handling of next page redirect
             next_page = request.POST.get('next') or request.GET.get('next')
+
+
+            # Debug logging
+            logger.debug(f"Attempting redirect. Next page: {next_page}")
+            
             if next_page:
-                return redirect(next_page)
+                # Validate the next_page URL for security
+                if url_has_allowed_host_and_scheme(next_page, allowed_hosts={request.get_host()}):
+                    logger.debug(f"Redirecting to next page: {next_page}")
+                    return redirect(next_page)
+                else:
+                    logger.warning(f"Invalid next page URL: {next_page}")
+            
+            # Default redirect to home
+            logger.debug("Redirecting to home page")
             return redirect('home')
         else:
             messages.error(request, 'Your account is deactivated. Please contact support.')
     else:
         messages.error(request, 'Invalid email or password.')
         
-    # Log failed attempt
+    # Log failed attempt(for both inactive users and invalid credentials)
     LoginAttempt.objects.create(
         email=email,
         ip_address=ip_address,
         success=False,
         user_agent=user_agent
     )
+
+    # Debug: Confirm we're redirecting due to failed login
+    logger.debug(f"Login failed for {email}, redirecting to login page")
     
     return redirect('login_signup')
 
@@ -121,6 +159,7 @@ def authenticate_login(request):
 @require_http_methods(["POST"])
 def process_signup(request):
     """Process user signup and store data in backend"""
+    next_url = request.GET.get('next', '/')  # default to homepage if not provided
     try:
         # Get form data
         email = request.POST.get('email', '').strip().lower()
@@ -171,7 +210,7 @@ def process_signup(request):
         if errors:
             for error in errors:
                 messages.error(request, error)
-            return redirect('login_signup')
+            return redirect(f"{reverse('login_signup')}?next={next_url}")
         
         # Create user with transaction
         with transaction.atomic():
@@ -201,7 +240,7 @@ def process_signup(request):
             login(request, user)
             
             messages.success(request, f'Welcome to our platform, {user.get_short_name()}! Your account has been created successfully.')
-            return redirect('home')
+            return redirect(next_url)  # Go to next page
             
     except Exception as e:
         messages.error(request, 'An error occurred during signup. Please try again.')
@@ -212,7 +251,7 @@ def process_signup(request):
             success=False,
             user_agent=request.META.get('HTTP_USER_AGENT', '')
         )
-        return redirect('login_signup')
+        return redirect(f"{reverse('login_signup')}?next={next_url}")
 
 
 
