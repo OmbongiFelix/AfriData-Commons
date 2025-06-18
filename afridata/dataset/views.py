@@ -173,16 +173,92 @@ def upvote_comment(request, comment_id):
     return redirect('dataset_comments', dataset_id=comment.dataset.id)
 
 
-
-def render_dataset(request):
+def render_dataset(request, dataset_id=None):
     """
-    Basic view that renders a template
+    Dynamic view that renders dataset page with full functionality
+    """
+    dataset = None
+    preview_data = []
+    columns = []
+    comments = []
+    related_datasets = []
+    graph_data = None
+    error_message = None
+    
+    if dataset_id:
+        try:
+            dataset = get_object_or_404(Dataset, id=dataset_id)
+            
+            # Increment view count
+            dataset.views += 1
+            dataset.save(update_fields=['views'])
+            
+            # Get preview data (first 5 rows)
+            try:
+                file_content = dataset.file.read()
+                
+                if dataset.dataset_type == 'csv':
+                    df = pd.read_csv(io.BytesIO(file_content))
+                elif dataset.dataset_type == 'excel':
+                    df = pd.read_excel(io.BytesIO(file_content))
+                
+                if not df.empty:
+                    preview_data = df.head(5).to_dict('records')
+                    columns = df.columns.tolist()
+                    
+                    # Generate simple graph data for numerical columns
+                    numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+                    if numeric_columns and len(df) > 1:
+                        # Create a simple line chart with first numeric column
+                        first_numeric = numeric_columns[0]
+                        if len(df) <= 20:  # Only for small datasets
+                            graph_data = {
+                                'chart_type': 'line',
+                                'labels': [str(i+1) for i in range(len(df))],
+                                'datasets': [{
+                                    'label': first_numeric,
+                                    'data': df[first_numeric].fillna(0).tolist(),
+                                    'borderColor': '#3b82f6',
+                                    'backgroundColor': 'rgba(59, 130, 246, 0.1)',
+                                    'fill': True
+                                }]
+                            }
+                            
+            except Exception as e:
+                error_message = f"Error reading file: {str(e)}"
+            
+            # Get recent comments (top 5)
+            top_comments = Comment.objects.filter(dataset=dataset).select_related('author').order_by('-upvotes', '-created_at')[:5]
+            comments = [{
+                'id': comment.id,
+                'content': comment.content,
+                'upvotes': comment.upvotes,
+                'author_name': comment.author.get_full_name() or comment.author.username,
+                'created_at': comment.created_at,
+            } for comment in top_comments]
+            
+            # Get related datasets (same topics, different dataset)
+            if dataset.topics:
+                topics_list = dataset.get_topics_list()
+                if topics_list:
+                    # Find datasets with similar topics
+                    related_datasets = Dataset.objects.exclude(id=dataset.id).filter(
+                        topics__icontains=topics_list[0]
+                    )[:3]
+        
+        except Exception as e:
+            error_message = f"Dataset not found: {str(e)}"
     
     context = {
-        'title': 'My Page',
-        'message': 'Hello from Django!',
-        'user': request.user if request.user.is_authenticated else None,
-    }"""
+        'dataset': dataset,
+        'author_name': dataset.author.get_full_name() or dataset.author.username if dataset else None,
+        'topics': dataset.get_topics_list() if dataset else [],
+        'preview_data': preview_data,
+        'columns': columns,
+        'comments': comments,
+        'related_datasets': related_datasets,
+        'graph_data': graph_data,
+        'error_message': error_message,
+    }
     
-    return render(request, 'dataset/dataset_page.html') 
-
+    return render(request, 'dataset/dataset_page.html', context)
