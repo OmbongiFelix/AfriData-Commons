@@ -30,7 +30,7 @@ def dataset_list(request):
     context = {
         'datasets': dataset_data
     }
-    return render(request, 'datasets/dataset_list.html', context)
+    return render(request, 'dataset/dataset_list.html', context)
 
 def dataset_detail(request, dataset_id):
     """View to display dataset details and bio"""
