@@ -6,7 +6,7 @@ app_name = 'home'
 
 urlpatterns = [
     # Homepage
-    path('', views.home, name='home'),
+    path('', views.default_home, name='default_home'),
     
     # API endpoints for dataset operations
     path('api/search/', views.search_datasets, name='search_datasets'),

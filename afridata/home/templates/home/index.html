@@ -24,12 +24,12 @@
         <button onclick="toggleMobileMenu()" class="text-gray-500">✕</button>
       </div>
       <nav class="space-y-4">
-        <a href="#" class="block py-2 text-gray-700 hover:text-blue-600">Home</a>
-        <a href="#" class="block py-2 text-gray-700 hover:text-blue-600">Datasets</a>
+        <a href="{%url 'home:default_home'%}" class="block py-2 text-gray-700 hover:text-blue-600">Home</a>
+        <a href="{% url 'dataset_list' %}" class="block py-2 text-gray-700 hover:text-blue-600">Datasets</a>
         <!--<a href="#" class="block py-2 text-gray-700 hover:text-blue-600">Analytics</a> -->
-        <a href="#" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
-        <a href="#" class="block py-2 text-gray-700 hover:text-blue-600">API</a>
-        <a href="" class="block py-2 text-gray-700 hover:text-blue-600">Login</a>
+        <a href="{%url 'community'%}" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
+        <a href="{% url 'api:api_request' %}" class="block py-2 text-gray-700 hover:text-blue-600">API</a>
+        <a href="{%url 'login_signup'%}" class="block py-2 text-gray-700 hover:text-blue-600">Login</a>
         <button class="w-full bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-yellow-300 transition-colors">Sign Up Free</button>
       </nav>
     </div>
@@ -47,8 +47,8 @@
           <h1 class="text-2xl font-bold">AfriData</h1>
         </div>
         <nav class="hidden md:flex space-x-6">
-          <a href="{%url 'home'%}" class="hover:text-yellow-300 transition-colors">Home</a>
-          <a href="{% url 'dataset_page' %}" class="hover:text-yellow-300 transition-colors">Datasets</a>
+          <a href="{%url 'home:default_home'%}" class="hover:text-yellow-300 transition-colors">Home</a>
+          <a href="{% url 'dataset_list' %}" class="hover:text-yellow-300 transition-colors">Datasets</a>
           <a href="{% url 'community' %}" class="hover:text-yellow-300 transition-colors">Community</a>
           <a href="{% url 'api:api_request' %}" class="hover:text-yellow-300 transition-colors">API</a>
           <a href="{% url 'login_signup' %}?next=/" class="hover:text-yellow-300 transition-colors">Login</a>

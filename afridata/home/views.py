@@ -9,7 +9,7 @@ from django.http import HttpResponse
 import json
 
 
-def home(request):
+def default_home(request):
     """Default homepage view"""
     return render(request, 'home/index.html')
 
