@@ -1,0 +1,358 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AfriData{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'accounts/css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-blue-50 text-gray-900">
+    <!-- Mobile Menu Overlay -->
+    <div id="mobileMenu" class="mobile-menu fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-50 lg:hidden">
+        <div class="p-4">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-2">
+                    <span class="fas fa-database text-blue-600"></span>
+                    <span class="font-bold">AfriData</span>
+                </div>
+                <button onclick="toggleMobileMenu()" class="text-gray-500">✕</button>
+            </div>
+            <nav class="space-y-4">
+                <a href="{% url 'home' %}" class="block py-2 text-gray-700 hover:text-blue-600">Home</a>
+                <a href="{% url 'dataset_list' %}" class="block py-2 text-gray-700 hover:text-blue-600">Datasets</a>
+                <a href="{% url 'community' %}" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
+                <a href="{% url 'api:api_request' %}" class="block py-2 text-gray-700 hover:text-blue-600">API</a>
+                
+                {% if user.is_authenticated %}
+                <div class="border-t pt-4 mt-4">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                            {{ user.first_name.0|default:user.username.0|upper }}{{ user.last_name.0|default:""|upper }}
+                        </div>
+                        <span class="text-gray-700 font-medium">{{ user.get_full_name|default:user.username }}</span>
+                    </div>
+                    <a href="{% url 'user_profile' %}" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Profile</a>
+                    <a href="#" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Settings</a>
+                    <a href="{% url 'logout' %}" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Logout</a>
+                </div>
+                {% else %}
+                <div class="border-t pt-4 mt-4">
+                    <a href="{% url 'login' %}" class="block py-2 text-gray-700 hover:text-blue-600">Login</a>
+                    <a href="{% url 'signup' %}" class="block py-2 text-gray-700 hover:text-blue-600">Sign Up</a>
+                </div>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="{% block header_class %}gradient-bg{% endblock %} text-white py-4 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-10"></div>
+        <div class="relative z-10">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <span class="text-2xl">🌍</span>
+                    </div>
+                    <a href="{% url 'home' %}" class="text-2xl font-bold hover:text-yellow-300 transition-colors">AfriData</a>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">Home</a>
+                    <a href="{% url 'dataset_list' %}" class="{% if 'dataset' in request.resolver_match.url_name %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">Datasets</a>
+                    <a href="{% url 'community' %}" class="{% if request.resolver_match.url_name == 'community' %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">Community</a>
+                    <a href="{% url 'api:api_request' %}" class="{% if 'api' in request.resolver_match.url_name %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">API</a>
+                    
+                    {% if user.is_authenticated %}
+                    <!-- User Profile Dropdown -->
+                    <div class="relative">
+                        <button onclick="toggleUserDropdown()" class="flex items-center space-x-2 hover:text-yellow-300 transition-colors">
+                            <div class="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-gray-900 text-sm font-medium">
+                                {{ user.first_name.0|default:user.username.0|upper }}{{ user.last_name.0|default:""|upper }}
+                            </div>
+                            <span class="hidden lg:block">{{ user.get_full_name|default:user.username }}</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdown" class="user-dropdown absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                            <a href="{% url 'user_profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-user mr-2"></i>Profile
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-cog mr-2"></i>Settings
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chart-bar mr-2"></i>Dashboard
+                            </a>
+                            <div class="border-t my-1"></div>
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Login/Signup Links -->
+                    <a href="{% url 'login' %}" class="hover:text-yellow-300 transition-colors">Login</a>
+                    <a href="{% url 'signup' %}" class="bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors font-medium">Sign Up</a>
+                    {% endif %}
+                </nav>
+                
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden text-white">☰</button>
+            </div>
+            
+            <!-- Page-specific header content -->
+            {% block header_content %}{% endblock %}
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% block footer %}
+    <footer class="footer-gradient text-white relative overflow-hidden">
+        <!-- Floating Particles -->
+        <div class="floating-particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+
+        <div class="relative z-10">
+            <!-- Main Footer Content -->
+            <div class="max-w-7xl mx-auto px-4 py-16">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    
+                    <!-- About Section -->
+                    <div class="footer-section">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fas fa-database text-white"></i>
+                            </div>
+                            <h4 class="text-2xl font-bold">AfriData</h4>
+                        </div>
+                        <p class="text-gray-300 mb-4 leading-relaxed">
+                            Empowering Africa through comprehensive, high-quality datasets for researchers, data scientists, and analysts across the continent.
+                        </p>
+                        <div class="continent-badge mb-4">
+                            🌍 Serving 54 African Countries
+                        </div>
+                        
+                        <!-- Data Stats -->
+                        <div class="data-stats">
+                            <div class="text-2xl font-bold text-blue-400">10,000+</div>
+                            <div class="text-sm text-gray-400">Active Datasets</div>
+                        </div>
+                    </div>
+
+                    <!-- Resources Section -->
+                    <div class="footer-section">
+                        <h4 class="text-xl font-bold mb-6 flex items-center">
+                            <i class="fas fa-book-open mr-2 text-blue-400"></i>
+                            Resources
+                        </h4>
+                        <ul class="space-y-3">
+                            <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                                <i class="fas fa-file-alt mr-2 text-sm"></i>Documentation
+                            </a></li>
+                            <li><a href="{% url 'api:api_request' %}" class="footer-link text-gray-300 flex items-center">
+                                <i class="fas fa-code mr-2 text-sm"></i>API Access
+                            </a></li>
+                            <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                                <i class="fas fa-chart-bar mr-2 text-sm"></i>Data Standards
+                            </a></li>
+                            <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                                <i class="fas fa-graduation-cap mr-2 text-sm"></i>Tutorials
+                            </a></li>
+                            <li><a href="{% url 'dataset_page' %}" class="footer-link text-gray-300 flex items-center">
+                                <i class="fas fa-download mr-2 text-sm"></i>Data Catalog
+                            </a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Community Section -->
+                    <div class="footer-section">
+                        <h4 class="text-xl font-bold mb-6 flex items-center">
+                            <i class="fas fa-users mr-2 text-green-400"></i>
+                            Community
+                        </h4>
+                        <ul class="space-y-3">
+                            <li><a href="{% url 'community' %}" class="footer-link text-gray-300 flex items-center">
+                                <i class="fas fa-comments mr-2 text-sm"></i>Discussion Forum
+                            </a></li>
+                            <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                                <i class="fab fa-slack mr-2 text-sm"></i>Slack Workspace
+                            </a></li>
+                            <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                                <i class="fas fa-calendar-alt mr-2 text-sm"></i>Events & Workshops
+                            </a></li>
+                            <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                                <i class="fas fa-hands-helping mr-2 text-sm"></i>Contribute Data
+                            </a></li>
+                            <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                                <i class="fas fa-award mr-2 text-sm"></i>Recognition Program
+                            </a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Newsletter & Social Section -->
+                    <div class="footer-section">
+                        <h4 class="text-xl font-bold mb-6 flex items-center">
+                            <i class="fas fa-envelope mr-2 text-purple-400"></i>
+                            Stay Connected
+                        </h4>
+                        
+                        <!-- Newsletter Signup -->
+                        <div class="mb-6">
+                            <p class="text-gray-300 text-sm mb-4">Get weekly updates on new datasets and features</p>
+                            <div class="space-y-3">
+                                <input 
+                                    type="email" 
+                                    id="newsletterEmail"
+                                    placeholder="Enter your email address" 
+                                    class="newsletter-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-400 focus:outline-none"
+                                />
+                                <button 
+                                    onclick="subscribeNewsletter()"
+                                    class="subscribe-btn w-full px-4 py-3 rounded-lg font-semibold text-white focus:outline-none relative"
+                                >
+                                    <i class="fas fa-paper-plane mr-2"></i>
+                                    Subscribe to Updates
+                                </button>
+                                <div id="successMessage" class="success-message">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Successfully subscribed! Welcome to AfriData community.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Social Media -->
+                        <div>
+                            <p class="text-gray-300 text-sm mb-4">Follow us on social media</p>
+                            <div class="flex space-x-3">
+                                <a href="#" class="social-icon rounded-lg flex items-center justify-center">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                <a href="#" class="social-icon rounded-lg flex items-center justify-center">
+                                    <i class="fab fa-linkedin"></i>
+                                </a>
+                                <a href="#" class="social-icon rounded-lg flex items-center justify-center">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                                <a href="#" class="social-icon rounded-lg flex items-center justify-center">
+                                    <i class="fab fa-youtube"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Divider -->
+                <div class="footer-divider"></div>
+
+                <!-- Bottom Section -->
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="text-center md:text-left mb-4 md:mb-0">
+                        <p class="text-gray-400 text-sm">
+                            © 2025 AfriData. Empowering Africa through data.
+                        </p>
+                        <p class="text-gray-500 text-xs mt-1">
+                            Built with ❤️ for the African research community
+                        </p>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center space-x-6 text-sm">
+                        <a href="{% url 'privacy_policy' %}" class="footer-link text-gray-400">Privacy Policy</a>
+                        <a href="{% url 'terms' %}" class="footer-link text-gray-400">Terms of Service</a>
+                        <a href="#" class="footer-link text-gray-400">Data License</a>
+                        <a href="#" class="footer-link text-gray-400">Contact</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    {% endblock %}
+
+    <!-- Base JavaScript -->
+    <script>
+        function subscribeNewsletter() {
+            const email = document.getElementById('newsletterEmail').value;
+            const successMessage = document.getElementById('successMessage');
+      
+            if (email && email.includes('@')) {
+                successMessage.style.display = 'block';
+                document.getElementById('newsletterEmail').value = '';
+        
+                // Hide success message after 3 seconds
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            } else {
+                alert('Please enter a valid email address');
+            }
+        }
+
+        // Add enter key support for newsletter signup
+        document.getElementById('newsletterEmail').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                subscribeNewsletter();
+            }
+        });
+
+        // Intersection Observer for animation trigger
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        // Observe footer sections
+        document.querySelectorAll('.footer-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('active');
+        }
+
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = event.target.closest('button');
+            
+            if (!button || !button.onclick || button.onclick.toString().indexOf('toggleUserDropdown') === -1) {
+                dropdown.classList.remove('active');
+            }
+        });
+    </script>
+
+    <!-- Page-specific JavaScript -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

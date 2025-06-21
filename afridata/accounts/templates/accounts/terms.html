@@ -1,45 +1,265 @@
+{% extends 'base.html' %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms and Conditions</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 text-gray-800">
-    <div class="max-w-3xl mx-auto p-6 bg-white shadow-md mt-10 rounded-lg">
-        <h1 class="text-2xl font-bold mb-4">Terms and Conditions</h1>
+{% block title %}Terms and Conditions - AfriData{% endblock %}
 
-        <p class="mb-4">
-            By accessing and using this website, you agree to be bound by these Terms and Conditions. If you do not agree, please do not use the site.
-        </p>
+{% block header_content %}
+<div class="text-center py-8">
+    <h1 class="text-4xl font-bold mb-4">Terms and Conditions</h1>
+    <p class="text-xl opacity-90 max-w-2xl mx-auto">
+        Please read these terms carefully before using our platform
+    </p>
+</div>
+{% endblock %}
 
-        <h2 class="text-xl font-semibold mb-2">1. Use of the Website</h2>
-        <p class="mb-4">
-            You may use the website for personal, non-commercial purposes only. You agree not to misuse the content or functionality provided.
-        </p>
+{% block content %}
+<div class="min-h-screen py-12">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Breadcrumb -->
+        <nav class="mb-8">
+            <ol class="flex items-center space-x-2 text-sm text-gray-500">
+                <li><a href="{% url 'home' %}" class="hover:text-blue-600 transition-colors">Home</a></li>
+                <li><i class="fas fa-chevron-right text-xs"></i></li>
+                <li class="text-gray-700">Terms and Conditions</li>
+            </ol>
+        </nav>
 
-        <h2 class="text-xl font-semibold mb-2">2. Intellectual Property</h2>
-        <p class="mb-4">
-            All content on this website is the property of the company and protected by intellectual property laws. Unauthorized use is prohibited.
-        </p>
+        <!-- Main Content -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="p-8 lg:p-12">
+                <!-- Introduction -->
+                <div class="mb-12">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-file-contract text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">AfriData Terms of Service</h2>
+                            <p class="text-gray-600">Effective Date: June 14, 2025</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
+                        <p class="text-gray-700 leading-relaxed">
+                            By accessing and using AfriData ("the Platform"), you agree to be bound by these Terms and Conditions. 
+                            If you do not agree with any part of these terms, please do not use our platform.
+                        </p>
+                    </div>
+                </div>
 
-        <h2 class="text-xl font-semibold mb-2">3. Changes to Terms</h2>
-        <p class="mb-4">
-            We reserve the right to update these Terms at any time. Continued use of the website indicates your acceptance of the updated Terms.
-        </p>
+                <!-- Terms Sections -->
+                <div class="space-y-12">
+                    <!-- Section 1 -->
+                    <section>
+                        <div class="flex items-start mb-4">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                <span class="text-green-600 font-bold text-sm">1</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">Use of the Platform</h3>
+                                <div class="prose text-gray-700 leading-relaxed space-y-4">
+                                    <p>
+                                        AfriData is designed to provide comprehensive datasets and data services for research, 
+                                        analysis, and educational purposes across Africa. You may use the platform for:
+                                    </p>
+                                    <ul class="list-disc list-inside space-y-2 ml-4">
+                                        <li>Academic and research purposes</li>
+                                        <li>Educational activities and learning</li>
+                                        <li>Data analysis and visualization projects</li>
+                                        <li>Policy research and development</li>
+                                    </ul>
+                                    <p>
+                                        You agree not to misuse the platform by engaging in activities that could harm 
+                                        the service, other users, or violate applicable laws.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-        <h2 class="text-xl font-semibold mb-2">4. Contact Us</h2>
-        <p class="mb-4">
-            If you have any questions about these Terms, please contact us at <a href="mailto:support@example.com" class="text-blue-600 hover:underline">support@example.com</a>.
-        </p>
+                    <!-- Section 2 -->
+                    <section>
+                        <div class="flex items-start mb-4">
+                            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                <span class="text-purple-600 font-bold text-sm">2</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">Data Usage and Licensing</h3>
+                                <div class="prose text-gray-700 leading-relaxed space-y-4">
+                                    <p>
+                                        All datasets provided through AfriData are subject to specific licensing terms. 
+                                        Users must comply with the licensing requirements for each dataset, which may include:
+                                    </p>
+                                    <ul class="list-disc list-inside space-y-2 ml-4">
+                                        <li>Attribution requirements</li>
+                                        <li>Non-commercial use restrictions</li>
+                                        <li>Share-alike provisions</li>
+                                        <li>Geographic or temporal usage limitations</li>
+                                    </ul>
+                                    <p>
+                                        It is your responsibility to review and comply with the specific license 
+                                        associated with each dataset you access or download.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-        <p class="text-sm text-gray-500">Last updated: June 14, 2025</p>
+                    <!-- Section 3 -->
+                    <section>
+                        <div class="flex items-start mb-4">
+                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                <span class="text-orange-600 font-bold text-sm">3</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">User Accounts and Responsibilities</h3>
+                                <div class="prose text-gray-700 leading-relaxed space-y-4">
+                                    <p>
+                                        When creating an account with AfriData, you are responsible for:
+                                    </p>
+                                    <ul class="list-disc list-inside space-y-2 ml-4">
+                                        <li>Providing accurate and current information</li>
+                                        <li>Maintaining the security of your account credentials</li>
+                                        <li>Notifying us of any unauthorized access to your account</li>
+                                        <li>Ensuring your use complies with these terms</li>
+                                    </ul>
+                                    <p>
+                                        You are solely responsible for all activities that occur under your account.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 4 -->
+                    <section>
+                        <div class="flex items-start mb-4">
+                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                <span class="text-red-600 font-bold text-sm">4</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">Prohibited Activities</h3>
+                                <div class="prose text-gray-700 leading-relaxed space-y-4">
+                                    <p>
+                                        You agree not to engage in any of the following prohibited activities:
+                                    </p>
+                                    <ul class="list-disc list-inside space-y-2 ml-4">
+                                        <li>Attempting to gain unauthorized access to our systems</li>
+                                        <li>Distributing malware or harmful code</li>
+                                        <li>Scraping or harvesting data without permission</li>
+                                        <li>Using the platform for illegal or unethical purposes</li>
+                                        <li>Interfering with the platform's functionality</li>
+                                        <li>Violating intellectual property rights</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 5 -->
+                    <section>
+                        <div class="flex items-start mb-4">
+                            <div class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                <span class="text-teal-600 font-bold text-sm">5</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">Privacy and Data Protection</h3>
+                                <div class="prose text-gray-700 leading-relaxed space-y-4">
+                                    <p>
+                                        We are committed to protecting your privacy and personal data. Our data collection 
+                                        and processing practices are governed by our Privacy Policy, which forms an 
+                                        integral part of these terms.
+                                    </p>
+                                    <p>
+                                        For detailed information about how we collect, use, and protect your data, 
+                                        please review our <a href="{% url 'privacy_policy' %}" class="text-blue-600 hover:text-blue-800 underline">Privacy Policy</a>.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 6 -->
+                    <section>
+                        <div class="flex items-start mb-4">
+                            <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                <span class="text-indigo-600 font-bold text-sm">6</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">Limitation of Liability</h3>
+                                <div class="prose text-gray-700 leading-relaxed space-y-4">
+                                    <p>
+                                        AfriData provides datasets and services "as is" without warranties of any kind. 
+                                        We strive to maintain data accuracy and platform availability, but cannot guarantee:
+                                    </p>
+                                    <ul class="list-disc list-inside space-y-2 ml-4">
+                                        <li>Absolute accuracy of all datasets</li>
+                                        <li>Uninterrupted platform availability</li>
+                                        <li>Freedom from errors or omissions</li>
+                                        <li>Fitness for specific purposes</li>
+                                    </ul>
+                                    <p>
+                                        Users assume responsibility for validating data accuracy and suitability for their intended use.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 7 -->
+                    <section>
+                        <div class="flex items-start mb-4">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                <span class="text-yellow-600 font-bold text-sm">7</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">Changes to Terms</h3>
+                                <div class="prose text-gray-700 leading-relaxed space-y-4">
+                                    <p>
+                                        We reserve the right to update these Terms and Conditions at any time to reflect 
+                                        changes in our services, legal requirements, or business practices.
+                                    </p>
+                                    <p>
+                                        When significant changes are made, we will notify users through the platform or 
+                                        via email. Continued use of AfriData after such changes constitutes acceptance 
+                                        of the updated terms.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="mt-16 p-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+                    <div class="flex items-start">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                            <i class="fas fa-envelope text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-3">Questions or Concerns?</h3>
+                            <p class="text-gray-700 mb-4">
+                                If you have any questions about these Terms and Conditions or need clarification 
+                                on any aspect of our service, please don't hesitate to contact us.
+                            </p>
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <a href="mailto:legal@afridata.org" 
+                                   class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-envelope mr-2"></i>
+                                    Contact Legal Team
+                                </a>
+                                <a href="{% url 'community' %}" 
+                                   class="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                                    <i class="fas fa-comments mr-2"></i>
+                                    Community Support
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</body>
-</html>
-
-
+</div>
+{% endblock %}
 
