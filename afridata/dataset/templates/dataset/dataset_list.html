@@ -1,3 +1,291 @@
-<h1>List Of Datasets</h1>
-<p> This page should display a list of datasets</p>
-<p> It should also implement a search functionality</p>
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dataset Library - Browse All Datasets</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Dataset Library</h1>
+          <p class="text-gray-600 mt-1">Discover and explore curated datasets</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="text-sm text-gray-500">{{ datasets|length }} datasets available</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Search and Filter Section -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+      <div class="flex flex-col md:flex-row gap-4">
+        <!-- Search Bar -->
+        <div class="flex-1 relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fas fa-search text-gray-400"></i>
+          </div>
+          <input type="text" id="searchInput" placeholder="Search datasets by title, author, or description..." 
+                 class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </div>
+        
+        <!-- Sort Options -->
+        <div class="flex gap-2">
+          <select id="sortSelect" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="most-downloaded">Most Downloaded</option>
+            <option value="most-viewed">Most Viewed</option>
+            <option value="highest-rated">Highest Rated</option>
+            <option value="title-az">Title A-Z</option>
+            <option value="title-za">Title Z-A</option>
+          </select>
+          
+          <!-- View Toggle -->
+          <div class="flex border border-gray-300 rounded-lg overflow-hidden">
+            <button id="gridView" class="px-4 py-3 bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+              <i class="fas fa-th-large"></i>
+            </button>
+            <button id="listView" class="px-4 py-3 bg-white text-gray-600 hover:bg-gray-50 transition-colors">
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Info -->
+    <div class="flex justify-between items-center mb-6">
+      <p class="text-gray-600">
+        Showing <span id="resultCount">{{ datasets|length }}</span> datasets
+      </p>
+      <div class="text-sm text-gray-500">
+        <span id="noResultsMsg" class="hidden text-orange-600">No datasets found matching your search</span>
+      </div>
+    </div>
+
+    <!-- Dataset Grid/List -->
+    <div id="datasetContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for dataset in datasets %}
+      <div class="dataset-card bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300 border border-gray-200 overflow-hidden cursor-pointer" 
+           data-url="{% url 'dataset_page' dataset.id %}"
+           data-title="{{ dataset.title|lower }}" 
+           data-author="{{ dataset.author_name|lower }}" 
+           data-downloads="{{ dataset.downloads }}" 
+           data-views="{{ dataset.views }}" 
+           data-rating="{{ dataset.rating }}"
+           data-created="{{ dataset.created_at|date:'Y-m-d' }}">
+        
+        <!-- Dataset Header -->
+        <div class="p-6 border-b border-gray-100">
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="text-lg font-semibold text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors">
+              {{ dataset.title }}
+            </h3>
+            <div class="flex items-center text-sm text-yellow-500 ml-2">
+              <i class="fas fa-star"></i>
+              <span class="ml-1 text-gray-600">{{ dataset.rating|floatformat:1 }}</span>
+            </div>
+          </div>
+          
+          <p class="text-gray-600 text-sm mb-4 line-clamp-3">
+            {% if dataset.bio %}{{ dataset.bio|truncatewords:20 }}{% else %}No description available for this dataset.{% endif %}
+          </p>
+          
+          <div class="flex items-center text-sm text-gray-500 mb-4">
+            <i class="fas fa-user text-gray-400 mr-2"></i>
+            <span>{{ dataset.author_name }}</span>
+          </div>
+        </div>
+
+        <!-- Dataset Stats -->
+        <div class="px-6 py-4 bg-gray-50">
+          <div class="flex justify-between items-center text-sm">
+            <div class="flex items-center space-x-4">
+              <div class="flex items-center text-gray-600">
+                <i class="fas fa-download text-blue-500 mr-1"></i>
+                <span>{{ dataset.downloads }}</span>
+              </div>
+              <div class="flex items-center text-gray-600">
+                <i class="fas fa-eye text-green-500 mr-1"></i>
+                <span>{{ dataset.views }}</span>
+              </div>
+            </div>
+            <div class="text-gray-500">
+              {{ dataset.created_at|date:"M j, Y" }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Hover Effect Overlay -->
+        <div class="absolute inset-0 bg-blue-600 bg-opacity-0 hover:bg-opacity-5 transition-all duration-300 pointer-events-none"></div>
+      </div>
+      {% empty %}
+      <div class="col-span-full text-center py-12">
+        <div class="text-gray-400 mb-4">
+          <i class="fas fa-database text-6xl"></i>
+        </div>
+        <h3 class="text-xl font-medium text-gray-900 mb-2">No Datasets Available</h3>
+        <p class="text-gray-600">There are currently no datasets in the library.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Load More Button (for future pagination) -->
+    {% if datasets|length > 12 %}
+    <div class="text-center mt-12">
+      <button class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+        Load More Datasets
+      </button>
+    </div>
+    {% endif %}
+  </main>
+
+  <!-- Scripts -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('searchInput');
+      const sortSelect = document.getElementById('sortSelect');
+      const datasetContainer = document.getElementById('datasetContainer');
+      const resultCount = document.getElementById('resultCount');
+      const noResultsMsg = document.getElementById('noResultsMsg');
+      const gridViewBtn = document.getElementById('gridView');
+      const listViewBtn = document.getElementById('listView');
+      
+      let allDatasets = Array.from(document.querySelectorAll('.dataset-card'));
+      let currentView = 'grid';
+
+      // Search functionality
+      function filterDatasets() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const sortValue = sortSelect.value;
+        
+        let filteredDatasets = allDatasets.filter(card => {
+          const title = card.dataset.title;
+          const author = card.dataset.author;
+          return title.includes(searchTerm) || author.includes(searchTerm);
+        });
+
+        // Sort datasets
+        filteredDatasets.sort((a, b) => {
+          switch(sortValue) {
+            case 'newest':
+              return new Date(b.dataset.created) - new Date(a.dataset.created);
+            case 'oldest':
+              return new Date(a.dataset.created) - new Date(b.dataset.created);
+            case 'most-downloaded':
+              return parseInt(b.dataset.downloads) - parseInt(a.dataset.downloads);
+            case 'most-viewed':
+              return parseInt(b.dataset.views) - parseInt(a.dataset.views);
+            case 'highest-rated':
+              return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
+            case 'title-az':
+              return a.dataset.title.localeCompare(b.dataset.title);
+            case 'title-za':
+              return b.dataset.title.localeCompare(a.dataset.title);
+            default:
+              return 0;
+          }
+        });
+
+        // Update display
+        allDatasets.forEach(card => card.style.display = 'none');
+        filteredDatasets.forEach(card => card.style.display = 'block');
+        
+        // Update result count
+        resultCount.textContent = filteredDatasets.length;
+        
+        // Show/hide no results message
+        if (filteredDatasets.length === 0 && searchTerm) {
+          noResultsMsg.classList.remove('hidden');
+        } else {
+          noResultsMsg.classList.add('hidden');
+        }
+      }
+
+      // View toggle functionality
+      function toggleView(view) {
+        currentView = view;
+        if (view === 'list') {
+          datasetContainer.className = 'space-y-4';
+          allDatasets.forEach(card => {
+            card.className = card.className.replace('rounded-lg', 'rounded-lg').replace('overflow-hidden', 'overflow-hidden') + ' flex flex-row';
+          });
+          gridViewBtn.className = 'px-4 py-3 bg-white text-gray-600 hover:bg-gray-50 transition-colors';
+          listViewBtn.className = 'px-4 py-3 bg-blue-600 text-white hover:bg-blue-700 transition-colors';
+        } else {
+          datasetContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+          allDatasets.forEach(card => {
+            card.className = card.className.replace(' flex flex-row', '');
+          });
+          gridViewBtn.className = 'px-4 py-3 bg-blue-600 text-white hover:bg-blue-700 transition-colors';
+          listViewBtn.className = 'px-4 py-3 bg-white text-gray-600 hover:bg-gray-50 transition-colors';
+        }
+      }
+
+      // Event listeners
+      searchInput.addEventListener('input', filterDatasets);
+      sortSelect.addEventListener('change', filterDatasets);
+      gridViewBtn.addEventListener('click', () => toggleView('grid'));
+      listViewBtn.addEventListener('click', () => toggleView('list'));
+
+      // Add click and hover effects
+      allDatasets.forEach(card => {
+        // Click handler for navigation
+        card.addEventListener('click', function() {
+          const url = this.getAttribute('data-url');
+          if (url) {
+            window.location.href = url;
+          }
+        });
+
+        // Hover effects
+        card.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-2px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+        });
+      });
+
+      // Initial load
+      filterDatasets();
+    });
+
+    // Add some CSS for line clamping and transitions
+    const style = document.createElement('style');
+    style.textContent = `
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .dataset-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+      }
+      .dataset-card:hover {
+        transform: translateY(-2px);
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
