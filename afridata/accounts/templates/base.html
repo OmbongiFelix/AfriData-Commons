@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'accounts/css/styles.css' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-blue-50 text-gray-900">
@@ -22,7 +23,10 @@
                 <button onclick="toggleMobileMenu()" class="text-gray-500">✕</button>
             </div>
             <nav class="space-y-4">
+                <a href="{% url 'default_home' %}" class="block py-2 text-gray-700 hover:text-blue-600">Home</a>
+                {% if user.is_authenticated %}
                 <a href="{% url 'home' %}" class="block py-2 text-gray-700 hover:text-blue-600">Home</a>
+                {% endif %}
                 <a href="{% url 'dataset_list' %}" class="block py-2 text-gray-700 hover:text-blue-600">Datasets</a>
                 <a href="{% url 'community' %}" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
                 <a href="{% url 'api:api_request' %}" class="block py-2 text-gray-700 hover:text-blue-600">API</a>
@@ -41,8 +45,8 @@
                 </div>
                 {% else %}
                 <div class="border-t pt-4 mt-4">
-                    <a href="{% url 'login' %}" class="block py-2 text-gray-700 hover:text-blue-600">Login</a>
-                    <a href="{% url 'signup' %}" class="block py-2 text-gray-700 hover:text-blue-600">Sign Up</a>
+                    <a href="{% url 'login_signup' %}?mode=login" class="block py-2 text-gray-700 hover:text-blue-600">Login</a>
+                    <a href="{% url 'login_signup' %}?mode=signup" class="block py-2 text-gray-700 hover:text-blue-600">Sign Up</a>
                 </div>
                 {% endif %}
             </nav>
@@ -99,8 +103,8 @@
                     </div>
                     {% else %}
                     <!-- Login/Signup Links -->
-                    <a href="{% url 'login' %}" class="hover:text-yellow-300 transition-colors">Login</a>
-                    <a href="{% url 'signup' %}" class="bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors font-medium">Sign Up</a>
+                        <a href="{% url 'login_signup' %}?mode=login" class="hover:text-yellow-300 transition-colors">Login</a>
+                        <a href="{% url 'login_signup' %}?mode=signup" class="bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors font-medium">Sign Up</a>
                     {% endif %}
                 </nav>
                 
@@ -176,7 +180,7 @@
                             <li><a href="#" class="footer-link text-gray-300 flex items-center">
                                 <i class="fas fa-graduation-cap mr-2 text-sm"></i>Tutorials
                             </a></li>
-                            <li><a href="{% url 'dataset_page' %}" class="footer-link text-gray-300 flex items-center">
+                            <li><a href="{% url 'dataset_list' %}" class="footer-link text-gray-300 flex items-center">
                                 <i class="fas fa-download mr-2 text-sm"></i>Data Catalog
                             </a></li>
                         </ul>

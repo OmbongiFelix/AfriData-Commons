@@ -338,7 +338,7 @@
             // Implement search functionality
             console.log('Searching for:', query);
             // Redirect to search results page or perform AJAX search
-            window.location.href = `{% url 'dataset_page' %}?search=${encodeURIComponent(query)}`;
+            window.location.href = `{% url 'dataset_list' %}?search=${encodeURIComponent(query)}`;
         }
     }
 
@@ -368,10 +368,16 @@
     }
 
     function viewDataset(datasetId) {
+    console.log('Viewing dataset:', datasetId);
+    // Redirect to dataset detail page
+    window.location.href = `dataset/dataset/${datasetId}/`;
+    }
+
+    /*function viewDataset(datasetId) {
         console.log('Viewing dataset:', datasetId);
         // Redirect to dataset detail page
         window.location.href = `{% url 'dataset_page' %}${datasetId}/`;
-    }
+    } */
 
     function showUploadForm() {
         console.log('Showing upload form');

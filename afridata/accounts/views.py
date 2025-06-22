@@ -255,8 +255,7 @@ def process_signup(request):
 
 
 
-@login_required
-        
+@login_required       
 def home_page(request):
     """Render authenticated user's home page"""
     user = request.user

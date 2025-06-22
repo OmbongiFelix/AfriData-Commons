@@ -205,9 +205,14 @@
     //Add this block to trigger signup tab based on URL
     window.addEventListener('DOMContentLoaded', () => {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('signup') === 'true') {
-       switchToSignup();
+      const mode = params.get('mode');
+  
+      if (mode === 'signup') {
+        switchToSignup();
+      } else if (mode === 'login') {
+        switchToLogin();
       }
+  // If no mode specified, default behavior (login tab active)
     });
 
 
