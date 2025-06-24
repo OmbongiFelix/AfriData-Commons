@@ -8,8 +8,10 @@ from django.core.paginator import Paginator
 from .models import Dataset, Comment
 import pandas as pd
 import io
-
-
+from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
+from .forms import DatasetUploadForm
+import json
 
 def dataset_list(request):
     """View to return dataset title, author name, downloads, views"""
@@ -262,3 +264,47 @@ def render_dataset(request, dataset_id=None):
     }
     
     return render(request, 'dataset/dataset_page.html', context)
+
+
+@login_required
+def upload_dataset(request):
+    """Handle dataset upload via regular form submission"""
+    if request.method == 'POST':
+        form = DatasetUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            dataset = form.save(commit=False)
+            dataset.author = request.user
+            dataset.save()
+            messages.success(request, 'Dataset uploaded successfully!')
+            return redirect('dataset_detail', pk=dataset.pk)  # Adjust redirect as needed
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = DatasetUploadForm()
+    
+    return render(request, 'datasets/upload.html', {'form': form})
+
+
+@login_required
+@require_POST
+def upload_dataset_ajax(request):
+    """Handle dataset upload via AJAX for modal"""
+    form = DatasetUploadForm(request.POST, request.FILES)
+    
+    if form.is_valid():
+        dataset = form.save(commit=False)
+        dataset.author = request.user
+        dataset.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Dataset uploaded successfully!',
+            'dataset_id': dataset.pk,
+            'dataset_title': dataset.title
+        })
+    else:
+        return JsonResponse({
+            'success': False,
+            'errors': form.errors,
+            'message': 'Please correct the errors and try again.'
+        })

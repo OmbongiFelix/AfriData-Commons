@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Dataset</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-8">
+        <div class="max-w-2xl mx-auto px-4">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h1 class="text-2xl font-bold text-gray-800 mb-6">Upload New Dataset</h1>
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-4 p-4 rounded-md {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-red-50 text-red-800 border border-red-200{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Dataset Title *
+                        </label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.title.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.dataset_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Dataset Type *
+                        </label>
+                        {{ form.dataset_type }}
+                        {% if form.dataset_type.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.dataset_type.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.file.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Dataset File *
+                        </label>
+                        {{ form.file }}
+                        <p class="text-sm text-gray-500 mt-1">Supported formats: CSV, Excel (.xlsx, .xls). Max size: 10MB</p>
+                        {% if form.file.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.file.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.bio.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Description *
+                        </label>
+                        {{ form.bio }}
+                        {% if form.bio.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.bio.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.topics.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Topics *
+                        </label>
+                        {{ form.topics }}
+                        <p class="text-sm text-gray-500 mt-1">Separate topics with commas (e.g., machine learning, data science, statistics)</p>
+                        {% if form.topics.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.topics.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" onclick="history.back()" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Upload Dataset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

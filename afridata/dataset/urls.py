@@ -10,4 +10,6 @@ urlpatterns = [
     path('dataset/<int:dataset_id>/comments/', views.dataset_comments, name='dataset_comments'),
     path('dataset/<int:dataset_id>/comment/post/', views.post_comment, name='post_comment'),
     path('comment/<int:comment_id>/upvote/', views.upvote_comment, name='upvote_comment'),
+    path('datasets/upload/', views.upload_dataset, name='upload_dataset'),
+    path('datasets/upload/ajax/', views.upload_dataset_ajax, name='upload_dataset_ajax'),
 ]
