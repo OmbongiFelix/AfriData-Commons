@@ -11,12 +11,6 @@
   <link rel="stylesheet" href="{% static 'accounts/css/login.css' %}">
 </head>
 <body class="gradient-bg min-h-screen flex items-center justify-center p-4">
-  <!-- Animated background elements -->
-  <!--<div class="absolute inset-0 overflow-hidden">
-    <div class="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-white opacity-10 pulse-ring"></div>
-    <div class="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-white opacity-5 pulse-ring" style="animation-delay: 1s;"></div>
-  </div> -->
-
   <div class="glass-effect shadow-2xl rounded-2xl w-full max-w-md p-8 relative z-10">
     <!-- Logo/Header -->
     <div class="text-center mb-8">
@@ -79,18 +73,6 @@
       <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold btn-hover">
         <i class="fas fa-sign-in-alt mr-2"></i>Sign In
       </button>
-
-      <div class="mt-6 text-center">
-        <p class="text-gray-600 mb-4">Or continue with</p>
-        <div class="flex space-x-4">
-          <button type="button" class="flex-1 bg-red-500 text-white py-2 rounded-lg btn-hover">
-            <i class="fab fa-google mr-2"></i>Google
-          </button>
-          <button type="button" class="flex-1 bg-blue-800 text-white py-2 rounded-lg btn-hover">
-            <i class="fab fa-facebook mr-2"></i>Facebook
-          </button>
-        </div>
-      </div>
     </form>
 
     <!-- Sign Up Form -->
@@ -99,6 +81,7 @@
       {% if request.GET.next %}
         <input type="hidden" name="next" value="{{ request.GET.next }}">
       {% endif %}
+      
       <div class="input-group relative mb-6">
         <input type="text" name="full_name" id="signupName" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" required />
         <label for="signupName" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
@@ -106,11 +89,29 @@
         </label>
       </div>
 
+      <!-- ADDED: Username field -->
+      <div class="input-group relative mb-6">
+        <input type="text" name="username" id="signupUsername" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" required />
+        <label for="signupUsername" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
+          <i class="fas fa-at mr-2"></i>Username
+        </label>
+        <div class="absolute right-3 top-3" id="usernameAvailability">
+          <i class="fas fa-spinner fa-spin text-gray-400 hidden" id="usernameLoading"></i>
+          <i class="fas fa-times text-red-500 hidden" id="usernameTaken"></i>
+          <i class="fas fa-check text-green-500 hidden" id="usernameAvailable"></i>
+        </div>
+      </div>
+
       <div class="input-group relative mb-6">
         <input type="email" name="email" id="signupEmail" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" required />
         <label for="signupEmail" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
           <i class="fas fa-envelope mr-2"></i>Email Address
         </label>
+        <div class="absolute right-3 top-3" id="emailAvailability">
+          <i class="fas fa-spinner fa-spin text-gray-400 hidden" id="emailLoading"></i>
+          <i class="fas fa-times text-red-500 hidden" id="emailTaken"></i>
+          <i class="fas fa-check text-green-500 hidden" id="emailAvailable"></i>
+        </div>
       </div>
 
       <div class="input-group relative mb-4">
@@ -158,18 +159,6 @@
       <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 rounded-xl font-semibold btn-hover">
         <i class="fas fa-user-plus mr-2"></i>Create Account
       </button>
-
-      <div class="mt-6 text-center">
-        <p class="text-gray-600 mb-4">Or sign up with</p>
-        <div class="flex space-x-4">
-          <button type="button" class="flex-1 bg-red-500 text-white py-2 rounded-lg btn-hover">
-            <i class="fab fa-google mr-2"></i>Google
-          </button>
-          <button type="button" class="flex-1 bg-blue-800 text-white py-2 rounded-lg btn-hover">
-            <i class="fab fa-facebook mr-2"></i>Facebook
-          </button>
-        </div>
-      </div>
     </form>
   </div>
 
@@ -201,8 +190,7 @@
     loginTab.addEventListener('click', switchToLogin);
     signupTab.addEventListener('click', switchToSignup);
 
-
-    //Add this block to trigger signup tab based on URL
+    // Trigger signup tab based on URL
     window.addEventListener('DOMContentLoaded', () => {
       const params = new URLSearchParams(window.location.search);
       const mode = params.get('mode');
@@ -212,9 +200,7 @@
       } else if (mode === 'login') {
         switchToLogin();
       }
-  // If no mode specified, default behavior (login tab active)
     });
-
 
     // Password visibility toggle
     function togglePassword(inputId) {
@@ -231,6 +217,80 @@
         eye.classList.add('fa-eye');
       }
     }
+
+    // Real-time email availability check
+    let emailTimeout;
+    document.getElementById('signupEmail').addEventListener('input', function() {
+      const email = this.value.trim();
+      const emailLoading = document.getElementById('emailLoading');
+      const emailTaken = document.getElementById('emailTaken');
+      const emailAvailable = document.getElementById('emailAvailable');
+      
+      // Hide all indicators
+      emailLoading.classList.add('hidden');
+      emailTaken.classList.add('hidden');
+      emailAvailable.classList.add('hidden');
+      
+      if (email.length < 3) return;
+      
+      // Show loading
+      emailLoading.classList.remove('hidden');
+      
+      // Debounce the request
+      clearTimeout(emailTimeout);
+      emailTimeout = setTimeout(() => {
+        fetch(`/api/check-email/?email=${encodeURIComponent(email)}`)
+          .then(response => response.json())
+          .then(data => {
+            emailLoading.classList.add('hidden');
+            if (data.exists) {
+              emailTaken.classList.remove('hidden');
+            } else {
+              emailAvailable.classList.remove('hidden');
+            }
+          })
+          .catch(() => {
+            emailLoading.classList.add('hidden');
+          });
+      }, 500);
+    });
+
+    // Real-time username availability check
+    let usernameTimeout;
+    document.getElementById('signupUsername').addEventListener('input', function() {
+      const username = this.value.trim();
+      const usernameLoading = document.getElementById('usernameLoading');
+      const usernameTaken = document.getElementById('usernameTaken');
+      const usernameAvailable = document.getElementById('usernameAvailable');
+      
+      // Hide all indicators
+      usernameLoading.classList.add('hidden');
+      usernameTaken.classList.add('hidden');
+      usernameAvailable.classList.add('hidden');
+      
+      if (username.length < 3) return;
+      
+      // Show loading
+      usernameLoading.classList.remove('hidden');
+      
+      // Debounce the request
+      clearTimeout(usernameTimeout);
+      usernameTimeout = setTimeout(() => {
+        fetch(`/api/check-username/?username=${encodeURIComponent(username)}`)
+          .then(response => response.json())
+          .then(data => {
+            usernameLoading.classList.add('hidden');
+            if (data.exists) {
+              usernameTaken.classList.remove('hidden');
+            } else {
+              usernameAvailable.classList.remove('hidden');
+            }
+          })
+          .catch(() => {
+            usernameLoading.classList.add('hidden');
+          });
+      }, 500);
+    });
 
     // Password strength checker
     const signupPassword = document.getElementById('signupPassword');
@@ -302,14 +362,7 @@
     confirmPassword.addEventListener('input', checkPasswordMatch);
     signupPassword.addEventListener('input', checkPasswordMatch);
 
-    // Form submissions
-    loginForm.addEventListener('submit', (e) => {
-      // e.preventDefault();
-      // alert('Login form submitted! (Demo)');
-    });
-
     signupForm.addEventListener('submit', (e) => {
-      // e.preventDefault();
       const password = signupPassword.value;
       const confirm = confirmPassword.value;
       
@@ -318,12 +371,7 @@
         alert('Passwords do not match!');
         return;
       }
-      
-      // alert('Sign up form submitted! (Demo)');
     });
-
-    // Floating label animations are handled by CSS
-    // Input focus effects are handled by CSS
   </script>
 </body>
 </html>

@@ -154,7 +154,201 @@ def authenticate_login(request):
     return redirect('login_signup')
 
 
+@csrf_protect
+@require_http_methods(["POST"])
+def process_signup(request):
+    """Process user signup and store data in backend"""
+    # Add comprehensive logging
+    logger = logging.getLogger(__name__)
+    logger.debug("=== SIGNUP ATTEMPT DEBUG ===")
+    logger.debug(f"Method: {request.method}")
+    logger.debug(f"POST data: {dict(request.POST)}")
+    
+    next_url = request.GET.get('next', '/')
+    logger.debug(f"Next URL: {next_url}")
+    
+    try:
+        # Get form data
+        email = request.POST.get('email', '').strip().lower()
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        full_name = request.POST.get('full_name', '').strip()
+        username = request.POST.get('username', '').strip().lower()
+        phone_number = request.POST.get('phone_number', '').strip()
+        bio = request.POST.get('bio', '').strip()
+        
+        logger.debug(f"Extracted data - Email: {email}, Full name: {full_name}, Username: {username}")
+        
+        # Validation
+        errors = []
+        
+        if not email:
+            errors.append('Email is required.')
+        elif not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            errors.append('Please enter a valid email address.')
+        elif CustomUser.objects.filter(email=email).exists():
+            errors.append('Email already exists.')
+        
+        if not password:
+            errors.append('Password is required.')
+        elif len(password) < 8:
+            errors.append('Password must be at least 8 characters long.')
+        
+        if password != confirm_password:
+            errors.append('Passwords do not match.')
+        
+        if not full_name:
+            errors.append('Full name is required.')
+        elif len(full_name) < 2:
+            errors.append('Full name must be at least 2 characters long.')
+            
+        # ISSUE 1: Username field is missing from your HTML form!
+        if not username:
+            # Generate username from full_name or email if not provided
+            if full_name:
+                username = full_name.lower().replace(' ', '_')
+            else:
+                username = email.split('@')[0]
+            # Ensure uniqueness
+            base_username = username
+            counter = 1
+            while CustomUser.objects.filter(username=username).exists():
+                username = f"{base_username}_{counter}"
+                counter += 1
+            logger.debug(f"Generated username: {username}")
+        elif len(username) < 3:
+            errors.append('Username must be at least 3 characters long.')
+        elif CustomUser.objects.filter(username=username).exists():
+            errors.append('Username already exists.')
+        elif not re.match(r'^[a-zA-Z0-9_]+$', username):
+            errors.append('Username can only contain letters, numbers, and underscores.')
+        
+        # Validate password strength
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            errors.extend(e.messages)
+        
+        logger.debug(f"Validation errors: {errors}")
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return redirect(f"{reverse('login_signup')}?next={next_url}")
+        
+        # Create user with transaction
+        with transaction.atomic():
+            logger.debug("Starting user creation...")
+            
+            # Create user
+            user = CustomUser.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                full_name=full_name,
+                phone_number=phone_number,
+                bio=bio,
+                last_login_ip=get_client_ip(request)
+            )
+            
+            logger.debug(f"User created with ID: {user.id}")
+            
+            # Create user profile
+            profile = UserProfile.objects.create(user=user)
+            logger.debug(f"Profile created with ID: {profile.id}")
+            
+            # Log successful signup attempt
+            LoginAttempt.objects.create(
+                email=email,
+                ip_address=get_client_ip(request),
+                success=True,
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            
+            # Auto-login after signup
+            login(request, user)
+            logger.debug("User logged in successfully")
+            
+            messages.success(request, f'Welcome to our platform, {user.get_short_name()}! Your account has been created successfully.')
+            return redirect(next_url)
+            
+    except Exception as e:
+        logger.error(f"Signup error: {str(e)}")
+        logger.error(f"Error type: {type(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        
+        messages.error(request, f'An error occurred during signup: {str(e)}')
+        # Log failed signup attempt
+        LoginAttempt.objects.create(
+            email=email if 'email' in locals() else '',
+            ip_address=get_client_ip(request),
+            success=False,
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
+        return redirect(f"{reverse('login_signup')}?next={next_url}")
 
+
+@login_required       
+def home_page(request):
+    """Render authenticated user's home page"""
+    user = request.user
+    
+    # Get user's recent activity or stats
+    context = {
+        'user': user,
+        'full_name': user.get_full_name(),
+        'member_since': user.created_at,
+        'profile_complete': bool(user.full_name and user.email),
+        'page_title': f'Welcome, {user.get_short_name()}',
+    }
+    
+    return render(request, 'accounts/home.html', context)
+
+
+@login_required
+def logout_user(request):
+    """Logout user and redirect"""
+    user_name = request.user.get_short_name()
+    logout(request)
+    messages.success(request, f'Goodbye, {user_name}! You have been logged out successfully.')
+    return redirect('login_signup')
+
+
+@login_required
+def profile_view(request):
+    """Displays user profile"""
+    user = request.user
+    try:
+        profile = user.profile
+    except UserProfile.DoesNotExist:
+        profile = UserProfile.objects.create(user=user)
+    
+    context = {
+        'user': user,
+        'profile': profile,
+        'page_title': 'My Profile'
+    }
+    return render(request, 'accounts/profile.html', context)
+# Check if email exists (AJAX endpoint)
+def check_email_exists(request):
+    """Check if email already exists"""
+    if request.method == 'GET':
+        email = request.GET.get('email', '').strip().lower()
+        exists = CustomUser.objects.filter(email=email).exists()
+        return JsonResponse({'exists': exists})
+    return JsonResponse({'error': 'Invalid request'})
+
+# Check if username exists (AJAX endpoint)
+def check_username_exists(request):
+    """Check if username already exists"""
+    if request.method == 'GET':
+        username = request.GET.get('username', '').strip().lower()
+        exists = CustomUser.objects.filter(username=username).exists()
+        return JsonResponse({'exists': exists})
+    return JsonResponse({'error': 'Invalid request'})   
+
+'''
 @csrf_protect
 @require_http_methods(["POST"])
 def process_signup(request):
@@ -253,65 +447,4 @@ def process_signup(request):
         )
         return redirect(f"{reverse('login_signup')}?next={next_url}")
 
-
-
-@login_required       
-def home_page(request):
-    """Render authenticated user's home page"""
-    user = request.user
-    
-    # Get user's recent activity or stats
-    context = {
-        'user': user,
-        'full_name': user.get_full_name(),
-        'member_since': user.created_at,
-        'profile_complete': bool(user.full_name and user.email),
-        'page_title': f'Welcome, {user.get_short_name()}',
-    }
-    
-    return render(request, 'accounts/home.html', context)
-
-
-
-
-@login_required
-def logout_user(request):
-    """Logout user and redirect"""
-    user_name = request.user.get_short_name()
-    logout(request)
-    messages.success(request, f'Goodbye, {user_name}! You have been logged out successfully.')
-    return redirect('login_signup')
-
-
-@login_required
-def profile_view(request):
-    """Displays user profile"""
-    user = request.user
-    try:
-        profile = user.profile
-    except UserProfile.DoesNotExist:
-        profile = UserProfile.objects.create(user=user)
-    
-    context = {
-        'user': user,
-        'profile': profile,
-        'page_title': 'My Profile'
-    }
-    return render(request, 'accounts/profile.html', context)
-# Check if email exists (AJAX endpoint)
-def check_email_exists(request):
-    """Check if email already exists"""
-    if request.method == 'GET':
-        email = request.GET.get('email', '').strip().lower()
-        exists = CustomUser.objects.filter(email=email).exists()
-        return JsonResponse({'exists': exists})
-    return JsonResponse({'error': 'Invalid request'})
-
-# Check if username exists (AJAX endpoint)
-def check_username_exists(request):
-    """Check if username already exists"""
-    if request.method == 'GET':
-        username = request.GET.get('username', '').strip().lower()
-        exists = CustomUser.objects.filter(username=username).exists()
-        return JsonResponse({'exists': exists})
-    return JsonResponse({'error': 'Invalid request'})   
+'''
