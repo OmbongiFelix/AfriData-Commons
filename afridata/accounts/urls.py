@@ -23,3 +23,6 @@ urlpatterns = [
     path('terms/', views.terms, name='terms'),
     path('privacy', views.privacy_policy, name='privacy_policy'),
 ]
+
+
+

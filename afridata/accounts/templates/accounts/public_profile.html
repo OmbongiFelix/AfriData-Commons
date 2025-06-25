@@ -1,0 +1,570 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 3rem;
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(50px, -50px);
+    }
+    
+    .profile-info {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        object-fit: cover;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: bold;
+    }
+    
+    .profile-details h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .profile-meta {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin: 1rem 0;
+        flex-wrap: wrap;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        opacity: 0.9;
+    }
+    
+    .profile-bio {
+        margin-top: 1rem;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        opacity: 0.95;
+    }
+    
+    .profile-actions {
+        margin-top: 2rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+    
+    .btn-primary {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .btn-primary:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .btn-outline {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .main-content {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    .contact-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .contact-item:last-child {
+        border-bottom: none;
+    }
+    
+    .contact-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+    }
+    
+    .contact-icon.location { background: #ef4444; }
+    .contact-icon.organization { background: #8b5cf6; }
+    .contact-icon.job { background: #06b6d4; }
+    .contact-icon.website { background: #10b981; }
+    .contact-icon.linkedin { background: #0077b5; }
+    .contact-icon.github { background: #24292e; }
+    .contact-icon.twitter { background: #1da1f2; }
+    .contact-icon.phone { background: #f59e0b; }
+    
+    .contact-info {
+        flex: 1;
+    }
+    
+    .contact-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+    
+    .contact-value {
+        font-weight: 500;
+        color: #374151;
+    }
+    
+    .contact-value a {
+        color: inherit;
+        text-decoration: none;
+    }
+    
+    .contact-value a:hover {
+        color: #667eea;
+        text-decoration: underline;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #6b7280;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .rating-stars {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-left: 0.5rem;
+    }
+    
+    .star {
+        color: #fbbf24;
+        font-size: 1rem;
+    }
+    
+    .member-since {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        display: inline-block;
+        margin-top: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .profile-container {
+            margin: 1rem;
+            padding: 0;
+        }
+        
+        .profile-header {
+            padding: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .profile-info {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .profile-details h1 {
+            font-size: 2rem;
+        }
+        
+        .profile-meta {
+            justify-content: center;
+        }
+        
+        .content-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .profile-actions {
+            justify-content: center;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .profile-actions {
+            flex-direction: column;
+        }
+        
+        .btn {
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-info">
+            <div class="profile-avatar">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name|default:user.username }}" class="profile-avatar">
+                {% else %}
+                    {{ user.get_full_name|default:user.username|first|upper }}
+                {% endif %}
+            </div>
+            
+            <div class="profile-details">
+                <h1>{{ user.get_full_name|default:user.username }}</h1>
+                
+                <div class="profile-meta">
+                    {% if profile.job_title %}
+                        <div class="meta-item">
+                            <span>💼</span>
+                            <span>{{ profile.job_title }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    {% if profile.organization %}
+                        <div class="meta-item">
+                            <span>🏢</span>
+                            <span>{{ profile.organization }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    {% if profile.location %}
+                        <div class="meta-item">
+                            <span>📍</span>
+                            <span>{{ profile.location }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    {% if user_stats.average_rating > 0 %}
+                        <div class="meta-item">
+                            <span>⭐</span>
+                            <span>{{ user_stats.average_rating|floatformat:1 }} rating</span>
+                            <div class="rating-stars">
+                                {% for i in "12345"|make_list %}
+                                    <span class="star">{% if forloop.counter <= user_stats.average_rating|floatformat:0|add:0 %}★{% else %}☆{% endif %}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {% if user.bio %}
+                    <div class="profile-bio">
+                        {{ user.bio|linebreaks }}
+                    </div>
+                {% endif %}
+                
+                <div class="member-since">
+                    📅 Member since {{ user.date_joined|date:"F Y" }}
+                </div>
+                
+                {% if is_own_profile %}
+                    <div class="profile-actions">
+                        <a href="{% url 'edit_profile' %}" class="btn btn-primary">✏️ Edit Profile</a>
+                        <a href="{% url 'profile' %}" class="btn btn-outline">👤 View My Profile</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Content Grid -->
+    <div class="content-grid">
+        <!-- Main Content -->
+        <div class="main-content">
+            {% if user_stats.datasets_uploaded > 0 %}
+                <div style="padding: 2rem;">
+                    <h2 class="section-title">📊 Recent Activity</h2>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📈</div>
+                        <p>User activity and datasets will be displayed here once the dataset functionality is implemented.</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <h3>No Activity Yet</h3>
+                    <p>{{ user.get_full_name|default:user.username }} hasn't uploaded any datasets yet.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Statistics Card -->
+            <div class="stats-card">
+                <h3 class="section-title">📈 Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-value">{{ user_stats.datasets_uploaded }}</span>
+                        <div class="stat-label">Datasets</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ user_stats.total_downloads|floatformat:0 }}</span>
+                        <div class="stat-label">Downloads</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ user_stats.profile_views|floatformat:0 }}</span>
+                        <div class="stat-label">Profile Views</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ user_stats.stars_collected }}</span>
+                        <div class="stat-label">Stars</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ user_stats.total_reviews }}</span>
+                        <div class="stat-label">Reviews</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ user_stats.average_rating|floatformat:1 }}</span>
+                        <div class="stat-label">Avg Rating</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Information -->
+            <div class="contact-card">
+                <h3 class="section-title">📞 Contact Info</h3>
+                
+                {% if profile.location %}
+                    <div class="contact-item">
+                        <div class="contact-icon location">📍</div>
+                        <div class="contact-info">
+                            <div class="contact-label">Location</div>
+                            <div class="contact-value">{{ profile.location }}</div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if profile.organization %}
+                    <div class="contact-item">
+                        <div class="contact-icon organization">🏢</div>
+                        <div class="contact-info">
+                            <div class="contact-label">Organization</div>
+                            <div class="contact-value">{{ profile.organization }}</div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if profile.job_title %}
+                    <div class="contact-item">
+                        <div class="contact-icon job">💼</div>
+                        <div class="contact-info">
+                            <div class="contact-label">Job Title</div>
+                            <div class="contact-value">{{ profile.job_title }}</div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if user.phone_number %}
+                    <div class="contact-item">
+                        <div class="contact-icon phone">📱</div>
+                        <div class="contact-info">
+                            <div class="contact-label">Phone</div>
+                            <div class="contact-value">
+                                <a href="tel:{{ user.phone_number }}">{{ user.phone_number }}</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if profile.website %}
+                    <div class="contact-item">
+                        <div class="contact-icon website">🌐</div>
+                        <div class="contact-info">
+                            <div class="contact-label">Website</div>
+                            <div class="contact-value">
+                                <a href="{{ profile.website }}" target="_blank" rel="noopener">{{ profile.website }}</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if profile.linkedin_url %}
+                    <div class="contact-item">
+                        <div class="contact-icon linkedin">💼</div>
+                        <div class="contact-info">
+                            <div class="contact-label">LinkedIn</div>
+                            <div class="contact-value">
+                                <a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener">View Profile</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if profile.github_url %}
+                    <div class="contact-item">
+                        <div class="contact-icon github">💻</div>
+                        <div class="contact-info">
+                            <div class="contact-label">GitHub</div>
+                            <div class="contact-value">
+                                <a href="{{ profile.github_url }}" target="_blank" rel="noopener">View Profile</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if profile.twitter_handle %}
+                    <div class="contact-item">
+                        <div class="contact-icon twitter">🐦</div>
+                        <div class="contact-info">
+                            <div class="contact-label">Twitter</div>
+                            <div class="contact-value">
+                                <a href="https://twitter.com/{{ profile.twitter_handle|cut:'@' }}" target="_blank" rel="noopener">{{ profile.twitter_handle }}</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if not profile.location and not profile.organization and not profile.job_title and not user.phone_number and not profile.website and not profile.linkedin_url and not profile.github_url and not profile.twitter_handle %}
+                    <div class="empty-state">
+                        <p>No contact information available.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
