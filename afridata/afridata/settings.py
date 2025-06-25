@@ -148,9 +148,10 @@ LOGGING = {
         },
     },
     'loggers': {
-        'accounts': {  # Replace with your actual app name
+        'accounts': {  # Custom logger for the accounts app
             'handlers': ['console'],
             'level': 'DEBUG',
+            'propagate': True,
         },
     },
 }
