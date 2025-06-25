@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-edit-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .profile-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        color: white;
+        text-align: center;
+    }
+    
+    .profile-form {
+        padding: 2rem;
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    .file-input-wrapper {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    
+    .file-input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    
+    .file-input-label {
+        display: block;
+        padding: 0.75rem;
+        border: 2px dashed #e5e7eb;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .file-input-label:hover {
+        border-color: #667eea;
+        background-color: #f8faff;
+    }
+    
+    .current-image {
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 2px solid #e5e7eb;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    .btn {
+        padding: 0.75rem 2rem;
+        font-weight: 500;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        border: none;
+        font-size: 1rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        margin-right: 1rem;
+    }
+    
+    .btn-secondary:hover {
+        background: #4b5563;
+    }
+    
+    .form-actions {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e5e7eb;
+        text-align: right;
+    }
+    
+    .help-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .profile-edit-container {
+            margin: 1rem;
+            padding: 0;
+        }
+        
+        .profile-form {
+            padding: 1rem;
+        }
+        
+        .form-actions {
+            text-align: center;
+        }
+        
+        .btn-secondary {
+            margin-right: 0;
+            margin-bottom: 1rem;
+            display: block;
+            width: 100%;
+        }
+        
+        .btn-primary {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-edit-container">
+    <div class="profile-card">
+        <div class="profile-header">
+            <h1>Edit Your Profile</h1>
+            <p>Update your information and preferences</p>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="profile-form">
+            {% csrf_token %}
+            
+            <!-- Personal Information Section -->
+            <div class="form-section">
+                <h2 class="section-title">Personal Information</h2>
+                
+                <div class="form-group">
+                    <label for="full_name" class="form-label">Full Name</label>
+                    <input type="text" 
+                           id="full_name" 
+                           name="full_name" 
+                           class="form-input" 
+                           value="{{ user.full_name|default:'' }}"
+                           placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="bio" class="form-label">Bio</label>
+                    <textarea id="bio" 
+                              name="bio" 
+                              class="form-input form-textarea" 
+                              placeholder="Tell us about yourself...">{{ user.bio|default:'' }}</textarea>
+                    <div class="help-text">A brief description about yourself (optional)</div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone_number" class="form-label">Phone Number</label>
+                        <input type="tel" 
+                               id="phone_number" 
+                               name="phone_number" 
+                               class="form-input" 
+                               value="{{ user.phone_number|default:'' }}"
+                               placeholder="+1 (555) 123-4567">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" 
+                               id="location" 
+                               name="location" 
+                               class="form-input" 
+                               value="{{ profile.location|default:'' }}"
+                               placeholder="City, Country">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Picture Section -->
+            <div class="form-section">
+                <h2 class="section-title">Profile Picture</h2>
+                
+                <div class="form-group">
+                    {% if user.profile_picture %}
+                        <div>
+                            <img src="{{ user.profile_picture.url }}" 
+                                 alt="Current profile picture" 
+                                 class="current-image">
+                            <p class="help-text">Current profile picture</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="file-input-wrapper">
+                        <input type="file" 
+                               id="profile_picture" 
+                               name="profile_picture" 
+                               class="file-input"
+                               accept="image/*">
+                        <label for="profile_picture" class="file-input-label">
+                            <strong>Choose a file</strong> or drag it here
+                            <div class="help-text">PNG, JPG, GIF up to 10MB</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Professional Information Section -->
+            <div class="form-section">
+                <h2 class="section-title">Professional Information</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="organization" class="form-label">Organization</label>
+                        <input type="text" 
+                               id="organization" 
+                               name="organization" 
+                               class="form-input" 
+                               value="{{ profile.organization|default:'' }}"
+                               placeholder="Company or organization">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="job_title" class="form-label">Job Title</label>
+                        <input type="text" 
+                               id="job_title" 
+                               name="job_title" 
+                               class="form-input" 
+                               value="{{ profile.job_title|default:'' }}"
+                               placeholder="Your role or position">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="website" class="form-label">Website</label>
+                    <input type="url" 
+                           id="website" 
+                           name="website" 
+                           class="form-input" 
+                           value="{{ profile.website|default:'' }}"
+                           placeholder="https://yourwebsite.com">
+                </div>
+            </div>
+            
+            <!-- Social Media Section -->
+            <div class="form-section">
+                <h2 class="section-title">Social Media</h2>
+                
+                <div class="form-group">
+                    <label for="linkedin_url" class="form-label">LinkedIn URL</label>
+                    <input type="url" 
+                           id="linkedin_url" 
+                           name="linkedin_url" 
+                           class="form-input" 
+                           value="{{ profile.linkedin_url|default:'' }}"
+                           placeholder="https://linkedin.com/in/username">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="github_url" class="form-label">GitHub URL</label>
+                        <input type="url" 
+                               id="github_url" 
+                               name="github_url" 
+                               class="form-input" 
+                               value="{{ profile.github_url|default:'' }}"
+                               placeholder="https://github.com/username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="twitter_handle" class="form-label">Twitter Handle</label>
+                        <input type="text" 
+                               id="twitter_handle" 
+                               name="twitter_handle" 
+                               class="form-input" 
+                               value="{{ profile.twitter_handle|default:'' }}"
+                               placeholder="@username">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="{% url 'profile' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// File input enhancement
+document.getElementById('profile_picture').addEventListener('change', function(e) {
+    const fileName = e.target.files[0]?.name;
+    const label = document.querySelector('.file-input-label');
+    if (fileName) {
+        label.innerHTML = `<strong>Selected:</strong> ${fileName}`;
+    }
+});
+
+// Form validation
+document.querySelector('.profile-form').addEventListener('submit', function(e) {
+    const requiredFields = ['full_name'];
+    let isValid = true;
+    
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field && !field.value.trim()) {
+            field.style.borderColor = '#ef4444';
+            isValid = false;
+        } else if (field) {
+            field.style.borderColor = '#e5e7eb';
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('Please fill in all required fields.');
+    }
+});
+</script>
+{% endblock %}
+

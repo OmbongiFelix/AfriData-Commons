@@ -1,4 +1,4 @@
-# views.py
+# accounts/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -16,6 +16,10 @@ from django.http import HttpResponse
 from django.urls import reverse
 import logging
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.contrib.auth import get_user_model
+from django.db.models import Avg, Count, Sum
+from django.utils import timezone
+from datetime import timedelta
 
 
 def terms(request):
@@ -315,21 +319,6 @@ def logout_user(request):
     return redirect('login_signup')
 
 
-@login_required
-def profile_view(request):
-    """Displays user profile"""
-    user = request.user
-    try:
-        profile = user.profile
-    except UserProfile.DoesNotExist:
-        profile = UserProfile.objects.create(user=user)
-    
-    context = {
-        'user': user,
-        'profile': profile,
-        'page_title': 'My Profile'
-    }
-    return render(request, 'accounts/profile.html', context)
 # Check if email exists (AJAX endpoint)
 def check_email_exists(request):
     """Check if email already exists"""
@@ -338,6 +327,7 @@ def check_email_exists(request):
         exists = CustomUser.objects.filter(email=email).exists()
         return JsonResponse({'exists': exists})
     return JsonResponse({'error': 'Invalid request'})
+
 
 # Check if username exists (AJAX endpoint)
 def check_username_exists(request):
@@ -348,103 +338,155 @@ def check_username_exists(request):
         return JsonResponse({'exists': exists})
     return JsonResponse({'error': 'Invalid request'})   
 
-'''
-@csrf_protect
-@require_http_methods(["POST"])
-def process_signup(request):
-    """Process user signup and store data in backend"""
-    next_url = request.GET.get('next', '/')  # default to homepage if not provided
-    try:
-        # Get form data
-        email = request.POST.get('email', '').strip().lower()
-        password = request.POST.get('password', '')
-        confirm_password = request.POST.get('confirm_password', '')
-        full_name = request.POST.get('full_name', '').strip()
-        username = request.POST.get('username', '').strip().lower()
-        phone_number = request.POST.get('phone_number', '').strip()
-        bio = request.POST.get('bio', '').strip()
-        
-        # Validation
-        errors = []
-        
-        if not email:
-            errors.append('Email is required.')
-        elif not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
-            errors.append('Please enter a valid email address.')
-        elif CustomUser.objects.filter(email=email).exists():
-            errors.append('Email already exists.')
-        
-        if not password:
-            errors.append('Password is required.')
-        elif len(password) < 8:
-            errors.append('Password must be at least 8 characters long.')
-        
-        if password != confirm_password:
-            errors.append('Passwords do not match.')
-        
-        if not full_name:
-            errors.append('Full name is required.')
-        elif len(full_name) < 2:
-            errors.append('Full name must be at least 2 characters long.')
-        if not username:
-            errors.append('Username is required.')
-        elif len(username) < 3:
-            errors.append('Username must be at least 3 characters long.')
-        elif CustomUser.objects.filter(username=username).exists():
-            errors.append('Username already exists.')
-        elif not re.match(r'^[a-zA-Z0-9_]+$', username):
-            errors.append('Username can only contain letters, numbers, and underscores.')
-        
-        # Validate password strength
-        try:
-            validate_password(password)
-        except ValidationError as e:
-            errors.extend(e.messages)
-        
-        if errors:
-            for error in errors:
-                messages.error(request, error)
-            return redirect(f"{reverse('login_signup')}?next={next_url}")
-        
-        # Create user with transaction
-        with transaction.atomic():
-            # Create user
-            user = CustomUser.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-                full_name=full_name,
-                phone_number=phone_number,
-                bio=bio,
-                last_login_ip=get_client_ip(request)
-            )
-            
-            # Create user profile
-            UserProfile.objects.create(user=user)
-            
-            # Log successful signup attempt
-            LoginAttempt.objects.create(
-                email=email,
-                ip_address=get_client_ip(request),
-                success=True,
-                user_agent=request.META.get('HTTP_USER_AGENT', '')
-            )
-            
-            # Auto-login after signup
-            login(request, user)
-            
-            messages.success(request, f'Welcome to our platform, {user.get_short_name()}! Your account has been created successfully.')
-            return redirect(next_url)  # Go to next page
-            
-    except Exception as e:
-        messages.error(request, 'An error occurred during signup. Please try again.')
-        # Log failed signup attempt
-        LoginAttempt.objects.create(
-            email=email if 'email' in locals() else '',
-            ip_address=get_client_ip(request),
-            success=False,
-            user_agent=request.META.get('HTTP_USER_AGENT', '')
-        )
-        return redirect(f"{reverse('login_signup')}?next={next_url}")
 
-'''
+
+User = get_user_model()
+
+@login_required
+def profile_view(request):
+    """Displays user profile with dynamic data"""
+    user = request.user
+    
+    # Get or create user profile
+    try:
+        profile = user.profile
+    except UserProfile.DoesNotExist:
+        profile = UserProfile.objects.create(user=user)
+    
+    # Calculate user statistics
+    # Note: These will need to be adjusted based on your actual dataset models
+    # For now, I'm providing placeholder calculations
+    user_stats = {
+        'datasets_uploaded': 0,  # Replace with: user.datasets.count() when you have dataset model
+        'total_downloads': 0,    # Replace with: user.datasets.aggregate(Sum('downloads'))['downloads__sum'] or 0
+        'profile_views': 0,      # You might want to track this separately
+        'stars_collected': 0,    # Replace with rating/star system when implemented
+        'total_reviews': 0,      # Replace with: user.datasets.aggregate(Count('reviews'))['reviews__count'] or 0
+        'average_rating': 0.0,   # Replace with: user.datasets.aggregate(Avg('rating'))['rating__avg'] or 0.0
+    }
+    
+    # You can add these methods to calculate stats once you have dataset models:
+    """
+    # Example calculations when you have dataset models:
+    from your_app.models import Dataset, Download, Review
+    
+    datasets = Dataset.objects.filter(user=user)
+    user_stats = {
+        'datasets_uploaded': datasets.count(),
+        'total_downloads': Download.objects.filter(dataset__user=user).count(),
+        'profile_views': user.profile_views if hasattr(user, 'profile_views') else 0,
+        'stars_collected': datasets.aggregate(Sum('stars'))['stars__sum'] or 0,
+        'total_reviews': Review.objects.filter(dataset__user=user).count(),
+        'average_rating': datasets.aggregate(Avg('rating'))['rating__avg'] or 0.0,
+    }
+    """
+    
+    # For demonstration, let's add some sample data if user has been around
+    days_since_join = (timezone.now().date() - user.date_joined.date()).days
+    if days_since_join > 30:  # User has been around for a month
+        user_stats.update({
+            'datasets_uploaded': min(days_since_join // 30, 12),  # Sample data
+            'total_downloads': min(days_since_join * 5, 2034),    # Sample data
+            'profile_views': min(days_since_join * 10, 3847),     # Sample data
+            'stars_collected': min(days_since_join * 2, 487),     # Sample data
+            'total_reviews': min(days_since_join // 7, 127),      # Sample data
+            'average_rating': min(4.0 + (days_since_join / 100), 4.9),  # Sample data
+        })
+    
+    context = {
+        'user': user,
+        'profile': profile,
+        'user_stats': user_stats,
+        'page_title': f"{user.get_full_name()}'s Profile" if user.get_full_name() else f"{user.username}'s Profile"
+    }
+    
+    return render(request, 'accounts/profile.html', context)
+
+# Optional: Add edit profile view
+@login_required
+def edit_profile_view(request):
+    """Edit user profile"""
+    user = request.user
+    
+    try:
+        profile = user.profile
+    except UserProfile.DoesNotExist:
+        profile = UserProfile.objects.create(user=user)
+    
+    if request.method == 'POST':
+        # Handle form submission
+        # Update user fields
+        user.full_name = request.POST.get('full_name', user.full_name)
+        user.bio = request.POST.get('bio', user.bio)
+        user.phone_number = request.POST.get('phone_number', user.phone_number)
+        
+        # Handle profile picture upload
+        if 'profile_picture' in request.FILES:
+            user.profile_picture = request.FILES['profile_picture']
+        
+        user.save()
+        
+        # Update profile fields
+        profile.location = request.POST.get('location', profile.location)
+        profile.organization = request.POST.get('organization', profile.organization)
+        profile.job_title = request.POST.get('job_title', profile.job_title)
+        profile.website = request.POST.get('website', profile.website)
+        profile.linkedin_url = request.POST.get('linkedin_url', profile.linkedin_url)
+        profile.github_url = request.POST.get('github_url', profile.github_url)
+        profile.twitter_handle = request.POST.get('twitter_handle', profile.twitter_handle)
+        
+        profile.save()
+        
+        return redirect('profile')
+    
+    context = {
+        'user': user,
+        'profile': profile,
+        'page_title': 'Edit Profile'
+    }
+    
+    return render(request, 'accounts/edit_profile.html', context)
+
+# Optional: Public profile view for other users
+def public_profile_view(request, user_id):
+    """View other user's public profile"""
+    try:
+        profile_user = User.objects.get(id=user_id)
+        profile = profile_user.profile
+    except (User.DoesNotExist, UserProfile.DoesNotExist):
+        return redirect('home')
+    
+    # Calculate user statistics (same as above)
+    days_since_join = (timezone.now().date() - profile_user.date_joined.date()).days
+    user_stats = {
+        'datasets_uploaded': 0,
+        'total_downloads': 0,
+        'profile_views': 0,
+        'stars_collected': 0,
+        'total_reviews': 0,
+        'average_rating': 0.0,
+    }
+    
+    # Add sample data for demonstration
+    if days_since_join > 30:
+        user_stats.update({
+            'datasets_uploaded': min(days_since_join // 30, 12),
+            'total_downloads': min(days_since_join * 5, 2034),
+            'profile_views': min(days_since_join * 10, 3847),
+            'stars_collected': min(days_since_join * 2, 487),
+            'total_reviews': min(days_since_join // 7, 127),
+            'average_rating': min(4.0 + (days_since_join / 100), 4.9),
+        })
+    
+    # Track profile view (optional)
+    # You might want to implement a ProfileView model to track this
+    
+    context = {
+        'user': profile_user,
+        'profile': profile,
+        'user_stats': user_stats,
+        'is_own_profile': request.user == profile_user if request.user.is_authenticated else False,
+        'page_title': f"{profile_user.get_full_name()}'s Profile" if profile_user.get_full_name() else f"{profile_user.username}'s Profile"
+    }
+    
+    return render(request, 'accounts/public_profile.html', context)

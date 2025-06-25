@@ -39,7 +39,7 @@
                         </div>
                         <span class="text-gray-700 font-medium">{{ user.get_full_name|default:user.username }}</span>
                     </div>
-                    <a href="{% url 'user_profile' %}" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Profile</a>
+                    <a href="{% url 'profile' %}" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Profile</a>
                     <a href="#" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Settings</a>
                     <a href="{% url 'logout' %}" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Logout</a>
                 </div>
@@ -90,7 +90,7 @@
                         
                         <!-- Dropdown Menu -->
                         <div id="userDropdown" class="user-dropdown absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
-                            <a href="{% url 'user_profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                            <a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-user mr-2"></i>Profile
                             </a>
                             <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
