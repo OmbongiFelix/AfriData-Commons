@@ -1,4 +1,4 @@
-# views.py
+# dataset/views.py
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, Http404, JsonResponse
 from django.contrib.auth.decorators import login_required
