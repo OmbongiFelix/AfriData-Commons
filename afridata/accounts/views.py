@@ -490,3 +490,5 @@ def public_profile_view(request, user_id):
     }
     
     return render(request, 'accounts/public_profile.html', context)
+
+
