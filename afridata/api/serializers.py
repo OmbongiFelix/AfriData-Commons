@@ -3,8 +3,8 @@ This file contains serializer classes that convert Django model instances to JSO
 '''
 #api/serializers.py
 from rest_framework import serializers
-from datasets.models import Dataset
-from accounts.models import User
+from dataset.models import Dataset
+from accounts.models import CustomUser
 
 class DatasetSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,6 +13,6 @@ class DatasetSerializer(serializers.ModelSerializer):
         
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = CustomUser
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
