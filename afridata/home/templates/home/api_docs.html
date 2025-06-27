@@ -1,0 +1,338 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AfriData API Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <h1 class="text-3xl font-bold text-gray-900">AfriData API</h1>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-600">Version 1.0</span>
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">Live</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Sidebar Navigation -->
+            <div class="lg:col-span-1">
+                <nav class="sticky top-8 space-y-2">
+                    <a href="#overview" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md">Overview</a>
+                    <a href="#authentication" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md">Authentication</a>
+                    <a href="#endpoints" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md">Endpoints</a>
+                    <a href="#examples" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md">Examples</a>
+                    <a href="#api-key" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md">API Keys</a>
+                    <a href="#usage" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md">Usage Stats</a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="lg:col-span-3 space-y-8">
+                <!-- Overview Section -->
+                <section id="overview" class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-4">API Overview</h2>
+                    <p class="text-gray-600 mb-4">
+                        The AfriData API provides programmatic access to African datasets, enabling developers 
+                        to integrate our data repository into their applications, research workflows, and data analysis pipelines.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-blue-900">Base URL</h3>
+                            <code class="text-sm text-blue-700">https://afridata.com/api/v1/</code>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-green-900">Response Format</h3>
+                            <code class="text-sm text-green-700">JSON</code>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-purple-900">Rate Limit</h3>
+                            <code class="text-sm text-purple-700">1000 requests/hour</code>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Authentication Section -->
+                <section id="authentication" class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-4">Authentication</h2>
+                    <p class="text-gray-600 mb-4">
+                        AfriData API uses API key authentication. Include your API key in the Authorization header:
+                    </p>
+                    <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto"><code class="language-bash">Authorization: Api-Key YOUR_API_KEY_HERE</code></pre>
+                </section>
+
+                <!-- Endpoints Section -->
+                <section id="endpoints" class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Available Endpoints</h2>
+                    
+                    <!-- Datasets Endpoints -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Datasets</h3>
+                        <div class="space-y-4">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">GET</span>
+                                        <code class="text-gray-800">/api/v1/datasets/</code>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-2">List all datasets with pagination and filtering</p>
+                                <div class="text-sm text-gray-500">
+                                    <strong>Query Parameters:</strong> country, category, search, page, page_size
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">GET</span>
+                                        <code class="text-gray-800">/api/v1/datasets/{id}/</code>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 text-sm">Retrieve a specific dataset by ID</p>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">POST</span>
+                                        <code class="text-gray-800">/api/v1/datasets/</code>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 text-sm">Create a new dataset (authentication required)</p>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">GET</span>
+                                        <code class="text-gray-800">/api/v1/datasets/popular/</code>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 text-sm">Get popular/trending datasets</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Users Endpoints -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Users</h3>
+                        <div class="space-y-4">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">GET</span>
+                                        <code class="text-gray-800">/api/v1/users/profile/</code>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 text-sm">Get current user profile (authentication required)</p>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">POST</span>
+                                        <code class="text-gray-800">/api/v1/auth/login/</code>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 text-sm">Authenticate user and get API token</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Examples Section -->
+                <section id="examples" class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Example Requests</h2>
+                    
+                    <div class="space-y-6">
+                        <!-- Python Example -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Python (requests)</h3>
+                            <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto"><code class="language-python">import requests
+
+# Get all datasets
+headers = {'Authorization': 'Api-Key YOUR_API_KEY'}
+response = requests.get('https://afridata.com/api/v1/datasets/', headers=headers)
+datasets = response.json()
+
+# Filter datasets by country
+params = {'country': 'kenya', 'category': 'agriculture'}
+response = requests.get('https://afridata.com/api/v1/datasets/', 
+                       headers=headers, params=params)
+
+# Create new dataset
+data = {
+    'name': 'Kenya Population Census 2024',
+    'description': 'Latest population data for Kenya',
+    'country': 'Kenya',
+    'category': 'Demographics'
+}
+response = requests.post('https://afridata.com/api/v1/datasets/', 
+                        headers=headers, json=data)</code></pre>
+                        </div>
+
+                        <!-- cURL Example -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">cURL</h3>
+                            <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto"><code class="language-bash"># Get datasets filtered by country
+curl -H "Authorization: Api-Key YOUR_API_KEY" \
+     "https://afridata.com/api/v1/datasets/?country=nigeria"
+
+# Create new dataset
+curl -X POST \
+     -H "Authorization: Api-Key YOUR_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"name": "Nigeria GDP Data", "country": "Nigeria"}' \
+     https://afridata.com/api/v1/datasets/</code></pre>
+                        </div>
+
+                        <!-- JavaScript Example -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">JavaScript (fetch)</h3>
+                            <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto"><code class="language-javascript">// Get datasets
+fetch('https://afridata.com/api/v1/datasets/', {
+    headers: {
+        'Authorization': 'Api-Key YOUR_API_KEY'
+    }
+})
+.then(response => response.json())
+.then(data => console.log(data));
+
+// Search datasets
+fetch('https://afridata.com/api/v1/datasets/?search=agriculture', {
+    headers: {
+        'Authorization': 'Api-Key YOUR_API_KEY'
+    }
+})
+.then(response => response.json())
+.then(data => console.log(data));</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- API Key Management -->
+                <section id="api-key" class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">API Key Management</h2>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">You must be logged in to generate and manage API keys.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- Current API Keys -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Your API Keys</h3>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-medium text-gray-900">Production Key</p>
+                                        <p class="text-sm text-gray-500">Created: March 15, 2024</p>
+                                        <code class="text-xs bg-gray-200 px-2 py-1 rounded">ak_prod_1234567890abcdef...</code>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button class="text-sm text-blue-600 hover:text-blue-800">Copy</button>
+                                        <button class="text-sm text-red-600 hover:text-red-800">Revoke</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Generate New Key -->
+                        <div>
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                Generate New API Key
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Usage Statistics -->
+                <section id="usage" class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Usage Statistics</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-blue-900">Requests Today</h3>
+                            <p class="text-2xl font-bold text-blue-700">247</p>
+                            <p class="text-xs text-blue-600">753 remaining</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-green-900">This Month</h3>
+                            <p class="text-2xl font-bold text-green-700">15,430</p>
+                            <p class="text-xs text-green-600">+12% from last month</p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-purple-900">Popular Endpoint</h3>
+                            <p class="text-sm font-bold text-purple-700">/datasets/</p>
+                            <p class="text-xs text-purple-600">67% of requests</p>
+                        </div>
+                        <div class="bg-orange-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-orange-900">Error Rate</h3>
+                            <p class="text-2xl font-bold text-orange-700">0.3%</p>
+                            <p class="text-xs text-orange-600">Mostly 404s</p>
+                        </div>
+                    </div>
+
+                    <!-- Usage Chart Placeholder -->
+                    <div class="bg-gray-100 rounded-lg p-8 text-center">
+                        <p class="text-gray-500">Usage chart would be implemented here</p>
+                        <p class="text-sm text-gray-400">(Could use Chart.js or similar)</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center text-gray-500">
+                <p>&copy; 2024 AfriData. API Documentation v1.0</p>
+                <p class="mt-2">
+                    <a href="#" class="text-blue-600 hover:text-blue-800">Support</a> • 
+                    <a href="#" class="text-blue-600 hover:text-blue-800">Terms</a> • 
+                    <a href="#" class="text-blue-600 hover:text-blue-800">Status Page</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Mock API key generation
+        document.querySelector('button:contains("Generate New API Key")').addEventListener('click', function() {
+            alert('API key generation would be implemented here');
+        });
+    </script>
+</body>
+</html>
+

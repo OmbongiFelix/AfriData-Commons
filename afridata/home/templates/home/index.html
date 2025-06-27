@@ -28,7 +28,7 @@
         <a href="{% url 'dataset_list' %}" class="block py-2 text-gray-700 hover:text-blue-600">Datasets</a>
         <!--<a href="#" class="block py-2 text-gray-700 hover:text-blue-600">Analytics</a> -->
         <a href="{%url 'community'%}" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
-        <a href="{% url 'api:api_request' %}" class="block py-2 text-gray-700 hover:text-blue-600">API</a>
+        <a href="{% url 'home:api_docs' %}" class="block py-2 text-gray-700 hover:text-blue-600">API</a>
         <a href="{%url 'login_signup'%}" class="block py-2 text-gray-700 hover:text-blue-600">Login</a>
         <button class="w-full bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-yellow-300 transition-colors">Sign Up Free</button>
       </nav>
@@ -50,7 +50,7 @@
           <a href="{%url 'home:default_home'%}" class="hover:text-yellow-300 transition-colors">Home</a>
           <a href="{% url 'dataset_list' %}" class="hover:text-yellow-300 transition-colors">Datasets</a>
           <a href="{% url 'community' %}" class="hover:text-yellow-300 transition-colors">Community</a>
-          <a href="{% url 'api:api_request' %}" class="hover:text-yellow-300 transition-colors">API</a>
+          <a href="{% url 'home:api_docs' %}" class="hover:text-yellow-300 transition-colors">API Docs</a>
           <a href="{% url 'login_signup' %}?next=/" class="hover:text-yellow-300 transition-colors">Login</a>
           <a href="{% url 'login_signup' %}?signup=true">
             <button class="bg-yellow-400 text-gray-900 px-6 py-2 rounded-full font-medium hover:bg-yellow-300 transition-colors">Sign Up Free</button>

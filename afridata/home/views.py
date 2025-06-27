@@ -7,6 +7,7 @@ from datetime import timedelta
 from dataset.models import Dataset
 from django.http import HttpResponse
 import json
+from django.contrib.auth.decorators import login_required
 
 
 def default_home(request):
@@ -216,34 +217,16 @@ def dataset_stats(request):
         }
     })
 
-# Alternative class-based views if you prefer
-from django.views.generic import TemplateView
-from django.views import View
 
-class HomeView(TemplateView):
-    """Class-based view for homepage"""
-    template_name = 'home/index.html'
+def api_docs(request):
+    return render(request, 'home/api_docs.html')
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Add any context data for the template
-        context['page_title'] = 'Dataset Hub - Home'
-        return context
-
-class DatasetSearchView(View):
-    """Class-based view for dataset searching"""
-    
-    def get(self, request):
-        return search_datasets(request)
-
-class TrendingDatasetsView(View):
-    """Class-based view for trending datasets"""
-    
-    def get(self, request):
-        return trending_datasets(request)
-
-class FilterDatasetsView(View):
-    """Class-based view for filtering datasets"""
-    
-    def get(self, request):
-        return filter_datasets(request)
+'''
+@login_required
+def api_docs(request):
+    context = {
+        'user_api_keys': request.user.api_keys.all() if hasattr(request.user, 'api_keys') else [],
+        'usage_stats': get_user_api_usage(request.user) if request.user.is_authenticated else None,
+    }
+    return render(request, 'home/api_docs.html', context)
+'''
