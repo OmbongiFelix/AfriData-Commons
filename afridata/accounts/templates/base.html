@@ -28,7 +28,7 @@
                 <a href="{% url 'home' %}" class="block py-2 text-gray-700 hover:text-blue-600">Home</a>
                 {% endif %}
                 <a href="{% url 'dataset_list' %}" class="block py-2 text-gray-700 hover:text-blue-600">Datasets</a>
-                <a href="{% url 'community' %}" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
+                <a href="{% url 'community:community' %}" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
                 <a href="{% url 'home:api_docs' %}" class="block py-2 text-gray-700 hover:text-blue-600">API</a>
                 
                 {% if user.is_authenticated %}
@@ -74,8 +74,8 @@
                     <a href="{% url 'home:default_home' %}" class="{% if request.resolver_match.url_name == 'default_home' %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">Home</a>
                     {% endif %}
                     <a href="{% url 'dataset_list' %}" class="{% if 'dataset' in request.resolver_match.url_name %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">Datasets</a>
-                    <a href="{% url 'community' %}" class="{% if request.resolver_match.url_name == 'community' %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">Community</a>
-                    <a href="{% url 'homeapi_docs' %}" class="{% if 'api' in request.resolver_match.url_name %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">API</a>
+                    <a href="{% url 'community:community' %}" class="{% if request.resolver_match.url_name == 'community' %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">Community</a>
+                    <a href="{% url 'home:api_docs' %}" class="{% if 'api' in request.resolver_match.url_name %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">API</a>
 
                     {% if user.is_authenticated %}
                     <!-- User Profile Dropdown -->
@@ -175,7 +175,7 @@
                             <li><a href="#" class="footer-link text-gray-300 flex items-center">
                                 <i class="fas fa-file-alt mr-2 text-sm"></i>Documentation
                             </a></li>
-                            <li><a href="{% url 'api:api_request' %}" class="footer-link text-gray-300 flex items-center">
+                            <li><a href="{% url 'home:api_docs' %}" class="footer-link text-gray-300 flex items-center">
                                 <i class="fas fa-code mr-2 text-sm"></i>API Access
                             </a></li>
                             <li><a href="#" class="footer-link text-gray-300 flex items-center">
@@ -197,7 +197,7 @@
                             Community
                         </h4>
                         <ul class="space-y-3">
-                            <li><a href="{% url 'community' %}" class="footer-link text-gray-300 flex items-center">
+                            <li><a href="{% url 'community:community' %}" class="footer-link text-gray-300 flex items-center">
                                 <i class="fas fa-comments mr-2 text-sm"></i>Discussion Forum
                             </a></li>
                             <li><a href="#" class="footer-link text-gray-300 flex items-center">
