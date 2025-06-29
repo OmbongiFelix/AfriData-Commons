@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create New Thread - {{ topic.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'community:community' %}">Community</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'community:topic_detail' topic.pk %}">{{ topic.name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Create Thread</li>
+                </ol>
+            </nav>
+
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">Create New Thread</h1>
+                    <p class="text-muted mb-0">Starting a new discussion in <strong>{{ topic.name }}</strong></p>
+                </div>
+                <a href="{% url 'community:topic_detail' topic.pk %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to {{ topic.name }}
+                </a>
+            </div>
+
+            <!-- Thread Creation Form -->
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-plus-circle me-2"></i>New Thread
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" novalidate>
+                                {% csrf_token %}
+                                
+                                <!-- Title Field -->
+                                <div class="mb-4">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.title.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.title }}
+                                    {% if form.title.help_text %}
+                                        <div class="form-text">{{ form.title.help_text }}</div>
+                                    {% endif %}
+                                    {% if form.title.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.title.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Content Field -->
+                                <div class="mb-4">
+                                    <label for="{{ form.content.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.content.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.content }}
+                                    {% if form.content.help_text %}
+                                        <div class="form-text">{{ form.content.help_text }}</div>
+                                    {% endif %}
+                                    {% if form.content.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.content.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="text-muted small">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Please follow community guidelines when posting
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'community:topic_detail' topic.pk %}" class="btn btn-outline-secondary me-2">
+                                            Cancel
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-paper-plane me-2"></i>Create Thread
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Guidelines Card -->
+                    <div class="card mt-4 border-info">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-lightbulb me-2"></i>Posting Guidelines
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="mb-0 small">
+                                <li>Choose a clear, descriptive title that summarizes your topic</li>
+                                <li>Provide enough detail in your post to help others understand the context</li>
+                                <li>Search existing threads to avoid duplicates</li>
+                                <li>Be respectful and constructive in your discussions</li>
+                                <li>Follow the community rules and guidelines</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize textarea
+    const textarea = document.querySelector('textarea[name="content"]');
+    if (textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    }
+    
+    // Character counter for title
+    const titleInput = document.querySelector('input[name="title"]');
+    if (titleInput) {
+        const maxLength = titleInput.getAttribute('maxlength');
+        if (maxLength) {
+            const counter = document.createElement('div');
+            counter.className = 'form-text text-end';
+            counter.id = 'title-counter';
+            titleInput.parentNode.appendChild(counter);
+            
+            function updateCounter() {
+                const remaining = maxLength - titleInput.value.length;
+                counter.textContent = `${titleInput.value.length}/${maxLength} characters`;
+                counter.className = remaining < 20 ? 'form-text text-end text-warning' : 'form-text text-end text-muted';
+            }
+            
+            titleInput.addEventListener('input', updateCounter);
+            updateCounter();
+        }
+    }
+});
+</script>
+{% endblock %}
+

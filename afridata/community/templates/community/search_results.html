@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Search Results{% if query %} - "{{ query }}"{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">Search Results</h1>
+                    {% if query %}
+                        <p class="text-muted mb-0">
+                            Found {{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }} for "<strong>{{ query }}</strong>"
+                        </p>
+                    {% else %}
+                        <p class="text-muted mb-0">Browse all threads</p>
+                    {% endif %}
+                </div>
+                <a href="{% url 'community:community' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-home me-2"></i>Back to Community
+                </a>
+            </div>
+
+            <div class="row">
+                <!-- Search Filters Sidebar -->
+                <div class="col-lg-3 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-filter me-2"></i>Search & Filter
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <form method="get" action="{% url 'community:search' %}">
+                                <!-- Search Query -->
+                                <div class="mb-3">
+                                    <label for="search-query" class="form-label">Search Terms</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="search-query"
+                                           name="q" 
+                                           value="{{ query }}" 
+                                           placeholder="Enter search terms...">
+                                </div>
+
+                                <!-- Topic Filter -->
+                                <div class="mb-3">
+                                    <label for="topic-filter" class="form-label">Filter by Topic</label>
+                                    <select class="form-select" id="topic-filter" name="topic">
+                                        <option value="">All Topics</option>
+                                        {% for topic in topics %}
+                                            <option value="{{ topic.pk }}" 
+                                                    {% if topic.pk|stringformat:"s" == topic_filter %}selected{% endif %}>
+                                                {{ topic.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <!-- Search Button -->
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search me-2"></i>Search
+                                </button>
+                                
+                                <!-- Clear Filters -->
+                                {% if query or topic_filter %}
+                                    <a href="{% url 'community:search' %}" class="btn btn-outline-secondary w-100 mt-2">
+                                        <i class="fas fa-times me-2"></i>Clear Filters
+                                    </a>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div class="col-lg-9">
+                    {% if threads %}
+                        <!-- Results Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="text-muted">
+                                Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+                            </div>
+                        </div>
+
+                        <!-- Thread Results -->
+                        <div class="card">
+                            <div class="list-group list-group-flush">
+                                {% for thread in threads %}
+                                    <div class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <!-- Thread Title -->
+                                                <h6 class="mb-2">
+                                                    <a href="{% url 'community:thread_detail' thread.pk %}" 
+                                                       class="text-decoration-none fw-bold">
+                                                        {{ thread.title }}
+                                                    </a>
+                                                    {% if thread.is_pinned %}
+                                                        <span class="badge bg-warning text-dark ms-2">
+                                                            <i class="fas fa-thumbtack"></i> Pinned
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if thread.is_locked %}
+                                                        <span class="badge bg-secondary ms-2">
+                                                            <i class="fas fa-lock"></i> Locked
+                                                        </span>
+                                                    {% endif %}
+                                                </h6>
+
+                                                <!-- Thread Meta -->
+                                                <div class="text-muted small mb-2">
+                                                    <span class="me-3">
+                                                        <i class="fas fa-folder me-1"></i>
+                                                        <a href="{% url 'community:topic_detail' thread.topic.pk %}" 
+                                                           class="text-muted text-decoration-none">
+                                                            {{ thread.topic.name }}
+                                                        </a>
+                                                    </span>
+                                                    <span class="me-3">
+                                                        <i class="fas fa-user me-1"></i>
+                                                        <a href="{% url 'community:user_profile' thread.author.username %}" 
+                                                           class="text-muted text-decoration-none">
+                                                            {{ thread.author.username }}
+                                                        </a>
+                                                    </span>
+                                                    <span class="me-3">
+                                                        <i class="fas fa-calendar me-1"></i>
+                                                        {{ thread.created_at|date:"M d, Y" }}
+                                                    </span>
+                                                </div>
+
+                                                <!-- Thread Preview -->
+                                                <p class="mb-2 text-muted">
+                                                    {{ thread.content|truncatewords:25 }}
+                                                </p>
+                                            </div>
+
+                                            <!-- Thread Stats -->
+                                            <div class="text-end ms-3">
+                                                <div class="small text-muted">
+                                                    <div><strong>{{ thread.post_count }}</strong> replies</div>
+                                                    <div><strong>{{ thread.view_count }}</strong> views</div>
+                                                    {% if thread.updated_at %}
+                                                        <div class="mt-1">
+                                                            Last: {{ thread.updated_at|timesince }} ago
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if page_obj.has_other_pages %}
+                            <nav aria-label="Search results pagination" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?q={{ query }}&topic={{ topic_filter }}&page=1">
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?q={{ query }}&topic={{ topic_filter }}&page={{ page_obj.previous_page_number }}">
+                                                <i class="fas fa-angle-left"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?q={{ query }}&topic={{ topic_filter }}&page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?q={{ query }}&topic={{ topic_filter }}&page={{ page_obj.next_page_number }}">
+                                                <i class="fas fa-angle-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?q={{ query }}&topic={{ topic_filter }}&page={{ page_obj.paginator.num_pages }}">
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+
+                    {% else %}
+                        <!-- No Results -->
+                        <div class="card">
+                            <div class="card-body text-center py-5">
+                                <div class="mb-4">
+                                    <i class="fas fa-search fa-3x text-muted"></i>
+                                </div>
+                                <h5 class="mb-3">No Results Found</h5>
+                                {% if query %}
+                                    <p class="text-muted mb-4">
+                                        We couldn't find any threads matching "<strong>{{ query }}</strong>"
+                                        {% if topic_filter %}in the selected topic{% endif %}.
+                                    </p>
+                                    <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                                        <a href="{% url 'community:search' %}" class="btn btn-outline-primary">
+                                            <i class="fas fa-search me-2"></i>Try a different search
+                                        </a>
+                                        <a href="{% url 'community:community' %}" class="btn btn-primary">
+                                            <i class="fas fa-home me-2"></i>Browse Community
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted mb-4">Enter search terms to find threads in the community.</p>
+                                    <a href="{% url 'community:community' %}" class="btn btn-primary">
+                                        <i class="fas fa-home me-2"></i>Browse Community
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit form when topic filter changes
+    const topicFilter = document.getElementById('topic-filter');
+    if (topicFilter) {
+        topicFilter.addEventListener('change', function() {
+            // Optional: Auto-submit on topic change
+            // this.form.submit();
+        });
+    }
+    
+    // Highlight search terms in results
+    const searchQuery = '{{ query|escapejs }}';
+    if (searchQuery) {
+        const results = document.querySelectorAll('.list-group-item h6 a, .list-group-item p');
+        results.forEach(function(element) {
+            const text = element.innerHTML;
+            const highlightedText = text.replace(
+                new RegExp(searchQuery, 'gi'),
+                '<mark>$&</mark>'
+            );
+            element.innerHTML = highlightedText;
+        });
+    }
+});
+</script>
+{% endblock %}

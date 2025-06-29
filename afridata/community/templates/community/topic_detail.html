@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ topic.name }} - Community Forums{% endblock %}
+
+{% block extra_css %}
+<style>
+    .topic-header {
+        background: linear-gradient(135deg, {{ topic.color }}15 0%, {{ topic.color }}25 100%);
+        border-left: 4px solid {{ topic.color }};
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .thread-card {
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    
+    .thread-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+    }
+    
+    .thread-pinned {
+        border-left: 4px solid #ffc107;
+        background: #fff8e1;
+    }
+    
+    .thread-locked {
+        opacity: 0.7;
+        background: #f8f9fa;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .thread-stats {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .search-bar {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'community:community' %}">Forums</a>
+            </li>
+            <li class="breadcrumb-item active">{{ topic.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Topic Header -->
+    <div class="topic-header">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <div class="topic-icon" style="background-color: {{ topic.color }}; width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem;">
+                    {% if topic.icon %}
+                        <i class="{{ topic.icon }}"></i>
+                    {% else %}
+                        <i class="fas fa-comments"></i>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col">
+                <h1 class="mb-2">{{ topic.name }}</h1>
+                <p class="mb-0 text-muted">{{ topic.description }}</p>
+            </div>
+            <div class="col-auto">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'community:create_thread' topic.pk %}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>New Discussion
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Search and Filters -->
+            <div class="search-bar p-3 mb-4">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" name="search" 
+                               placeholder="Search discussions in {{ topic.name }}..." 
+                               value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Threads List -->
+            {% if threads %}
+                {% for thread in threads %}
+                <div class="thread-card {% if thread.is_pinned %}thread-pinned{% endif %} {% if thread.is_locked %}thread-locked{% endif %}">
+                    <div class="row align-items-start">
+                        <div class="col-auto">
+                            <div class="user-avatar">
+                                {{ thread.author.get_short_name|first|upper }}
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-flex align-items-center mb-2">
+                                {% if thread.is_pinned %}
+                                    <i class="fas fa-thumbtack text-warning me-2" title="Pinned"></i>
+                                {% endif %}
+                                {% if thread.is_locked %}
+                                    <i class="fas fa-lock text-muted me-2" title="Locked"></i>
+                                {% endif %}
+                                <h5 class="mb-0">
+                                    <a href="{% url 'community:thread_detail' thread.pk %}" 
+                                       class="text-decoration-none text-dark">
+                                        {{ thread.title }}
+                                    </a>
+                                </h5>
+                            </div>
+                            
+                            <p class="mb-2 text-muted">{{ thread.content|truncatechars:150 }}</p>
+                            
+                            <div class="thread-stats">
+                                <span class="me-3">
+                                    <i class="fas fa-user me-1"></i>
+                                    <strong>{{ thread.author.get_short_name }}</strong>
+                                </span>
+                                <span class="me-3">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ thread.created_at|timesince }} ago
+                                </span>
+                                <span class="me-3">
+                                    <i class="fas fa-eye me-1"></i>
+                                    {{ thread.views }} views
+                                </span>
+                                <span>
+                                    <i class="fas fa-comments me-1"></i>
+                                    {{ thread.post_count }} replies
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-auto text-end">
+                            {% if thread.get_latest_post %}
+                                <small class="text-muted">
+                                    Last reply:<br>
+                                    {{ thread.get_latest_post.created_at|timesince }} ago<br>
+                                    by <strong>{{ thread.get_latest_post.author.get_short_name }}</strong>
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Thread pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                    <h4>No discussions found</h4>
+                    {% if search_query %}
+                        <p class="text-muted">No discussions match your search for "{{ search_query }}"</p>
+                        <a href="{% url 'community:topic_detail' topic.pk %}" class="btn btn-outline-primary">
+                            View all discussions
+                        </a>
+                    {% else %}
+                        <p class="text-muted">Be the first to start a discussion in this topic!</p>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'community:create_thread' topic.pk %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Start New Discussion
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Topic Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-primary mb-1">{{ topic.get_thread_count }}</h4>
+                            <small class="text-muted">Discussions</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success mb-1">{{ topic.get_post_count }}</h4>
+                            <small class="text-muted">Posts</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

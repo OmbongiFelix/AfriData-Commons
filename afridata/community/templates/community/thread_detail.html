@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ thread.title }} - Community Forums{% endblock %}
+
+{% block extra_css %}
+<style>
+    .thread-header {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .post-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .post-header {
+        background: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .post-content {
+        padding: 1.5rem;
+    }
+    
+    .post-actions {
+        background: #f8f9fa;
+        padding: 0.75rem 1.5rem;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    
+    .vote-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .vote-btn {
+        border: none;
+        background: #f8f9fa;
+        color: #6c757d;
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    
+    .vote-btn:hover {
+        background: #e9ecef;
+    }
+    
+    .vote-btn.active.upvote {
+        background: #28a745;
+        color: white;
+    }
+    
+    .vote-btn.active.downvote {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .reply-form {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .thread-locked {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'community:community' %}">Forums</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'community:topic_detail' thread.topic.pk %}">{{ thread.topic.name }}</a>
+            </li>
+            <li class="breadcrumb-item active">{{ thread.title|truncatechars:50 }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Thread Header -->
+            <div class="thread-header">
+                <div class="d-flex align-items-center mb-3">
+                    {% if thread.is_pinned %}
+                        <i class="fas fa-thumbtack text-warning me-2" title="Pinned"></i>
+                    {% endif %}
+                    {% if thread.is_locked %}
+                        <i class="fas fa-lock text-muted me-2" title="Locked"></i>
+                    {% endif %}
+                    <h1 class="mb-0">{{ thread.title }}</h1>
+                </div>
+                
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="user-avatar">
+                            {{ thread.author.get_short_name|first|upper }}
+                        </div>
+                    </div>
+                    <div class="col">
+                        <h6 class="mb-1">{{ thread.author.get_full_name }}</h6>
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            {{ thread.created_at|timesince }} ago
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-eye me-1"></i>
+                            {{ thread.views }} views
+                        </small>
+                    </div>
+                    <div class="col-auto">
+                        <span class="badge" style="background-color: {{ thread.topic.color }}">
+                            {{ thread.topic.name }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="post-content">
+                        {{ thread.content|linebreaks }}
+                    </div>
+                </div>
+            </div>
+
+            {% if thread.is_locked %}
+            <div class="thread-locked">
+                <i class="fas fa-lock me-2"></i>
+                This discussion has been locked. No new replies can be posted.
+            </div>
+            {% endif %}
+
+            <!-- Posts -->
+            <div class="posts-section">
+                <h4 class="mb-3">
+                    Replies ({{ posts|length }})
+                </h4>
+                
+                {% for post in posts %}
+                <div class="post-card" id="post-{{ post.pk }}">
+                    <div class="post-header">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="user-avatar" style="width: 40px; height: 40px; font-size: 1rem;">
+                                    {{ post.author.get_short_name|first|upper }}
+                                </div>
+                            </div>
+                            <div class="col">
+                                <h6 class="mb-1">{{ post.author.get_full_name }}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ post.created_at|timesince }} ago
+                                    {% if post.updated_at != post.created_at %}
+                                        <span class="mx-2">•</span>
+                                        <i class="fas fa-edit me-1"></i>
+                                        edited {{ post.updated_at|timesince }} ago
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div class="col-auto">
+                                <small class="text-muted">#{{ forloop.counter }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-0">
+                        <div class="col-auto">
+                            {% if user.is_authenticated %}
+                            <div class="vote-buttons p-3">
+                                <button class="vote-btn upvote" data-post-id="{{ post.pk }}" data-vote="up">
+                                    <i class="fas fa-chevron-up"></i>
+                                </button>
+                                <span class="vote-score fw-bold" id="score-{{ post.pk }}">0</span>
+                                <button class="vote-btn downvote" data-post-id="{{ post.pk }}" data-vote="down">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col">
+                            <div class="post-content">
+                                {{ post.content|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="post-actions">
+                        <div>
+                            <small class="text-muted">
+                                <i class="fas fa-thumbs-up me-1"></i>
+                                <span id="upvotes-{{ post.pk }}">0</span> upvotes
+                                <span class="mx-2">•</span>
+                                <i class="fas fa-thumbs-down me-1"></i>
+                                <span id="downvotes-{{ post.pk }}">0</span> downvotes
+                            </small>
+                        </div>
+                        <div>
+                            {% if user.is_authenticated %}
+                                <button class="btn btn-sm btn-outline-secondary me-2">
+                                    <i class="fas fa-reply me-1"></i>Reply
+                                </button>
+                                {% if user == post.author %}
+                                    <button class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4">
+                    <i class="fas fa-comments fa-2x text-muted mb-3"></i>
+                    <h5>No replies yet</h5>
+                    <p class="text-muted">Be the first to reply to this discussion!</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Post pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            <!-- Reply Form -->
+            {% if user.is_authenticated and not thread.is_locked %}
+            <div class="reply-form">
+                <h5 class="mb-3">Post a Reply</h5>
+                <form method="POST" action="{% url 'community:create_post' thread.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ post_form.content }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-reply me-2"></i>Post Reply
+                    </button>
+                </form>
+            </div>
+            {% elif not user.is_authenticated %}
+            <div class="reply-form text-center">
+                <h5>Join the Discussion</h5>
+                <p class="text-muted mb-3">You need to be logged in to post replies.</p>
+                <a href="{% url 'login' %}" class="btn btn-primary me-2">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-outline-primary">Register</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Discussion Stats</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-primary mb-1">{{ thread.views }}</h4>
+                            <small class="text-muted">Views</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success mb-1">{{ thread.get_post_count }}</h4>
+                            <small class="text-muted">Replies</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Author</h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="user-avatar mx-auto mb-3">
+                        {{ thread.author.get_short_name|first|upper }}
+                    </div>
+                    <h6>{{ thread.author.get_full_name }}</h6>
+                    <p class="text-muted mb-2">@{{ thread.author.username }}</p>
+                    <small class="text-muted">
+                        Member since {{ thread.author.created_at|date:"M Y" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle voting
+    document.querySelectorAll('.vote-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            const voteType = this.dataset.vote;
+            
+            fetch(`/community/post/${postId}/vote/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `vote_type=${voteType}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Vote error:', data.error);
+                    return;
+                }
+                
+                // Update vote counts
+                document.getElementById(`upvotes-${postId}`).textContent = data.upvotes;
+                document.getElementById(`downvotes-${postId}`).textContent = data.downvotes;
+                document.getElementById(`score-${postId}`).textContent = data.score;
+                
+                // Update button states
+                const upBtn = document.querySelector(`[data-post-id="${postId}"][data-vote="up"]`);
+                const downBtn = document.querySelector(`[data-post-id="${postId}"][data-vote="down"]`);
+                
+                upBtn.classList.toggle('active', data.user_vote === 1);
+                downBtn.classList.toggle('active', data.user_vote === -1);
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
+{% endblock %}

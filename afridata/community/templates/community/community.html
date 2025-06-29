@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Community Forums{% endblock %}
+
+{% block extra_css %}
+<style>
+    .topic-card {
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .topic-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .topic-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    
+    .activity-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+    
+    .thread-item {
+        border-bottom: 1px solid #f8f9fa;
+        padding: 0.75rem 0;
+    }
+    
+    .thread-item:last-child {
+        border-bottom: none;
+    }
+    
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+    
+    .topic-stats {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .search-section {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="search-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <h1 class="display-4 mb-3">Community Forums</h1>
+                <p class="lead mb-4">Connect, discuss, and share knowledge with our community</p>
+                
+                <!-- Search Form -->
+                <form method="GET" action="{% url 'community:search' %}" class="mb-0">
+                    <div class="input-group input-group-lg">
+                        <input type="text" class="form-control" name="q" 
+                               placeholder="Search discussions..." 
+                               value="{{ request.GET.q|default:'' }}">
+                        <button class="btn btn-light" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Forum Statistics -->
+            <div class="stats-card mb-4">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h3 class="mb-1">{{ stats.total_threads }}</h3>
+                        <small>Discussions</small>
+                    </div>
+                    <div class="col-md-4">
+                        <h3 class="mb-1">{{ stats.total_posts }}</h3>
+                        <small>Posts</small>
+                    </div>
+                    <div class="col-md-4">
+                        <h3 class="mb-1">{{ stats.total_members }}</h3>
+                        <small>Members</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forum Topics -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Forum Topics</h2>
+            </div>
+            
+            {% for topic in topics %}
+            <div class="topic-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="topic-icon" style="background-color: {{ topic.color }}">
+                                {% if topic.icon %}
+                                    <i class="{{ topic.icon }}"></i>
+                                {% else %}
+                                    <i class="fas fa-comments"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-1">
+                                <a href="{% url 'community:topic_detail' topic.pk %}" 
+                                   class="text-decoration-none text-dark">
+                                    {{ topic.name }}
+                                </a>
+                            </h5>
+                            <p class="mb-2 text-muted">{{ topic.description }}</p>
+                            <div class="topic-stats">
+                                <i class="fas fa-comment-dots me-1"></i>
+                                {{ topic.thread_count }} discussions
+                                <span class="mx-2">•</span>
+                                <i class="fas fa-reply me-1"></i>
+                                {{ topic.post_count }} posts
+                            </div>
+                        </div>
+                        <div class="col-auto text-end">
+                            {% if topic.get_latest_post %}
+                                <small class="text-muted">
+                                    Latest: {{ topic.get_latest_post.created_at|timesince }} ago
+                                    <br>
+                                    by <strong>{{ topic.get_latest_post.author.get_short_name }}</strong>
+                                </small>
+                            {% else %}
+                                <small class="text-muted">No posts yet</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                <h4>No topics available</h4>
+                <p class="text-muted">Check back later for new discussion topics.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Recent Threads -->
+            <div class="activity-card mb-4">
+                <h5 class="card-title">
+                    <i class="fas fa-fire text-warning me-2"></i>
+                    Recent Discussions
+                </h5>
+                {% for thread in recent_threads %}
+                <div class="thread-item">
+                    <div class="d-flex align-items-start">
+                        <div class="user-avatar me-2">
+                            {{ thread.author.get_short_name|first|upper }}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{% url 'community:thread_detail' thread.pk %}" 
+                                   class="text-decoration-none">
+                                    {{ thread.title|truncatechars:50 }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">
+                                in <span class="badge" style="background-color: {{ thread.topic.color }}20; color: {{ thread.topic.color }}">
+                                    {{ thread.topic.name }}
+                                </span>
+                                • {{ thread.created_at|timesince }} ago
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No recent discussions</p>
+                {% endfor %}
+            </div>
+
+            <!-- Recent Posts -->
+            <div class="activity-card">
+                <h5 class="card-title">
+                    <i class="fas fa-comment text-primary me-2"></i>
+                    Latest Replies
+                </h5>
+                {% for post in recent_posts %}
+                <div class="thread-item">
+                    <div class="d-flex align-items-start">
+                        <div class="user-avatar me-2">
+                            {{ post.author.get_short_name|first|upper }}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{% url 'community:thread_detail' post.thread.pk %}" 
+                                   class="text-decoration-none">
+                                    {{ post.thread.title|truncatechars:40 }}
+                                </a>
+                            </h6>
+                            <p class="mb-1 small">{{ post.content|truncatechars:80 }}</p>
+                            <small class="text-muted">
+                                by <strong>{{ post.author.get_short_name }}</strong>
+                                • {{ post.created_at|timesince }} ago
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No recent replies</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions for Authenticated Users -->
+{% if user.is_authenticated %}
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1000;">
+    <div class="dropdown">
+        <button class="btn btn-primary btn-lg rounded-circle" 
+                data-bs-toggle="dropdown" 
+                aria-expanded="false"
+                style="width: 60px; height: 60px;">
+            <i class="fas fa-plus"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            {% for topic in topics %}
+            <li>
+                <a class="dropdown-item" href="{% url 'community:create_thread' topic.pk %}">
+                    <div class="d-inline-block me-2" 
+                         style="width: 12px; height: 12px; border-radius: 2px; background-color: {{ topic.color }}">
+                    </div>
+                    New thread in {{ topic.name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add smooth scrolling and animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate topic cards on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Apply to topic cards
+        document.querySelectorAll('.topic-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+        
+        // Search form enhancement
+        const searchInput = document.querySelector('input[name="q"]');
+        if (searchInput) {
+            searchInput.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.transition = 'transform 0.2s ease';
+            });
+            
+            searchInput.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        }
+    });
+</script>
+{% endblock %}
