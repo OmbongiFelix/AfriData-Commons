@@ -1,6 +1,7 @@
-# urls.py
+# accounts/urls.py
 from django.urls import path
 from . import views
+from home.views import default_home
 
 urlpatterns = [
     # Existing URLs
@@ -9,6 +10,12 @@ urlpatterns = [
     path('signup/', views.process_signup, name='process_signup'),
     path('home/', views.home_page, name='home'),
     path('logout/', views.logout_user, name='logout'),
+
+    #default home
+    path('default_home/', default_home, name='default_home'),
+
+    #alias
+    path('login_signup/', views.login_signup_page),  # no need for a new name
 
     # Profile URLs
     path('profile/', views.profile_view, name='profile'),

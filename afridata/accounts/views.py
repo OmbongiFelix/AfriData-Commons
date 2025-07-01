@@ -316,7 +316,7 @@ def logout_user(request):
     user_name = request.user.get_short_name()
     logout(request)
     messages.success(request, f'Goodbye, {user_name}! You have been logged out successfully.')
-    return redirect('login_signup')
+    return redirect('default_home')
 
 
 # Check if email exists (AJAX endpoint)
