@@ -28,7 +28,7 @@ class DatasetAdmin(admin.ModelAdmin):
     list_display = (
         'title', 'author_link', 'dataset_type', 'rating_display', 
         'downloads', 'views', 'comment_count', 'topics_preview', 
-        'created_at', 'file_link'
+        'created_at', 'file_link', 'rating'
     )
     
     # Fields that can be searched
@@ -162,7 +162,7 @@ class CommentAdmin(admin.ModelAdmin):
     """Enhanced admin interface for Comment"""
     list_display = (
         'id', 'dataset_link', 'author_link', 'content_preview', 
-        'upvotes_display', 'created_at'
+        'upvotes_display', 'created_at', 'upvotes'
     )
     
     list_filter = ('created_at', 'upvotes', 'dataset__dataset_type')
@@ -171,7 +171,7 @@ class CommentAdmin(admin.ModelAdmin):
     # Default ordering
     ordering = ('-created_at',)
     
-    # Fields that can be edited directly from list view
+    # Fields that can be edited directly from list view (include in list_display)
     list_editable = ('upvotes',)
     
     # Number of items per page
