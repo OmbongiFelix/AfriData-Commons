@@ -154,12 +154,13 @@ class ThreadAdmin(admin.ModelAdmin):
     
     list_display = (
         'title', 'topic_link', 'author_link', 'status_display', 
-        'views', 'post_count_display', 'created_at', 'updated_at'
+        'views', 'post_count_display', 'created_at', 'updated_at',
+        'is_pinned', 'is_locked', 'is_active'
     )
     
     list_filter = ('is_pinned', 'is_locked', 'is_active', 'topic', 'created_at')
     search_fields = ('title', 'content', 'author__email', 'author__full_name')
-    list_editable = ('is_pinned', 'is_locked', 'is_active')
+    list_editable = ('is_pinned', 'is_locked', 'is_active')  #should also be included in list_display
     ordering = ('-is_pinned', '-updated_at')
     list_per_page = 25
     
