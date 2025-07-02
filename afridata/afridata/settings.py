@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'schema_graph',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -178,3 +179,9 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20
 }
 # removed this temporarily: 'rest_framework_simplejwt.authentication.JWTAuthentication',
+
+#generate er diagram or equivalent dot file 
+GRAPH_MODELS = {
+        'all_applications': True,
+        'graph_models': True,
+    }
