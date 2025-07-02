@@ -18,22 +18,22 @@
         </button>
     </div>
     
-    <!-- Quick Stats -->
+    <!-- Dynamic Quick Stats -->
     <div class="flex justify-center space-x-8 mt-8 text-center">
         <div class="stats-counter">
-            <div class="text-3xl font-bold">15,000+</div>
+            <div class="text-3xl font-bold">{{ total_datasets|default:"15,000+" }}</div>
             <div class="text-sm opacity-90">Datasets</div>
         </div>
         <div class="stats-counter">
-            <div class="text-3xl font-bold">54</div>
+            <div class="text-3xl font-bold">{{ total_countries|default:"54" }}</div>
             <div class="text-sm opacity-90">Countries</div>
         </div>
         <div class="stats-counter">
-            <div class="text-3xl font-bold">250K+</div>
+            <div class="text-3xl font-bold">{{ total_downloads|default:"250K+" }}</div>
             <div class="text-sm opacity-90">Downloads</div>
         </div>
         <div class="stats-counter">
-            <div class="text-3xl font-bold">5,000+</div>
+            <div class="text-3xl font-bold">{{ total_researchers|default:"5,000+" }}</div>
             <div class="text-sm opacity-90">Researchers</div>
         </div>
     </div>
@@ -49,7 +49,7 @@
     </div>
     
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Trending Datasets -->
+        <!-- Dynamic Trending Datasets -->
         <div class="bg-white rounded-xl shadow-lg p-6">
             <div class="flex items-center justify-between mb-6">
                 <h4 class="text-xl font-semibold text-gray-800 flex items-center">
@@ -60,89 +60,63 @@
             </div>
             
             <div class="space-y-4">
-                <div class="trending-card bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border-l-4 border-blue-500 cursor-pointer">
+                {% for dataset in trending_datasets %}
+                <div class="trending-card bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border-l-4 border-blue-500 cursor-pointer"
+                     onclick="viewDataset('{{ dataset.id }}')">
                     <div class="flex justify-between items-start mb-2">
-                        <h5 class="font-semibold text-gray-800">African Agricultural Yields 2024</h5>
-                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">🔥 Hot</span>
+                        <h5 class="font-semibold text-gray-800">{{ dataset.title|truncatechars:40 }}</h5>
+                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ dataset.author.get_full_name|default:dataset.author.username }}</span>
                     </div>
-                    <p class="text-sm text-gray-600 mb-3">Comprehensive crop production data across 25 African countries with climate correlations.</p>
+                    <p class="text-sm text-gray-600 mb-3">{{ dataset.bio|truncatechars:80 }}</p>
                     <div class="flex justify-between items-center text-xs text-gray-500">
-                        <span>📊 3,235 views • ⬇️ 856 downloads</span>
-                        <span class="text-green-600 font-medium">+125% this week</span>
+                        <span>📊 {{ dataset.views }} views • ⬇️ {{ dataset.downloads }} downloads</span>
+                        <span class="text-green-600 font-medium">Trending</span>
                     </div>
                 </div>
-                
-                <div class="trending-card bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border-l-4 border-green-500 cursor-pointer">
-                    <div class="flex justify-between items-start mb-2">
-                        <h5 class="font-semibold text-gray-800">Pan-African Health Survey 2024</h5>
-                        <span class="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">📈 Rising</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-3">Latest health metrics and healthcare access data from 30+ African nations.</p>
-                    <div class="flex justify-between items-center text-xs text-gray-500">
-                        <span>📊 2,879 views • ⬇️ 642 downloads</span>
-                        <span class="text-green-600 font-medium">+89% this week</span>
-                    </div>
+                {% empty %}
+                <div class="text-center py-8 text-gray-500">
+                    <p>No trending datasets available at the moment.</p>
                 </div>
-                
-                <div class="trending-card bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border-l-4 border-purple-500 cursor-pointer">
-                    <div class="flex justify-between items-start mb-2">
-                        <h5 class="font-semibold text-gray-800">Tech Startup Funding Africa</h5>
-                        <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">💎 Premium</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-3">Complete funding rounds, valuations, and growth metrics (2020-2024).</p>
-                    <div class="flex justify-between items-center text-xs text-gray-500">
-                        <span>📊 1,912 views • ⬇️ 423 downloads</span>
-                        <span class="text-green-600 font-medium">+67% this week</span>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
             
-            <button class="w-full mt-4 text-blue-600 font-medium hover:text-blue-800 transition-colors">
+            <button onclick="window.location.href='{% url 'dataset_list' %}?sort=downloads'" class="w-full mt-4 text-blue-600 font-medium hover:text-blue-800 transition-colors">
                 View All Trending Datasets →
             </button>
         </div>
         
-        <!-- Trending Topics -->
+        <!-- Dynamic Trending Topics -->
         <div class="bg-white rounded-xl shadow-lg p-6">
             <div class="flex items-center justify-between mb-6">
                 <h4 class="text-xl font-semibold text-gray-800 flex items-center">
                     🔥 Trending Topics
                 </h4>
-                <span class="text-sm text-gray-500">Top searches</span>
+                <span class="text-sm text-gray-500">Top categories</span>
             </div>
             
             <div class="grid grid-cols-2 gap-3 mb-6">
-                <div class="topic-tag bg-gradient-to-r from-red-400 to-pink-500 text-white p-3 rounded-lg text-center cursor-pointer">
-                    <div class="text-lg font-bold">#1</div>
-                    <div class="text-sm">Climate Change</div>
-                    <div class="text-xs opacity-90">15.2K searches</div>
+                {% for category, count in top_categories|slice:":4" %}
+                <div class="topic-tag bg-gradient-to-r {% cycle 'from-red-400 to-pink-500' 'from-blue-400 to-purple-500' 'from-green-400 to-blue-500' 'from-yellow-400 to-orange-500' %} text-white p-3 rounded-lg text-center cursor-pointer"
+                     onclick="filterByCategory('{{ category }}')">
+                    <div class="text-lg font-bold">#{{ forloop.counter }}</div>
+                    <div class="text-sm">{{ category|title }}</div>
+                    <div class="text-xs opacity-90">{{ count }} dataset{{ count|pluralize }}</div>
                 </div>
-                <div class="topic-tag bg-gradient-to-r from-blue-400 to-purple-500 text-white p-3 rounded-lg text-center cursor-pointer">
-                    <div class="text-lg font-bold">#2</div>
-                    <div class="text-sm">Economic Data</div>
-                    <div class="text-xs opacity-90">12.8K searches</div>
+                {% empty %}
+                <div class="col-span-2 text-center text-gray-500">
+                    <p>No trending topics available.</p>
                 </div>
-                <div class="topic-tag bg-gradient-to-r from-green-400 to-blue-500 text-white p-3 rounded-lg text-center cursor-pointer">
-                    <div class="text-lg font-bold">#3</div>
-                    <div class="text-sm">Healthcare</div>
-                    <div class="text-xs opacity-90">9.4K searches</div>
-                </div>
-                <div class="topic-tag bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-3 rounded-lg text-center cursor-pointer">
-                    <div class="text-lg font-bold">#4</div>
-                    <div class="text-sm">Education</div>
-                    <div class="text-xs opacity-90">7.9K searches</div>
-                </div>
+                {% endfor %}
             </div>
             
             <div class="space-y-3">
                 <h5 class="font-medium text-gray-700 mb-3">Popular Search Terms:</h5>
                 <div class="flex flex-wrap gap-2">
-                    <span onclick="quickSearch('Nigeria GDP')" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm hover:bg-blue-200 cursor-pointer">Nigeria GDP</span>
-                    <span onclick="quickSearch('Kenya Agriculture')" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm hover:bg-green-200 cursor-pointer">Kenya Agriculture</span>
-                    <span onclick="quickSearch('South Africa Mining')" class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm hover:bg-purple-200 cursor-pointer">South Africa Mining</span>
-                    <span onclick="quickSearch('Ghana Tech')" class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm hover:bg-red-200 cursor-pointer">Ghana Tech</span>
-                    <span onclick="quickSearch('Egypt Tourism')" class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm hover:bg-yellow-200 cursor-pointer">Egypt Tourism</span>
-                    <span onclick="quickSearch('Ethiopia Demographics')" class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm hover:bg-indigo-200 cursor-pointer">Ethiopia Demographics</span>
+                    {% for term in popular_terms %}
+                    <span onclick="quickSearch('{{ term }}')" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm hover:bg-blue-200 cursor-pointer">{{ term }}</span>
+                    {% empty %}
+                    <span class="text-gray-500 text-sm">No popular terms available</span>
+                    {% endfor %}
                 </div>
             </div>
             
@@ -163,21 +137,28 @@
 <!-- Featured Datasets -->
 <section class="max-w-7xl mx-auto px-4 py-12">
     <div class="flex flex-col lg:flex-row gap-8">
-        <!-- Enhanced Sidebar -->
+        <!-- Enhanced Sidebar with Dynamic Categories -->
         <aside class="lg:w-1/4 bg-white rounded-xl shadow-lg p-6">
             <div class="mb-6">
                 <h4 class="font-semibold mb-4 text-gray-800 flex items-center">
                     🗂️ Browse by Category
                 </h4>
                 <ul class="space-y-2">
-                    <li onclick="filterByCategory('all')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">📊 All Categories (15,847)</li>
-                    <li onclick="filterByCategory('healthcare')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">🏥 Healthcare & Medicine (2,341)</li>
-                    <li onclick="filterByCategory('climate')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">🌍 Climate & Environment (1,987)</li>
-                    <li onclick="filterByCategory('economics')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">💰 Economics & Finance (1,654)</li>
-                    <li onclick="filterByCategory('social')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">👥 Social Sciences (1,432)</li>
-                    <li onclick="filterByCategory('agriculture')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">🌾 Agriculture & Food (1,298)</li>
-                    <li onclick="filterByCategory('education')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">🎓 Education (987)</li>
-                    <li onclick="filterByCategory('technology')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">🏢 Technology (876)</li>
+                    <li onclick="filterByCategory('all')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">📊 All Categories ({{ total_datasets }})</li>
+                    {% for category, count in top_categories %}
+                    <li onclick="filterByCategory('{{ category }}')" class="category-hover p-2 rounded-lg cursor-pointer transition-all">
+                        {% if category == 'healthcare' %}🏥
+                        {% elif category == 'climate' %}🌍
+                        {% elif category == 'economics' %}💰
+                        {% elif category == 'social' %}👥
+                        {% elif category == 'agriculture' %}🌾
+                        {% elif category == 'education' %}🎓
+                        {% elif category == 'technology' %}🏢
+                        {% else %}📂
+                        {% endif %}
+                        {{ category|title }} ({{ count }})
+                    </li>
+                    {% endfor %}
                 </ul>
             </div>
             
@@ -185,16 +166,12 @@
                 <h4 class="font-semibold mb-4 text-gray-800">📄 File Format</h4>
                 <div class="space-y-2">
                     <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" onchange="filterByFormat('csv')" class="text-blue-600"> <span>CSV (8,234)</span>
+                        <input type="checkbox" onchange="filterByFormat('csv')" class="text-blue-600"> 
+                        <span>CSV ({{ format_counts.csv|default:0 }})</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" onchange="filterByFormat('json')" class="text-blue-600"> <span>JSON (3,456)</span>
-                    </label>
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" onchange="filterByFormat('excel')" class="text-blue-600"> <span>Excel (2,987)</span>
-                    </label>
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" onchange="filterByFormat('parquet')" class="text-blue-600"> <span>Parquet (1,543)</span>
+                        <input type="checkbox" onchange="filterByFormat('excel')" class="text-blue-600"> 
+                        <span>Excel ({{ format_counts.excel|default:0 }})</span>
                     </label>
                 </div>
             </div>
@@ -222,7 +199,7 @@
             </div>
         </aside>
 
-        <!-- Enhanced Datasets -->
+        <!-- Dynamic Featured Datasets -->
         <div class="lg:w-3/4">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-800">Featured Datasets</h3>
@@ -238,91 +215,53 @@
             </div>
             
             <div id="datasetContainer" class="grid grid-cols-1 gap-6">
+                {% for dataset in featured_datasets %}
                 <div class="dataset-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-shadow">
                     <div class="flex justify-between items-start mb-4">
                         <div class="flex-1">
                             <div class="flex items-center space-x-3 mb-2">
-                                <h4 class="text-xl font-semibold text-gray-800">African COVID-19 Comprehensive Dataset</h4>
+                                <h4 class="text-xl font-semibold text-gray-800">{{ dataset.title }}</h4>
                                 <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Verified</span>
-                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">Updated Daily</span>
+                                {% if dataset.dataset_type %}
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">{{ dataset.get_dataset_type_display }}</span>
+                                {% endif %}
                             </div>
-                            <p class="text-gray-600 mb-3">Complete COVID-19 data including cases, testing rates, vaccination progress, and policy responses across all 54 African countries. Updated daily with WHO validation.</p>
+                            <p class="text-gray-600 mb-3">{{ dataset.bio|truncatechars:100 }}</p>
                             <div class="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-                                <span class="flex items-center"><span class="text-green-600">📊</span> CSV, JSON, API</span>
-                                <span class="flex items-center"><span class="text-blue-600">⬇️</span> 12,311 downloads</span>
-                                <span class="flex items-center"><span class="text-yellow-600">⭐</span> 4.8 (234 reviews)</span>
-                                <span class="flex items-center"><span class="text-purple-600">👁️</span> 45K views</span>
+                                <span class="flex items-center"><span class="text-green-600">📊</span> {{ dataset.get_dataset_type_display|default:"Dataset" }}</span>
+                                <span class="flex items-center"><span class="text-blue-600">⬇️</span> {{ dataset.downloads }} downloads</span>
+                                <span class="flex items-center"><span class="text-yellow-600">⭐</span> {{ dataset.rating|floatformat:1 }}</span>
+                                <span class="flex items-center"><span class="text-purple-600">👁️</span> {{ dataset.views }} views</span>
                             </div>
                         </div>
                         <div class="text-right">
-                            <div class="text-2xl mb-2">🦠</div>
-                            <button onclick="viewDataset('covid19')" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">View Dataset</button>
+                            <div class="text-2xl mb-2">📊</div>
+                            <button onclick="viewDataset('{{ dataset.id }}')" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">View Dataset</button>
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Healthcare</span>
-                        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Epidemiology</span>
-                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Public Health</span>
-                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Time Series</span>
+                        {% for topic in dataset.get_topics_list %}
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">{{ topic }}</span>
+                        {% endfor %}
                     </div>
                 </div>
-                
-                <div class="dataset-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-shadow">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-3 mb-2">
-                                <h4 class="text-xl font-semibold text-gray-800">African Climate Change Impact Data</h4>
-                                <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">Premium</span>
-                            </div>
-                            <p class="text-gray-600 mb-3">Historical and projected climate data with economic impact analysis. Includes temperature, precipitation, sea level, and agricultural yield correlations.</p>
-                            <div class="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-                                <span class="flex items-center"><span class="text-green-600">📊</span> CSV, Parquet, NetCDF</span>
-                                <span class="flex items-center"><span class="text-blue-600">⬇️</span> 10,221 downloads</span>
-                                <span class="flex items-center"><span class="text-yellow-600">⭐</span> 4.9 (189 reviews)</span>
-                                <span class="flex items-center"><span class="text-purple-600">👁️</span> 38K views</span>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-2xl mb-2">🌍</div>
-                            <button onclick="viewDataset('climate')" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">View Dataset</button>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Climate</span>
-                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Environment</span>
-                        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Agriculture</span>
-                        <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">Modeling</span>
-                    </div>
+                {% empty %}
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4">📊</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">No Featured Datasets Available</h3>
+                    <p class="text-gray-600 mb-4">Be the first to upload a dataset and get featured!</p>
+                    <button onclick="showUploadForm()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">Upload Your Dataset</button>
                 </div>
-                
-                <div class="dataset-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-shadow">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-3 mb-2">
-                                <h4 class="text-xl font-semibold text-gray-800">African Economic Development Indicators</h4>
-                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">World Bank</span>
-                            </div>
-                            <p class="text-gray-600 mb-3">Comprehensive macroeconomic indicators across African regions including GDP, inflation, employment, trade balances, and development indices (1990-2024).</p>
-                            <div class="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-                                <span class="flex items-center"><span class="text-green-600">📊</span> CSV, JSON, XML</span>
-                                <span class="flex items-center"><span class="text-blue-600">⬇️</span> 8,842 downloads</span>
-                                <span class="flex items-center"><span class="text-yellow-600">⭐</span> 4.7 (156 reviews)</span>
-                                <span class="flex items-center"><span class="text-purple-600">👁️</span> 32K views</span>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-2xl mb-2">💰</div>
-                            <button onclick="viewDataset('economics')" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">View Dataset</button>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">Economics</span>
-                        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Finance</span>
-                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Development</span>
-                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">World Bank</span>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
+            
+            {% if featured_datasets %}
+            <div class="mt-8 text-center">
+                <button onclick="window.location.href='{% url 'dataset_list' %}'" class="bg-gray-100 text-gray-800 px-8 py-3 rounded-lg hover:bg-gray-200 transition-colors">
+                    View All Datasets →
+                </button>
+            </div>
+            {% endif %}
         </div>
     </div>
 </section>
@@ -344,6 +283,7 @@
 
             <!-- Upload Form -->
             <form id="uploadForm" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
                 <div>
                     <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
                         Dataset Title *
@@ -413,7 +353,6 @@
     </div>
 </div>
 
-
 {% endblock %}
 
 {% block extra_js %}
@@ -423,9 +362,6 @@
         const searchInput = document.getElementById('searchInput');
         const query = searchInput.value.trim();
         if (query) {
-            // Implement search functionality
-            console.log('Searching for:', query);
-            // Redirect to search results page or perform AJAX search
             window.location.href = `{% url 'dataset_list' %}?search=${encodeURIComponent(query)}`;
         }
     }
@@ -436,39 +372,36 @@
     }
 
     function filterByCategory(category) {
-        console.log('Filtering by category:', category);
-        // Implement category filtering
+        if (category === 'all') {
+            window.location.href = `{% url 'dataset_list' %}`;
+        } else {
+            window.location.href = `{% url 'dataset_list' %}?category=${encodeURIComponent(category)}`;
+        }
     }
 
     function filterByFormat(format) {
-        console.log('Filtering by format:', format);
-        // Implement format filtering
+        window.location.href = `{% url 'dataset_list' %}?format=${encodeURIComponent(format)}`;
     }
 
     function filterByLicense(license) {
         console.log('Filtering by license:', license);
-        // Implement license filtering
+        // Implement license filtering if you add license field to your model
     }
 
     function sortDatasets(sortBy) {
-        console.log('Sorting datasets by:', sortBy);
-        // Implement dataset sorting
+        window.location.href = `{% url 'dataset_list' %}?sort=${encodeURIComponent(sortBy)}`;
     }
 
     function viewDataset(datasetId) {
-    console.log('Viewing dataset:', datasetId);
-    // Redirect to dataset detail page
-    window.location.href = `dataset/dataset/${datasetId}/`;
+        window.location.href = `/dataset/dataset/${datasetId}/`;
     }
 
     function showAIRecommendations() {
-        console.log('Showing AI recommendations');
-        // Implement AI recommendations modal
+        alert('AI recommendations feature coming soon!');
     }
 
     function showContactForm() {
-        console.log('Showing contact form');
-        // Implement contact form modal
+        alert('Contact form coming soon!');
     }
 
     // Add search functionality on Enter key press
@@ -496,7 +429,6 @@
         });
     });
 
-
     // Get CSRF token for Django
     function getCookie(name) {
         let cookieValue = null;
@@ -510,20 +442,18 @@
                 }
             }
         }
-    return cookieValue;
+        return cookieValue;
     }
 
     function showUploadForm() {
-        console.log('Showing upload form');
         document.getElementById('uploadModal').classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        document.body.style.overflow = 'hidden';
     }
 
     function hideUploadForm() {
         document.getElementById('uploadModal').classList.add('hidden');
-        document.body.style.overflow = 'auto'; // Restore scrolling
-    
-        // Reset form and clear any messages
+        document.body.style.overflow = 'auto';
+        
         document.getElementById('uploadForm').reset();
         clearMessages();
         clearErrors();
@@ -544,8 +474,7 @@
         const errorDiv = document.getElementById(`${field}-error`);
         errorDiv.textContent = message;
         errorDiv.classList.remove('hidden');
-    
-        // Add error styling to input
+        
         const input = document.getElementById(field);
         input.classList.add('border-red-500');
     }
@@ -556,8 +485,7 @@
             div.classList.add('hidden');
             div.textContent = '';
         });
-    
-        // Remove error styling from inputs
+        
         const inputs = document.querySelectorAll('input, select, textarea');
         inputs.forEach(input => {
             input.classList.remove('border-red-500');
@@ -566,42 +494,39 @@
 
     // Initialize form handling when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle form submission
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-        
+            
             clearMessages();
             clearErrors();
-        
+            
             const submitBtn = document.getElementById('submitBtn');
             const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
             submitBtn.textContent = 'Uploading...';
-        
+            
             try {
                 const formData = new FormData(this);
-            
-                const response = await fetch('/datasets/upload/ajax/', {  // Adjust this URL to match your Django URL pattern
+                
+                const response = await fetch('{% url "upload_dataset_ajax" %}', {
                     method: 'POST',
                     body: formData,
                     headers: {
                         'X-CSRFToken': getCookie('csrftoken'),
                     }
                 });
-            
+                
                 const data = await response.json();
-            
+                
                 if (data.success) {
                     showMessage('Dataset uploaded successfully!', 'success');
                     setTimeout(() => {
                         hideUploadForm();
-                        // Optionally redirect or refresh the page
-                        // window.location.reload();
+                        window.location.reload(); // Refresh to show new dataset
                     }, 2000);
                 } else {
                     showMessage(data.message || 'Upload failed. Please try again.', 'error');
-                
-                    // Show field-specific errors
+                    
                     if (data.errors) {
                         for (const [field, errors] of Object.entries(data.errors)) {
                             if (errors && errors.length > 0) {
@@ -689,4 +614,3 @@
     }
 </style>
 {% endblock %}
-

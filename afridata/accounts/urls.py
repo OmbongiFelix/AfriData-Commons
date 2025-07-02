@@ -2,13 +2,14 @@
 from django.urls import path
 from . import views
 from home.views import default_home
+from dataset.views import home
 
 urlpatterns = [
     # Existing URLs
     path('', views.login_signup_page, name='login_signup'),
     path('login/', views.authenticate_login, name='authenticate_login'),
     path('signup/', views.process_signup, name='process_signup'),
-    path('home/', views.home_page, name='home'),
+    path('home/', home, name='home'),
     path('logout/', views.logout_user, name='logout'),
 
     #default home
