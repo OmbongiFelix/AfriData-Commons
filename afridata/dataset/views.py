@@ -5,6 +5,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db.models import Q, Count, Sum
+from django.utils import timezone
+from datetime import timedelta
 from .models import Dataset, Comment
 import pandas as pd
 import io
@@ -13,26 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .forms import DatasetUploadForm
 import json
 
-def dataset_list(request):
-    """View to return dataset title, author name, downloads, views"""
-    datasets = Dataset.objects.select_related('author').all()
-    
-    dataset_data = []
-    for dataset in datasets:
-        dataset_data.append({
-            'id': dataset.id,
-            'title': dataset.title,
-            'author_name': dataset.author.get_full_name() or dataset.author.username,
-            'downloads': dataset.downloads,
-            'views': dataset.views,
-            'rating': dataset.rating,
-            'created_at': dataset.created_at,
-        })
-    
-    context = {
-        'datasets': dataset_data
-    }
-    return render(request, 'dataset/dataset_list.html', context)
+
 
 def dataset_detail(request, dataset_id):
     """View to display dataset details and bio"""
@@ -308,3 +292,131 @@ def upload_dataset_ajax(request):
             'errors': form.errors,
             'message': 'Please correct the errors and try again.'
         })
+
+
+
+@login_required
+def home(request):
+    """Render authenticated user's home page and make it a Dynamic home page view with real data"""
+    
+    # Get total statistics
+    total_datasets = Dataset.objects.count()
+    total_downloads = Dataset.objects.aggregate(Sum('downloads'))['downloads__sum'] or 0
+    total_views = Dataset.objects.aggregate(Sum('views'))['views__sum'] or 0
+    
+    # Get trending datasets (most downloaded in the last week)
+    last_week = timezone.now() - timedelta(days=7)
+    trending_datasets = Dataset.objects.select_related('author').annotate(
+        recent_growth=Count('id')  # You can implement a more sophisticated trending algorithm
+    ).order_by('-downloads', '-views')[:3]
+    
+    # Get top categories with counts
+    all_datasets = Dataset.objects.all()
+    category_counts = {}
+    
+    for dataset in all_datasets:
+        topics = dataset.get_topics_list()
+        for topic in topics:
+            topic_lower = topic.lower().strip()
+            if topic_lower in category_counts:
+                category_counts[topic_lower] += 1
+            else:
+                category_counts[topic_lower] = 1
+    
+    # Sort categories by count and get top 4
+    top_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)[:4]
+    
+    # Get popular search terms (based on topics)
+    popular_terms = []
+    if top_categories:
+        popular_terms = [category[0].title() for category in top_categories[:6]]
+    
+    # Get featured datasets (highest rated or most downloaded)
+    featured_datasets = Dataset.objects.select_related('author').order_by('-rating', '-downloads')[:3]
+    
+    # Get file format counts
+    format_counts = {
+        'csv': Dataset.objects.filter(dataset_type='csv').count(),
+        'excel': Dataset.objects.filter(dataset_type='excel').count(),
+    }
+    
+    context = {
+        'total_datasets': total_datasets,
+        'total_downloads': total_downloads,
+        'total_views': total_views,
+        'total_countries': 54,  # Static for now, you can make this dynamic if you have country data
+        'total_researchers': total_views // 50,  # Rough estimate
+        'trending_datasets': trending_datasets,
+        'top_categories': top_categories,
+        'popular_terms': popular_terms,
+        'featured_datasets': featured_datasets,
+        'format_counts': format_counts,
+    }
+
+    return render(request, 'accounts/home.html', context)
+
+
+
+def dataset_list(request):
+    """View to return dataset title, author name, downloads, views with search and filtering"""
+    datasets = Dataset.objects.select_related('author').all()
+    
+    # Handle search
+    search_query = request.GET.get('search', '')
+    if search_query:
+        datasets = datasets.filter(
+            Q(title__icontains=search_query) | 
+            Q(bio__icontains=search_query) | 
+            Q(topics__icontains=search_query)
+        )
+    
+    # Handle category filter
+    category = request.GET.get('category', '')
+    if category and category != 'all':
+        datasets = datasets.filter(topics__icontains=category)
+    
+    # Handle format filter
+    format_filter = request.GET.get('format', '')
+    if format_filter:
+        datasets = datasets.filter(dataset_type=format_filter)
+    
+    # Handle sorting
+    sort_by = request.GET.get('sort', 'relevance')
+    if sort_by == 'downloads':
+        datasets = datasets.order_by('-downloads')
+    elif sort_by == 'recent':
+        datasets = datasets.order_by('-created_at')
+    elif sort_by == 'rating':
+        datasets = datasets.order_by('-rating')
+    else:  # relevance (default)
+        datasets = datasets.order_by('-views', '-downloads')
+    
+    # Pagination
+    paginator = Paginator(datasets, 12)  # Show 12 datasets per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    dataset_data = []
+    for dataset in page_obj:
+        dataset_data.append({
+            'id': dataset.id,
+            'title': dataset.title,
+            'author_name': dataset.author.get_full_name() or dataset.author.username,
+            'downloads': dataset.downloads,
+            'views': dataset.views,
+            'rating': dataset.rating,
+            'bio': dataset.bio,
+            'topics': dataset.get_topics_list(),
+            'dataset_type': dataset.get_dataset_type_display(),
+            'created_at': dataset.created_at,
+        })
+    
+    context = {
+        'datasets': dataset_data,
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'current_category': category,
+        'current_format': format_filter,
+        'current_sort': sort_by,
+    }
+    return render(request, 'dataset/dataset_list.html', context)
