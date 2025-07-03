@@ -21,6 +21,9 @@ from django.db.models import Avg, Count, Sum
 from django.utils import timezone
 from datetime import timedelta
 
+# Import the Dataset model
+from dataset.models import Dataset, Comment  # Adjust the import path if needed
+
 
 def terms(request):
     """Render the terms and conditions page"""
@@ -51,7 +54,6 @@ def login_signup_page(request):
         'page_title': 'Login / Sign Up'
     }
     return render(request, 'accounts/login.html', context)
-
 
 
 @csrf_protect
@@ -123,7 +125,6 @@ def authenticate_login(request):
             
             # FIXED: Better handling of next page redirect
             next_page = request.POST.get('next') or request.GET.get('next')
-
 
             # Debug logging
             logger.debug(f"Attempting redirect. Next page: {next_page}")
@@ -339,7 +340,6 @@ def check_username_exists(request):
     return JsonResponse({'error': 'Invalid request'})   
 
 
-
 User = get_user_model()
 
 @login_required
@@ -353,50 +353,29 @@ def profile_view(request):
     except UserProfile.DoesNotExist:
         profile = UserProfile.objects.create(user=user)
     
-    # Calculate user statistics
-    # Note: These will need to be adjusted based on your actual dataset models
-    # For now, I'm providing placeholder calculations
+    # Get user's datasets
+    user_datasets = Dataset.objects.filter(author=user).order_by('-created_at')
+    
+    # Calculate real user statistics
+    total_downloads = user_datasets.aggregate(total=Sum('downloads'))['total'] or 0
+    total_views = user_datasets.aggregate(total=Sum('views'))['total'] or 0
+    average_rating = user_datasets.aggregate(avg=Avg('rating'))['avg'] or 0.0
+    total_comments = Comment.objects.filter(dataset__author=user).count()
+    
     user_stats = {
-        'datasets_uploaded': 0,  # Replace with: user.datasets.count() when you have dataset model
-        'total_downloads': 0,    # Replace with: user.datasets.aggregate(Sum('downloads'))['downloads__sum'] or 0
-        'profile_views': 0,      # You might want to track this separately
-        'stars_collected': 0,    # Replace with rating/star system when implemented
-        'total_reviews': 0,      # Replace with: user.datasets.aggregate(Count('reviews'))['reviews__count'] or 0
-        'average_rating': 0.0,   # Replace with: user.datasets.aggregate(Avg('rating'))['rating__avg'] or 0.0
+        'datasets_uploaded': user_datasets.count(),
+        'total_downloads': total_downloads,
+        'profile_views': total_views,  # Using dataset views as proxy for profile views
+        'stars_collected': int(average_rating * user_datasets.count()),  # Calculate total stars
+        'total_reviews': total_comments,
+        'average_rating': round(average_rating, 1),
     }
-    
-    # You can add these methods to calculate stats once you have dataset models:
-    """
-    # Example calculations when you have dataset models:
-    from your_app.models import Dataset, Download, Review
-    
-    datasets = Dataset.objects.filter(user=user)
-    user_stats = {
-        'datasets_uploaded': datasets.count(),
-        'total_downloads': Download.objects.filter(dataset__user=user).count(),
-        'profile_views': user.profile_views if hasattr(user, 'profile_views') else 0,
-        'stars_collected': datasets.aggregate(Sum('stars'))['stars__sum'] or 0,
-        'total_reviews': Review.objects.filter(dataset__user=user).count(),
-        'average_rating': datasets.aggregate(Avg('rating'))['rating__avg'] or 0.0,
-    }
-    """
-    
-    # For demonstration, let's add some sample data if user has been around
-    days_since_join = (timezone.now().date() - user.date_joined.date()).days
-    if days_since_join > 30:  # User has been around for a month
-        user_stats.update({
-            'datasets_uploaded': min(days_since_join // 30, 12),  # Sample data
-            'total_downloads': min(days_since_join * 5, 2034),    # Sample data
-            'profile_views': min(days_since_join * 10, 3847),     # Sample data
-            'stars_collected': min(days_since_join * 2, 487),     # Sample data
-            'total_reviews': min(days_since_join // 7, 127),      # Sample data
-            'average_rating': min(4.0 + (days_since_join / 100), 4.9),  # Sample data
-        })
     
     context = {
         'user': user,
         'profile': profile,
         'user_stats': user_stats,
+        'user_datasets': user_datasets,
         'page_title': f"{user.get_full_name()}'s Profile" if user.get_full_name() else f"{user.username}'s Profile"
     }
     
@@ -456,27 +435,23 @@ def public_profile_view(request, user_id):
     except (User.DoesNotExist, UserProfile.DoesNotExist):
         return redirect('home')
     
-    # Calculate user statistics (same as above)
-    days_since_join = (timezone.now().date() - profile_user.date_joined.date()).days
-    user_stats = {
-        'datasets_uploaded': 0,
-        'total_downloads': 0,
-        'profile_views': 0,
-        'stars_collected': 0,
-        'total_reviews': 0,
-        'average_rating': 0.0,
-    }
+    # Get user's datasets
+    user_datasets = Dataset.objects.filter(author=profile_user).order_by('-created_at')
     
-    # Add sample data for demonstration
-    if days_since_join > 30:
-        user_stats.update({
-            'datasets_uploaded': min(days_since_join // 30, 12),
-            'total_downloads': min(days_since_join * 5, 2034),
-            'profile_views': min(days_since_join * 10, 3847),
-            'stars_collected': min(days_since_join * 2, 487),
-            'total_reviews': min(days_since_join // 7, 127),
-            'average_rating': min(4.0 + (days_since_join / 100), 4.9),
-        })
+    # Calculate real user statistics
+    total_downloads = user_datasets.aggregate(total=Sum('downloads'))['total'] or 0
+    total_views = user_datasets.aggregate(total=Sum('views'))['total'] or 0
+    average_rating = user_datasets.aggregate(avg=Avg('rating'))['avg'] or 0.0
+    total_comments = Comment.objects.filter(dataset__author=profile_user).count()
+    
+    user_stats = {
+        'datasets_uploaded': user_datasets.count(),
+        'total_downloads': total_downloads,
+        'profile_views': total_views,
+        'stars_collected': int(average_rating * user_datasets.count()),
+        'total_reviews': total_comments,
+        'average_rating': round(average_rating, 1),
+    }
     
     # Track profile view (optional)
     # You might want to implement a ProfileView model to track this
@@ -485,10 +460,10 @@ def public_profile_view(request, user_id):
         'user': profile_user,
         'profile': profile,
         'user_stats': user_stats,
+        'user_datasets': user_datasets,
         'is_own_profile': request.user == profile_user if request.user.is_authenticated else False,
         'page_title': f"{profile_user.get_full_name()}'s Profile" if profile_user.get_full_name() else f"{profile_user.username}'s Profile"
     }
     
     return render(request, 'accounts/public_profile.html', context)
-
 

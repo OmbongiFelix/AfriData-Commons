@@ -63,58 +63,69 @@
   <!-- Stats and Contact Row -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
     <!-- Profile Stats -->
-    <div class="profile-stats text-white p-6 rounded-xl shadow-lg">
-      <h3 class="text-lg font-semibold mb-4">Profile Statistics</h3>
+    <div class="bg-gradient-to-br from-blue-500 to-purple-600 text-white p-6 rounded-xl shadow-lg">
+      <h3 class="text-lg font-semibold mb-4 flex items-center">
+        <span class="text-2xl mr-2">📊</span>
+        Profile Statistics
+      </h3>
       <div class="space-y-3">
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
           <span>Datasets Uploaded:</span>
-          <span class="font-bold">{{ user_stats.datasets_uploaded }}</span>
+          <span class="font-bold text-xl">{{ user_stats.datasets_uploaded }}</span>
         </div>
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
           <span>Total Downloads:</span>
-          <span class="font-bold">{{ user_stats.total_downloads }}</span>
+          <span class="font-bold text-xl">{{ user_stats.total_downloads }}</span>
         </div>
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
           <span>Profile Views:</span>
-          <span class="font-bold">{{ user_stats.profile_views }}</span>
+          <span class="font-bold text-xl">{{ user_stats.profile_views }}</span>
         </div>
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
           <span>Stars Collected:</span>
-          <span class="font-bold text-yellow-300">★ {{ user_stats.stars_collected }}</span>
+          <span class="font-bold text-xl text-yellow-300">★ {{ user_stats.stars_collected }}</span>
         </div>
       </div>
     </div>
 
     <!-- Contact Information -->
-    <div class="contact-info text-white p-6 rounded-xl shadow-lg">
-      <h3 class="text-lg font-semibold mb-4">Contact Information</h3>
+    <div class="bg-gradient-to-br from-green-500 to-teal-600 text-white p-6 rounded-xl shadow-lg">
+      <h3 class="text-lg font-semibold mb-4 flex items-center">
+        <span class="text-2xl mr-2">📞</span>
+        Contact Information
+      </h3>
       <div class="space-y-3">
         <div class="flex items-center space-x-3">
-          <span>📧</span>
-          <span>{{ user.email }}</span>
+          <span class="text-xl">📧</span>
+          <span class="text-sm break-all">{{ user.email }}</span>
         </div>
         {% if user.phone_number %}
         <div class="flex items-center space-x-3">
-          <span>📱</span>
+          <span class="text-xl">📱</span>
           <span>{{ user.phone_number }}</span>
         </div>
         {% endif %}
         {% if profile.linkedin_url %}
         <div class="flex items-center space-x-3">
-          <span>🔗</span>
-          <a href="{{ profile.linkedin_url }}" target="_blank" class="hover:underline">LinkedIn Profile</a>
+          <span class="text-xl">🔗</span>
+          <a href="{{ profile.linkedin_url }}" target="_blank" class="hover:underline text-blue-200">LinkedIn Profile</a>
         </div>
         {% endif %}
         {% if profile.twitter_handle %}
         <div class="flex items-center space-x-3">
-          <span>🐦</span>
+          <span class="text-xl">🐦</span>
           <span>{{ profile.twitter_handle }}</span>
         </div>
         {% endif %}
         {% if profile.website %}
         <div class="flex items-center space-x-3">
-          <span>🌐</span>
-          <a href="{{ profile.website }}" target="_blank" class="hover:underline">Website</a>
+          <span class="text-xl">🌐</span>
+          <a href="{{ profile.website }}" target="_blank" class="hover:underline text-blue-200">Website</a>
+        </div>
+        {% endif %}
+        {% if not user.phone_number and not profile.linkedin_url and not profile.twitter_handle and not profile.website %}
+        <div class="text-center py-4 text-blue-200">
+          <p class="text-sm">No additional contact info added</p>
         </div>
         {% endif %}
       </div>
@@ -122,36 +133,45 @@
 
     <!-- Achievements -->
     <div class="bg-white p-6 rounded-xl shadow-lg">
-      <h3 class="text-lg font-semibold text-gray-700 mb-4">Achievements</h3>
+      <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+        <span class="text-2xl mr-2">🏆</span>
+        Achievements
+      </h3>
       <div class="space-y-3">
         {% if user.is_verified %}
-        <div class="bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm">
-          ✅ Verified User
+        <div class="bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm flex items-center">
+          <span class="mr-2">✅</span>
+          Verified User
         </div>
         {% endif %}
         {% if user_stats.datasets_uploaded >= 10 %}
-        <div class="achievement-badge text-white px-3 py-2 rounded-lg text-sm">
-          🏆 Top Contributor 2024
+        <div class="bg-purple-100 text-purple-800 px-3 py-2 rounded-lg text-sm flex items-center">
+          <span class="mr-2">🏆</span>
+          Top Contributor 2024
         </div>
         {% endif %}
         {% if user_stats.total_downloads >= 100 %}
-        <div class="bg-yellow-100 text-yellow-800 px-3 py-2 rounded-lg text-sm">
-          ⭐ 100+ Downloads Club
+        <div class="bg-yellow-100 text-yellow-800 px-3 py-2 rounded-lg text-sm flex items-center">
+          <span class="mr-2">⭐</span>
+          100+ Downloads Club
         </div>
         {% endif %}
         {% if profile.job_title and 'scientist' in profile.job_title.lower %}
-        <div class="bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm">
-          ✅ Verified Data Scientist
+        <div class="bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm flex items-center">
+          <span class="mr-2">🔬</span>
+          Verified Data Scientist
         </div>
         {% endif %}
         {% if user_stats.average_rating >= 4.5 %}
-        <div class="bg-purple-100 text-purple-800 px-3 py-2 rounded-lg text-sm">
-          🎯 Quality Data Badge
+        <div class="bg-purple-100 text-purple-800 px-3 py-2 rounded-lg text-sm flex items-center">
+          <span class="mr-2">🎯</span>
+          Quality Data Badge
         </div>
         {% endif %}
         {% if user_stats.datasets_uploaded == 0 and user_stats.total_downloads == 0 %}
-        <div class="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg text-sm">
-          🚀 Getting Started
+        <div class="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg text-sm flex items-center">
+          <span class="mr-2">🚀</span>
+          Getting Started
         </div>
         {% endif %}
       </div>
@@ -161,10 +181,15 @@
   <!-- Profile Bio Section -->
   {% if user.bio %}
   <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-    <h3 class="text-lg font-semibold text-gray-700 mb-3">About</h3>
+    <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+      <span class="text-2xl mr-2">👤</span>
+      About
+    </h3>
     <p class="text-gray-600 leading-relaxed">{{ user.bio }}</p>
     {% if profile.organization %}
-    <p class="text-sm text-gray-500 mt-2">Works at: {{ profile.organization }}</p>
+    <p class="text-sm text-gray-500 mt-2">
+      <span class="font-medium">Works at:</span> {{ profile.organization }}
+    </p>
     {% endif %}
   </div>
   {% endif %}
@@ -196,66 +221,44 @@
         </div>
       </div>
       
+      {% if user_datasets %}
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        <div class="dataset-card bg-gray-50 p-6 shadow-md rounded-xl border-l-4 border-blue-500">
+        {% for dataset in user_datasets %}
+        <div class="dataset-card bg-gray-50 p-6 shadow-md rounded-xl border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
           <div class="flex justify-between items-start mb-3">
-            <h4 class="font-semibold text-gray-800 text-lg">Urban Development Data</h4>
+            <h4 class="font-semibold text-gray-800 text-lg">{{ dataset.title }}</h4>
             <div class="flex items-center space-x-1">
-              <span class="star-filled">★</span>
-              <span class="text-sm text-gray-600">4.5</span>
+              <span class="star-filled text-yellow-500">★</span>
+              <span class="text-sm text-gray-600">{{ dataset.rating|floatformat:1|default:"0.0" }}</span>
             </div>
           </div>
-          <p class="text-gray-600 text-sm mb-4">Comprehensive insights into urban growth patterns across major African cities spanning from 2010 to 2023.</p>
+          <p class="text-gray-600 text-sm mb-4">
+            {{ dataset.description|truncatewords:20 }}
+          </p>
           <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
-            <span>📥 1,204 downloads</span>
-            <span>📅 2 weeks ago</span>
+            <span>📥 {{ dataset.downloads }} downloads</span>
+            <span>📅 {{ dataset.created_at|timesince }} ago</span>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-4">
+            {% if dataset.category %}
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">{{ dataset.category }}</span>
+            {% endif %}
+            {% if dataset.tags %}
+            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">{{ dataset.tags }}</span>
+            {% endif %}
           </div>
           <div class="flex space-x-2">
-            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Urban Planning</span>
-            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Demographics</span>
+            <a href="{% url 'dataset_detail' dataset.id %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors flex-1 text-center">
+              View Dataset
+            </a>
+            <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition-colors" onclick="shareDataset('{{ dataset.id }}')">
+              📤
+            </button>
           </div>
         </div>
-
-        <div class="dataset-card bg-gray-50 p-6 shadow-md rounded-xl border-l-4 border-green-500">
-          <div class="flex justify-between items-start mb-3">
-            <h4 class="font-semibold text-gray-800 text-lg">Youth Employment Statistics</h4>
-            <div class="flex items-center space-x-1">
-              <span class="star-filled">★</span>
-              <span class="text-sm text-gray-600">4.1</span>
-            </div>
-          </div>
-          <p class="text-gray-600 text-sm mb-4">Detailed employment statistics from comprehensive labor surveys conducted across 15 African countries.</p>
-          <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
-            <span>📥 830 downloads</span>
-            <span>📅 1 month ago</span>
-          </div>
-          <div class="flex space-x-2">
-            <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">Employment</span>
-            <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Youth</span>
-          </div>
-        </div>
-
-        <div class="dataset-card bg-gray-50 p-6 shadow-md rounded-xl border-l-4 border-purple-500">
-          <div class="flex justify-between items-start mb-3">
-            <h4 class="font-semibold text-gray-800 text-lg">Healthcare Access Index</h4>
-            <div class="flex items-center space-x-1">
-              <span class="star-filled">★</span>
-              <span class="text-sm text-gray-600">4.7</span>
-            </div>
-          </div>
-          <p class="text-gray-600 text-sm mb-4">Healthcare accessibility metrics and infrastructure data from rural and urban communities.</p>
-          <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
-            <span>📥 967 downloads</span>
-            <span>📅 3 weeks ago</span>
-          </div>
-          <div class="flex space-x-2">
-            <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Healthcare</span>
-            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Access</span>
-          </div>
-        </div>
+        {% endfor %}
       </div>
-      
-      {% if user_stats.datasets_uploaded == 0 %}
+      {% else %}
       <div class="text-center py-12">
         <div class="text-6xl mb-4">📊</div>
         <h3 class="text-xl font-semibold text-gray-700 mb-2">No datasets uploaded yet</h3>
@@ -270,15 +273,16 @@
     <!-- Upload Section -->
     <section id="upload-content" class="p-6 hidden">
       <h3 class="text-xl font-semibold text-gray-700 mb-6">Upload New Dataset</h3>
-      <form class="space-y-6">
+      <form class="space-y-6" method="post" enctype="multipart/form-data" action="{% url 'upload_dataset' %}">
+        {% csrf_token %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label class="block mb-2 text-gray-700 font-medium">Dataset Title *</label>
-            <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter dataset title" required />
+            <input type="text" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter dataset title" required />
           </div>
           <div>
             <label class="block mb-2 text-gray-700 font-medium">Category *</label>
-            <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+            <select name="category" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
               <option value="">Select category</option>
               <option>Agriculture</option>
               <option>Demographics</option>
@@ -292,14 +296,14 @@
         
         <div>
           <label class="block mb-2 text-gray-700 font-medium">Description *</label>
-          <textarea class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="4" placeholder="Provide a detailed description of your dataset" required></textarea>
+          <textarea name="description" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="4" placeholder="Provide a detailed description of your dataset" required></textarea>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label class="block mb-2 text-gray-700 font-medium">Upload File *</label>
             <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-              <input type="file" class="hidden" id="file-upload" />
+              <input type="file" name="file" class="hidden" id="file-upload" />
               <label for="file-upload" class="cursor-pointer">
                 <div class="text-gray-600">
                   <span class="text-2xl">📁</span>
@@ -311,7 +315,7 @@
           </div>
           <div>
             <label class="block mb-2 text-gray-700 font-medium">License</label>
-            <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <select name="license" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
               <option>Creative Commons (CC BY)</option>
               <option>Public Domain</option>
               <option>MIT License</option>
@@ -335,7 +339,7 @@
           <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">👤</div>
           <div class="flex-1">
             <p class="text-gray-700"><strong>Joined</strong> AfriData Platform</p>
-            <p class="text-sm text-gray-500">{{ user.created_at|date:"F d, Y" }}</p>
+            <p class="text-sm text-gray-500">{{ user.date_joined|date:"F d, Y" }}</p>
           </div>
         </div>
         
@@ -364,32 +368,9 @@
       <h3 class="text-xl font-semibold text-gray-700 mb-6">User Reviews</h3>
       {% if user_stats.total_reviews > 0 %}
       <div class="space-y-4">
-        <div class="border-b pb-4">
-          <div class="flex items-start space-x-4">
-            <div class="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center text-white font-bold">MK</div>
-            <div class="flex-1">
-              <div class="flex items-center space-x-2 mb-2">
-                <span class="font-medium text-gray-800">Michael Kiprop</span>
-                <div class="flex text-yellow-500">★★★★★</div>
-              </div>
-              <p class="text-gray-700">"Excellent data quality and very well documented. The datasets were exactly what I needed for my research."</p>
-              <p class="text-sm text-gray-500 mt-2">2 weeks ago</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="border-b pb-4">
-          <div class="flex items-start space-x-4">
-            <div class="w-10 h-10 bg-green-400 rounded-full flex items-center justify-center text-white font-bold">AS</div>
-            <div class="flex-1">
-              <div class="flex items-center space-x-2 mb-2">
-                <span class="font-medium text-gray-800">Amina Salim</span>
-                <div class="flex text-yellow-500">★★★★☆</div>
-              </div>
-              <p class="text-gray-700">"Great datasets overall. Would love to see more recent data updates."</p>
-              <p class="text-sm text-gray-500 mt-2">1 month ago</p>
-            </div>
-          </div>
+        <!-- You can add real reviews here if you have a reviews model -->
+        <div class="text-center py-8">
+          <p class="text-gray-600">Reviews functionality will be implemented soon.</p>
         </div>
       </div>
       {% else %}
@@ -461,5 +442,22 @@
       });
     }
   }
+
+  function shareDataset(datasetId) {
+    const datasetUrl = `${window.location.origin}/dataset/${datasetId}/`;
+    if (navigator.share) {
+      navigator.share({
+        title: "Dataset from AfriData",
+        text: "Check out this dataset on AfriData",
+        url: datasetUrl
+      });
+    } else {
+      // Fallback - copy to clipboard
+      navigator.clipboard.writeText(datasetUrl).then(() => {
+        alert('Dataset URL copied to clipboard!');
+      });
+    }
+  }
 </script>
 {% endblock %}
+
