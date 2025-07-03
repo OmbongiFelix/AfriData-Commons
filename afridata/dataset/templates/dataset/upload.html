@@ -5,88 +5,433 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload Dataset</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <style>
+        .file-upload-area {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s ease;
+        }
+        .file-upload-area:hover {
+            border-color: #3b82f6;
+            background-color: #f8fafc;
+        }
+        .file-upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen py-8">
         <div class="max-w-2xl mx-auto px-4">
             <div class="bg-white rounded-lg shadow-md p-6">
-                <h1 class="text-2xl font-bold text-gray-800 mb-6">Upload New Dataset</h1>
+                <div class="flex items-center mb-6">
+                    <i class="fas fa-cloud-upload-alt text-blue-600 text-2xl mr-3"></i>
+                    <h1 class="text-2xl font-bold text-gray-800">Upload New Dataset</h1>
+                </div>
                 
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="mb-4 p-4 rounded-md {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-red-50 text-red-800 border border-red-200{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
+                <!-- Progress Bar -->
+                <div id="upload-progress" class="hidden mb-6">
+                    <div class="bg-gray-200 rounded-full h-2">
+                        <div id="progress-fill" class="bg-blue-600 h-2 rounded-full progress-bar" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-text" class="text-sm text-gray-600 mt-2">Uploading...</p>
+                </div>
+                
+                <!-- Success/Error Messages -->
+                <div id="message-container" class="hidden mb-4">
+                    <div id="success-message" class="hidden p-4 rounded-md bg-green-50 text-green-800 border border-green-200">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span id="success-text"></span>
+                    </div>
+                    <div id="error-message" class="hidden p-4 rounded-md bg-red-50 text-red-800 border border-red-200">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <span id="error-text"></span>
+                    </div>
+                </div>
 
-                <form method="post" enctype="multipart/form-data" class="space-y-6">
-                    {% csrf_token %}
+                <form id="upload-form" method="post" enctype="multipart/form-data" class="space-y-6">
+                    <!-- CSRF Token (Django will populate this) -->
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                     
                     <div>
-                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                            Dataset Title *
+                        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-heading mr-2"></i>Dataset Title *
                         </label>
-                        {{ form.title }}
-                        {% if form.title.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ form.title.errors.0 }}</p>
-                        {% endif %}
+                        <input type="text" 
+                               id="title" 
+                               name="title" 
+                               required 
+                               maxlength="255"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                               placeholder="Enter a descriptive title for your dataset">
+                        <div id="title-error" class="text-red-600 text-sm mt-1 hidden"></div>
                     </div>
 
                     <div>
-                        <label for="{{ form.dataset_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                            Dataset Type *
+                        <label for="dataset_type" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-file-alt mr-2"></i>Dataset Type *
                         </label>
-                        {{ form.dataset_type }}
-                        {% if form.dataset_type.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ form.dataset_type.errors.0 }}</p>
-                        {% endif %}
+                        <select id="dataset_type" 
+                                name="dataset_type" 
+                                required 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select dataset type</option>
+                            <option value="csv">CSV</option>
+                            <option value="excel">Excel</option>
+                        </select>
+                        <div id="dataset_type-error" class="text-red-600 text-sm mt-1 hidden"></div>
                     </div>
 
                     <div>
-                        <label for="{{ form.file.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                            Dataset File *
+                        <label for="file" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-upload mr-2"></i>Dataset File *
                         </label>
-                        {{ form.file }}
-                        <p class="text-sm text-gray-500 mt-1">Supported formats: CSV, Excel (.xlsx, .xls). Max size: 10MB</p>
-                        {% if form.file.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ form.file.errors.0 }}</p>
-                        {% endif %}
+                        <div class="file-upload-area rounded-md p-6 text-center cursor-pointer" id="file-upload-area">
+                            <input type="file" 
+                                   id="file" 
+                                   name="file" 
+                                   required 
+                                   accept=".csv,.xlsx,.xls" 
+                                   class="hidden">
+                            <div id="file-upload-content">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                                <p class="text-gray-600 mb-2">
+                                    <span class="font-medium">Click to upload</span> or drag and drop
+                                </p>
+                                <p class="text-sm text-gray-500">CSV, Excel (.xlsx, .xls) up to 10MB</p>
+                            </div>
+                            <div id="file-selected" class="hidden">
+                                <i class="fas fa-file-alt text-4xl text-green-500 mb-4"></i>
+                                <p class="text-green-600 font-medium" id="selected-file-name"></p>
+                                <p class="text-sm text-gray-500" id="selected-file-size"></p>
+                                <button type="button" id="remove-file" class="mt-2 text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash mr-1"></i>Remove file
+                                </button>
+                            </div>
+                        </div>
+                        <div id="file-error" class="text-red-600 text-sm mt-1 hidden"></div>
                     </div>
 
                     <div>
-                        <label for="{{ form.bio.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                            Description *
+                        <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-align-left mr-2"></i>Description *
                         </label>
-                        {{ form.bio }}
-                        {% if form.bio.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ form.bio.errors.0 }}</p>
-                        {% endif %}
+                        <textarea id="bio" 
+                                  name="bio" 
+                                  required 
+                                  rows="4" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical" 
+                                  placeholder="Describe your dataset, its contents, and potential use cases..."></textarea>
+                        <div id="bio-error" class="text-red-600 text-sm mt-1 hidden"></div>
                     </div>
 
                     <div>
-                        <label for="{{ form.topics.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                            Topics *
+                        <label for="topics" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-tags mr-2"></i>Topics *
                         </label>
-                        {{ form.topics }}
-                        <p class="text-sm text-gray-500 mt-1">Separate topics with commas (e.g., machine learning, data science, statistics)</p>
-                        {% if form.topics.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ form.topics.errors.0 }}</p>
-                        {% endif %}
+                        <input type="text" 
+                               id="topics" 
+                               name="topics" 
+                               required 
+                               maxlength="500"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                               placeholder="machine learning, data science, statistics, finance">
+                        <p class="text-sm text-gray-500 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Separate topics with commas (e.g., machine learning, data science, statistics)
+                        </p>
+                        <div id="topics-error" class="text-red-600 text-sm mt-1 hidden"></div>
                     </div>
 
-                    <div class="flex justify-end space-x-4">
-                        <button type="button" onclick="history.back()" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            Cancel
+                    <div class="flex justify-end space-x-4 pt-4">
+                        <button type="button" 
+                                id="cancel-btn"
+                                class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Cancel
                         </button>
-                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            Upload Dataset
+                        <button type="submit" 
+                                id="submit-btn"
+                                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                            <i class="fas fa-upload mr-2"></i>
+                            <span id="submit-text">Upload Dataset</span>
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <script>
+        // File upload handling
+        const fileInput = document.getElementById('file');
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const fileUploadContent = document.getElementById('file-upload-content');
+        const fileSelected = document.getElementById('file-selected');
+        const selectedFileName = document.getElementById('selected-file-name');
+        const selectedFileSize = document.getElementById('selected-file-size');
+        const removeFileBtn = document.getElementById('remove-file');
+        const form = document.getElementById('upload-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const submitText = document.getElementById('submit-text');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const progressContainer = document.getElementById('upload-progress');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const messageContainer = document.getElementById('message-container');
+        const successMessage = document.getElementById('success-message');
+        const errorMessage = document.getElementById('error-message');
+        const successText = document.getElementById('success-text');
+        const errorText = document.getElementById('error-text');
+
+        // File size formatter
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Show message
+        function showMessage(type, message) {
+            messageContainer.classList.remove('hidden');
+            if (type === 'success') {
+                successMessage.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+                successText.textContent = message;
+            } else {
+                errorMessage.classList.remove('hidden');
+                successMessage.classList.add('hidden');
+                errorText.textContent = message;
+            }
+        }
+
+        // Hide message
+        function hideMessage() {
+            messageContainer.classList.add('hidden');
+            successMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+        }
+
+        // Validate file
+        function validateFile(file) {
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            const allowedTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+            
+            if (file.size > maxSize) {
+                return 'File size must be less than 10MB';
+            }
+            
+            if (!allowedTypes.includes(file.type) && !file.name.match(/\.(csv|xlsx|xls)$/i)) {
+                return 'Please upload a CSV or Excel file';
+            }
+            
+            return null;
+        }
+
+        // Handle file selection
+        function handleFileSelect(file) {
+            const error = validateFile(file);
+            if (error) {
+                showMessage('error', error);
+                return;
+            }
+            
+            hideMessage();
+            selectedFileName.textContent = file.name;
+            selectedFileSize.textContent = formatFileSize(file.size);
+            fileUploadContent.classList.add('hidden');
+            fileSelected.classList.remove('hidden');
+            
+            // Auto-detect dataset type
+            const datasetTypeSelect = document.getElementById('dataset_type');
+            if (file.name.toLowerCase().endsWith('.csv')) {
+                datasetTypeSelect.value = 'csv';
+            } else if (file.name.toLowerCase().match(/\.(xlsx|xls)$/)) {
+                datasetTypeSelect.value = 'excel';
+            }
+        }
+
+        // File input change
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        // Click to upload
+        fileUploadArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        // Remove file
+        removeFileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            fileInput.value = '';
+            fileUploadContent.classList.remove('hidden');
+            fileSelected.classList.add('hidden');
+            document.getElementById('dataset_type').value = '';
+        });
+
+        // Drag and drop
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        });
+
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+        });
+
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect(files[0]);
+            }
+        });
+
+        // Clear field errors
+        function clearFieldErrors() {
+            document.querySelectorAll('[id$="-error"]').forEach(el => {
+                el.classList.add('hidden');
+                el.textContent = '';
+            });
+        }
+
+        // Show field errors
+        function showFieldErrors(errors) {
+            for (const [field, messages] of Object.entries(errors)) {
+                const errorEl = document.getElementById(`${field}-error`);
+                if (errorEl) {
+                    errorEl.textContent = messages[0];
+                    errorEl.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            clearFieldErrors();
+            hideMessage();
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitText.textContent = 'Uploading...';
+            submitBtn.classList.add('animate-pulse');
+            progressContainer.classList.remove('hidden');
+            
+            // Simulate progress (since we can't track real progress in regular form submission)
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+                progressText.textContent = `Uploading... ${Math.round(progress)}%`;
+            }, 200);
+            
+            // Create FormData
+            const formData = new FormData(form);
+            
+            // Submit via fetch for better control
+            fetch(form.action || window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
+                progressText.textContent = 'Processing...';
+                
+                if (response.ok) {
+                    return response.text();
+                } else {
+                    throw new Error('Upload failed');
+                }
+            })
+            .then(data => {
+                // Try to parse as JSON (for AJAX responses)
+                try {
+                    const jsonData = JSON.parse(data);
+                    if (jsonData.success) {
+                        showMessage('success', jsonData.message || 'Dataset uploaded successfully!');
+                        setTimeout(() => {
+                            window.location.href = `/dataset/${jsonData.dataset_id}/`;
+                        }, 1500);
+                    } else {
+                        showFieldErrors(jsonData.errors || {});
+                        showMessage('error', jsonData.message || 'Please correct the errors below.');
+                    }
+                } catch (e) {
+                    // Handle regular form response (redirect or HTML)
+                    if (data.includes('successfully')) {
+                        showMessage('success', 'Dataset uploaded successfully!');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showMessage('error', 'Please check your input and try again.');
+                    }
+                }
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                console.error('Upload error:', error);
+                showMessage('error', 'An error occurred during upload. Please try again.');
+            })
+            .finally(() => {
+                // Reset form state
+                submitBtn.disabled = false;
+                submitText.textContent = 'Upload Dataset';
+                submitBtn.classList.remove('animate-pulse');
+                progressContainer.classList.add('hidden');
+                progressFill.style.width = '0%';
+            });
+        });
+
+        // Cancel button
+        cancelBtn.addEventListener('click', function() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        });
+
+        // Form validation on blur
+        document.querySelectorAll('input[required], textarea[required], select[required]').forEach(field => {
+            field.addEventListener('blur', function() {
+                const errorEl = document.getElementById(`${this.name}-error`);
+                if (errorEl) {
+                    if (!this.value.trim()) {
+                        errorEl.textContent = 'This field is required';
+                        errorEl.classList.remove('hidden');
+                    } else {
+                        errorEl.classList.add('hidden');
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
-
