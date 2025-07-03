@@ -10,116 +10,184 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Dataset, Comment
 import pandas as pd
+import numpy as np
 import io
-from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from .forms import DatasetUploadForm
 import json
 
 
-
 def dataset_detail(request, dataset_id):
-    """View to display dataset details and bio"""
+    """View to display dataset details and bio with enhanced functionality"""
     dataset = get_object_or_404(Dataset, id=dataset_id)
-    
+   
     # Increment view count
     dataset.views += 1
     dataset.save(update_fields=['views'])
+   
+    # Get preview data
+    preview_data = []
+    columns = []
+    graph_data = None
+    error_message = None
+    
+    try:
+        # Read dataset file for preview
+        if dataset.file:
+            # Reset file pointer to beginning
+            dataset.file.seek(0)
+            file_content = dataset.file.read()
+            
+            # Determine file type and read accordingly
+            if dataset.dataset_type == 'csv':
+                df = pd.read_csv(io.BytesIO(file_content))
+            elif dataset.dataset_type == 'excel':
+                df = pd.read_excel(io.BytesIO(file_content))
+            else:
+                # Try CSV as fallback
+                df = pd.read_csv(io.BytesIO(file_content))
+            
+            if not df.empty:
+                # Get columns
+                columns = df.columns.tolist()
+                
+                # Get preview data (first 10 rows)
+                preview_rows = df.head(10)
+                preview_data = preview_rows.to_dict('records')
+                
+                # Generate graph data for numeric columns
+                numeric_columns = df.select_dtypes(include=['number']).columns.tolist()
+                if numeric_columns and len(df) > 1:
+                    # Create a simple line chart with first numeric column
+                    first_numeric = numeric_columns[0]
+                    chart_data = df[first_numeric].fillna(0).head(20).tolist()
+                    labels = [f"Row {i+1}" for i in range(len(chart_data))]
+                    
+                    graph_data = {
+                        'chart_type': 'line',
+                        'labels': json.dumps(labels),
+                        'datasets': json.dumps([{
+                            'label': first_numeric,
+                            'data': chart_data,
+                            'borderColor': 'rgb(75, 192, 192)',
+                            'backgroundColor': 'rgba(75, 192, 192, 0.2)',
+                            'tension': 0.1
+                        }])
+                    }
+    
+    except Exception as e:
+        error_message = f"Error reading dataset file: {str(e)}"
+        print(f"Error reading dataset file: {e}")
+        # Handle file reading errors gracefully
+        preview_data = []
+        columns = []
+        graph_data = None
+    
+    # Get comments (top 5 by upvotes)
+    comments = Comment.objects.filter(
+        dataset=dataset
+    ).select_related('author').order_by('-upvotes', '-created_at')[:5]
+    
+    # Get related datasets (same topics or author)
+    related_datasets = Dataset.objects.filter(
+        Q(topics__icontains=dataset.topics) | Q(author=dataset.author)
+    ).exclude(id=dataset.id).distinct()[:5]
     
     context = {
         'dataset': dataset,
         'author_name': dataset.author.get_full_name() or dataset.author.username,
         'topics': dataset.get_topics_list(),
+        'preview_data': preview_data,
+        'columns': columns,
+        'graph_data': graph_data,
+        'comments': comments,
+        'related_datasets': related_datasets,
+        'error_message': error_message,
     }
-    return render(request, 'datasets/dataset_detail.html', context)
-
-def download_dataset(request, dataset_id):
-    """View to download dataset file"""
-    dataset = get_object_or_404(Dataset, id=dataset_id)
     
-    try:
-        # Increment download count
-        dataset.downloads += 1
-        dataset.save(update_fields=['downloads'])
-        
-        # Serve the file
-        response = HttpResponse(dataset.file.read(), content_type='application/octet-stream')
-        response['Content-Disposition'] = f'attachment; filename="{dataset.file.name.split("/")[-1]}"'
-        return response
-    except Exception as e:
-        raise Http404("File not found")
+    return render(request, 'dataset/dataset_detail.html', context)
+
 
 def dataset_preview(request, dataset_id):
-    """View to display preview of dataset"""
+    """View to display full dataset preview with pagination"""
     dataset = get_object_or_404(Dataset, id=dataset_id)
     
     try:
-        # Read file content
-        file_content = dataset.file.read()
-        
-        preview_data = []
-        error_message = None
-        
-        if dataset.dataset_type == 'csv':
-            try:
-                # Read CSV file
+        if dataset.file:
+            # Reset file pointer to beginning
+            dataset.file.seek(0)
+            file_content = dataset.file.read()
+            
+            if dataset.dataset_type == 'csv':
                 df = pd.read_csv(io.BytesIO(file_content))
-                # Get first 10 rows for preview
-                preview_data = df.head(10).to_dict('records')
-                columns = df.columns.tolist()
-            except Exception as e:
-                error_message = f"Error reading CSV file: {str(e)}"
-                
-        elif dataset.dataset_type == 'excel':
-            try:
-                # Read Excel file
+            elif dataset.dataset_type == 'excel':
                 df = pd.read_excel(io.BytesIO(file_content))
-                # Get first 10 rows for preview
-                preview_data = df.head(10).to_dict('records')
-                columns = df.columns.tolist()
-            except Exception as e:
-                error_message = f"Error reading Excel file: {str(e)}"
-        
-        context = {
-            'dataset': dataset,
-            'preview_data': preview_data,
-            'columns': columns if preview_data else [],
-            'error_message': error_message,
-            'author_name': dataset.author.get_full_name() or dataset.author.username,
-        }
-        
+            else:
+                df = pd.read_csv(io.BytesIO(file_content))
+            
+            columns = df.columns.tolist()
+            
+            # Paginate the data
+            page_number = request.GET.get('page', 1)
+            rows_per_page = 50
+            
+            total_rows = len(df)
+            start_idx = (int(page_number) - 1) * rows_per_page
+            end_idx = start_idx + rows_per_page
+            
+            preview_data = df.iloc[start_idx:end_idx].to_dict('records')
+            
+            # Calculate pagination info
+            has_previous = start_idx > 0
+            has_next = end_idx < total_rows
+            
+            context = {
+                'dataset': dataset,
+                'columns': columns,
+                'preview_data': preview_data,
+                'current_page': int(page_number),
+                'has_previous': has_previous,
+                'has_next': has_next,
+                'total_rows': total_rows,
+                'start_row': start_idx + 1,
+                'end_row': min(end_idx, total_rows),
+                'author_name': dataset.author.get_full_name() or dataset.author.username,
+            }
+            
+            return render(request, 'dataset/dataset_preview.html', context)
+            
     except Exception as e:
+        print(f"Error reading dataset file: {e}")
         context = {
             'dataset': dataset,
-            'error_message': f"Could not read file: {str(e)}",
+            'error_message': 'Unable to load dataset preview',
             'author_name': dataset.author.get_full_name() or dataset.author.username,
         }
-    
-    return render(request, 'datasets/dataset_preview.html', context)
+        return render(request, 'dataset/dataset_preview.html', context)
+
 
 def dataset_comments(request, dataset_id):
-    """View to display top 15 comments by upvotes"""
+    """View to display comments with pagination"""
     dataset = get_object_or_404(Dataset, id=dataset_id)
     
-    # Get top 15 comments ordered by upvotes then by creation date
-    top_comments = Comment.objects.filter(dataset=dataset).select_related('author').order_by('-upvotes', '-created_at')[:15]
+    # Get comments ordered by upvotes then by creation date
+    comments = Comment.objects.filter(
+        dataset=dataset
+    ).select_related('author').order_by('-upvotes', '-created_at')
     
-    comments_data = []
-    for comment in top_comments:
-        comments_data.append({
-            'id': comment.id,
-            'content': comment.content,
-            'upvotes': comment.upvotes,
-            'author_name': comment.author.get_full_name() or comment.author.username,
-            'created_at': comment.created_at,
-        })
+    # Paginate comments
+    paginator = Paginator(comments, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     
     context = {
         'dataset': dataset,
-        'comments': comments_data,
+        'comments': page_obj,
         'author_name': dataset.author.get_full_name() or dataset.author.username,
     }
-    return render(request, 'datasets/dataset_comments.html', context)
+    
+    return render(request, 'dataset/dataset_comments.html', context)
+
 
 @login_required
 @require_POST
@@ -131,7 +199,7 @@ def post_comment(request, dataset_id):
     
     if not content:
         messages.error(request, 'Comment content cannot be empty.')
-        return redirect('dataset_comments', dataset_id=dataset_id)
+        return redirect('dataset_detail', dataset_id=dataset_id)
     
     # Create new comment
     comment = Comment.objects.create(
@@ -141,12 +209,13 @@ def post_comment(request, dataset_id):
     )
     
     messages.success(request, 'Comment posted successfully!')
-    return redirect('dataset_comments', dataset_id=dataset_id)
+    return redirect('dataset_detail', dataset_id=dataset_id)
+
 
 @login_required
 @require_POST
 def upvote_comment(request, comment_id):
-    """View to upvote a comment (bonus functionality)"""
+    """View to upvote a comment"""
     comment = get_object_or_404(Comment, id=comment_id)
     
     # Increment upvote count
@@ -156,98 +225,30 @@ def upvote_comment(request, comment_id):
     if request.headers.get('Content-Type') == 'application/json':
         return JsonResponse({'upvotes': comment.upvotes})
     
-    return redirect('dataset_comments', dataset_id=comment.dataset.id)
+    return redirect('dataset_detail', dataset_id=comment.dataset.id)
 
 
-def render_dataset(request, dataset_id=None):
-    """
-    Dynamic view that renders dataset page with full functionality
-    """
-    dataset = None
-    preview_data = []
-    columns = []
-    comments = []
-    related_datasets = []
-    graph_data = None
-    error_message = None
+def download_dataset(request, dataset_id):
+    """Handle dataset download"""
+    dataset = get_object_or_404(Dataset, id=dataset_id)
     
-    if dataset_id:
-        try:
-            dataset = get_object_or_404(Dataset, id=dataset_id)
-            
-            # Increment view count
-            dataset.views += 1
-            dataset.save(update_fields=['views'])
-            
-            # Get preview data (first 5 rows)
-            try:
-                file_content = dataset.file.read()
-                
-                if dataset.dataset_type == 'csv':
-                    df = pd.read_csv(io.BytesIO(file_content))
-                elif dataset.dataset_type == 'excel':
-                    df = pd.read_excel(io.BytesIO(file_content))
-                
-                if not df.empty:
-                    preview_data = df.head(5).to_dict('records')
-                    columns = df.columns.tolist()
-                    
-                    # Generate simple graph data for numerical columns
-                    numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
-                    if numeric_columns and len(df) > 1:
-                        # Create a simple line chart with first numeric column
-                        first_numeric = numeric_columns[0]
-                        if len(df) <= 20:  # Only for small datasets
-                            graph_data = {
-                                'chart_type': 'line',
-                                'labels': [str(i+1) for i in range(len(df))],
-                                'datasets': [{
-                                    'label': first_numeric,
-                                    'data': df[first_numeric].fillna(0).tolist(),
-                                    'borderColor': '#3b82f6',
-                                    'backgroundColor': 'rgba(59, 130, 246, 0.1)',
-                                    'fill': True
-                                }]
-                            }
-                            
-            except Exception as e:
-                error_message = f"Error reading file: {str(e)}"
-            
-            # Get recent comments (top 5)
-            top_comments = Comment.objects.filter(dataset=dataset).select_related('author').order_by('-upvotes', '-created_at')[:5]
-            comments = [{
-                'id': comment.id,
-                'content': comment.content,
-                'upvotes': comment.upvotes,
-                'author_name': comment.author.get_full_name() or comment.author.username,
-                'created_at': comment.created_at,
-            } for comment in top_comments]
-            
-            # Get related datasets (same topics, different dataset)
-            if dataset.topics:
-                topics_list = dataset.get_topics_list()
-                if topics_list:
-                    # Find datasets with similar topics
-                    related_datasets = Dataset.objects.exclude(id=dataset.id).filter(
-                        topics__icontains=topics_list[0]
-                    )[:3]
-        
-        except Exception as e:
-            error_message = f"Dataset not found: {str(e)}"
+    # Increment download count
+    dataset.downloads += 1
+    dataset.save(update_fields=['downloads'])
     
-    context = {
-        'dataset': dataset,
-        'author_name': dataset.author.get_full_name() or dataset.author.username if dataset else None,
-        'topics': dataset.get_topics_list() if dataset else [],
-        'preview_data': preview_data,
-        'columns': columns,
-        'comments': comments,
-        'related_datasets': related_datasets,
-        'graph_data': graph_data,
-        'error_message': error_message,
-    }
+    # Return file response
+    if dataset.file:
+        # Reset file pointer to beginning
+        dataset.file.seek(0)
+        response = HttpResponse(
+            dataset.file.read(), 
+            content_type='application/octet-stream'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{dataset.file.name}"'
+        return response
     
-    return render(request, 'dataset/dataset_page.html', context)
+    messages.error(request, 'Dataset file not found.')
+    return redirect('dataset_detail', dataset_id=dataset_id)
 
 
 @login_required
@@ -260,13 +261,13 @@ def upload_dataset(request):
             dataset.author = request.user
             dataset.save()
             messages.success(request, 'Dataset uploaded successfully!')
-            return redirect('dataset_detail', pk=dataset.pk)  # Adjust redirect as needed
+            return redirect('dataset_detail', dataset_id=dataset.pk)
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
         form = DatasetUploadForm()
     
-    return render(request, 'datasets/upload.html', {'form': form})
+    return render(request, 'dataset/upload.html', {'form': form})
 
 
 @login_required
@@ -294,10 +295,9 @@ def upload_dataset_ajax(request):
         })
 
 
-
 @login_required
 def home(request):
-    """Render authenticated user's home page and make it a Dynamic home page view with real data"""
+    """Render authenticated user's home page - Dynamic home page view with real data"""
     
     # Get total statistics
     total_datasets = Dataset.objects.count()
@@ -305,9 +305,8 @@ def home(request):
     total_views = Dataset.objects.aggregate(Sum('views'))['views__sum'] or 0
     
     # Get trending datasets (most downloaded in the last week)
-    last_week = timezone.now() - timedelta(days=7)
     trending_datasets = Dataset.objects.select_related('author').annotate(
-        recent_growth=Count('id')  # You can implement a more sophisticated trending algorithm
+        recent_growth=Count('id')
     ).order_by('-downloads', '-views')[:3]
     
     # Get top categories with counts
@@ -344,7 +343,7 @@ def home(request):
         'total_datasets': total_datasets,
         'total_downloads': total_downloads,
         'total_views': total_views,
-        'total_countries': 54,  # Static for now, you can make this dynamic if you have country data
+        'total_countries': 54,  # Static for now
         'total_researchers': total_views // 50,  # Rough estimate
         'trending_datasets': trending_datasets,
         'top_categories': top_categories,
@@ -354,7 +353,6 @@ def home(request):
     }
 
     return render(request, 'accounts/home.html', context)
-
 
 
 def dataset_list(request):

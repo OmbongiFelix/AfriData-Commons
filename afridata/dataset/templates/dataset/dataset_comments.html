@@ -1,0 +1,234 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if dataset %}{{ dataset.title }} - Comments{% else %}Dataset Comments{% endif %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  <div class="max-w-4xl mx-auto p-6">
+    <!-- Header -->
+    <div class="bg-white p-6 rounded shadow mb-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800 mb-2">
+            {% if dataset %}Comments for "{{ dataset.title }}"{% else %}Dataset Comments{% endif %}
+          </h1>
+          <p class="text-gray-600">
+            By {% if author_name %}{{ author_name }}{% else %}Unknown Author{% endif %}
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          {% if dataset %}
+          <a href="{% url 'dataset_detail' dataset.id %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+            ← Back to Dataset
+          </a>
+          <a href="{% url 'dataset_preview' dataset.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            View Data
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Comment Form (if user is authenticated) -->
+    {% if user.is_authenticated and dataset %}
+    <div class="bg-white p-6 rounded shadow mb-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">Add Your Comment</h2>
+      <form method="post" action="{% url 'post_comment' dataset.id %}" class="space-y-4">
+        {% csrf_token %}
+        <div>
+          <label for="content" class="block text-sm font-medium text-gray-700 mb-2">Your Comment</label>
+          <textarea 
+            id="content" 
+            name="content" 
+            rows="4" 
+            class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+            placeholder="Share your thoughts about this dataset..."
+            required
+          ></textarea>
+        </div>
+        <div class="flex justify-end">
+          <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 focus:ring-2 focus:ring-green-500">
+            Post Comment
+          </button>
+        </div>
+      </form>
+    </div>
+    {% elif not user.is_authenticated %}
+    <div class="bg-blue-50 border border-blue-200 p-4 rounded shadow mb-6">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-blue-800">
+          Please <a href="{% url 'login' %}" class="font-semibold underline hover:text-blue-600">login</a> to post comments and interact with the community.
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Comments List -->
+    <div class="bg-white rounded shadow">
+      <div class="p-4 bg-gray-50 border-b">
+        <h2 class="text-lg font-semibold text-gray-700">
+          All Comments
+          {% if comments %}
+          <span class="text-sm font-normal text-gray-500">({{ comments|length }} comments)</span>
+          {% endif %}
+        </h2>
+      </div>
+
+      {% if comments %}
+      <div class="divide-y divide-gray-200">
+        {% for comment in comments %}
+        <div class="p-6 hover:bg-gray-50 transition-colors">
+          <div class="flex items-start space-x-4">
+            <!-- Avatar -->
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-sm">
+                  {{ comment.author.first_name|first|default:comment.author.username|first|upper }}
+                </span>
+              </div>
+            </div>
+            
+            <!-- Comment Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <h3 class="text-sm font-semibold text-gray-900">
+                    {{ comment.author.get_full_name|default:comment.author.username }}
+                  </h3>
+                  <span class="text-xs text-gray-500">•</span>
+                  <time class="text-xs text-gray-500" datetime="{{ comment.created_at|date:'c' }}">
+                    {{ comment.created_at|date:"M d, Y \a\t g:i A" }}
+                  </time>
+                </div>
+                
+                <!-- Upvote Section -->
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm text-gray-600">{{ comment.upvotes }} upvote{{ comment.upvotes|pluralize }}</span>
+                  {% if user.is_authenticated %}
+                  <form method="post" action="{% url 'upvote_comment' comment.id %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                      </svg>
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+              
+              <div class="text-gray-700 text-sm leading-relaxed">
+                {{ comment.content|linebreaks }}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="p-12 text-center">
+        <div class="text-gray-400 mb-4">
+          <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">No Comments Yet</h3>
+        <p class="text-gray-600 mb-4">Be the first to share your thoughts about this dataset!</p>
+        {% if user.is_authenticated and dataset %}
+        <a href="#" onclick="document.getElementById('content').focus(); return false;" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          Add First Comment
+        </a>
+        {% elif not user.is_authenticated %}
+        <a href="{% url 'login' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          Login to Comment
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if comments.has_other_pages %}
+    <div class="bg-white p-4 rounded shadow mt-6">
+      <div class="flex justify-center">
+        <nav class="flex space-x-2">
+          {% if comments.has_previous %}
+          <a href="?page=1" class="bg-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-400">
+            First
+          </a>
+          <a href="?page={{ comments.previous_page_number }}" class="bg-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-400">
+            ← Previous
+          </a>
+          {% endif %}
+          
+          <span class="bg-blue-600 text-white px-3 py-1 rounded">
+            Page {{ comments.number }} of {{ comments.paginator.num_pages }}
+          </span>
+          
+          {% if comments.has_next %}
+          <a href="?page={{ comments.next_page_number }}" class="bg-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-400">
+            Next →
+          </a>
+          <a href="?page={{ comments.paginator.num_pages }}" class="bg-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-400">
+            Last
+          </a>
+          {% endif %}
+        </nav>
+      </div>
+      
+      <div class="text-center mt-3 text-sm text-gray-600">
+        Showing {{ comments.start_index }} to {{ comments.end_index }} of {{ comments.paginator.count }} comments
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    {% if dataset %}
+    <div class="bg-white p-4 rounded shadow mt-6">
+      <h3 class="text-lg font-semibold text-gray-700 mb-3">Quick Actions</h3>
+      <div class="flex flex-wrap gap-3">
+        <a href="{% url 'dataset_detail' dataset.id %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+          View Dataset Details
+        </a>
+        <a href="{% url 'dataset_preview' dataset.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          Preview Data
+        </a>
+        <a href="{% url 'download_dataset' dataset.id %}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          Download Dataset
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Toast Messages -->
+  {% if messages %}
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50">
+    {% for message in messages %}
+    <div class="toast mb-2 p-4 rounded shadow-lg text-white {% if message.tags == 'error' %}bg-red-600{% elif message.tags == 'success' %}bg-green-600{% else %}bg-blue-600{% endif %}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  
+  <script>
+    // Auto-hide toast messages after 3 seconds
+    setTimeout(() => {
+      const toasts = document.querySelectorAll('.toast');
+      toasts.forEach(toast => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      });
+    }, 3000);
+  </script>
+  {% endif %}
+</body>
+</html>

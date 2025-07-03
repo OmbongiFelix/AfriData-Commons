@@ -72,7 +72,7 @@
   <div id="datasetContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for dataset in datasets %}
     <div class="dataset-card bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300 border border-gray-200 overflow-hidden cursor-pointer" 
-         data-url="{% url 'dataset_page' dataset.id %}"
+         data-url="{% url 'dataset_detail' dataset.id %}"
          data-title="{{ dataset.title|lower }}" 
          data-author="{{ dataset.author_name|lower }}" 
          data-downloads="{{ dataset.downloads }}" 

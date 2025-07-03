@@ -1,4 +1,5 @@
 {% load static %}
+{% load dict_extras %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -61,7 +62,13 @@
           {% for row in preview_data %}
           <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
             {% for column in columns %}
-            <td class="py-2 px-4">{{ row|default_if_none:""| dictsort:column|first.1|default:"N/A" }}</td>
+            <td class="py-2 px-4">
+              {% if row|default_if_none:"" %}
+                {{ row|default_if_none:""|get_item:column|default:"N/A" }}
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
             {% endfor %}
           </tr>
           {% endfor %}
@@ -139,7 +146,7 @@
       </form>
       {% elif not user.is_authenticated %}
       <div class="text-center text-gray-500">
-        <p>Please <a href="{% url 'login' %}" class="text-blue-600 hover:underline">login</a> to post comments</p>
+        <p>Please <a href="{% url 'login_signup' %}" class="text-blue-600 hover:underline">login</a> to post comments</p>
       </div>
       {% endif %}
     </div>
@@ -190,4 +197,3 @@
   </script>
 </body>
 </html>
-
