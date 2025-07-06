@@ -39,7 +39,7 @@ Modern AI systems often lack representation from African contexts, leading to bi
 
 ## ⚙️ System Architecture
 
-- **Frontend**: HTML/CSS/JS (React/Vue – TBD)
+- **Frontend**: HTML/CSS/JS 
 - **Backend**: Django + Django REST Framework
 - **Database**: PostgreSQL
 - **Search Engine**: Elasticsearch (planned)
@@ -52,7 +52,7 @@ Modern AI systems often lack representation from African contexts, leading to bi
 
 ### Requirements
 - Python 3.10+
-- PostgreSQL
+- Sqlite3
 - pip / pipenv
 - Graphviz (for ERD generation)
 
