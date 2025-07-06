@@ -1,7 +1,7 @@
 digraph model_graph {
   // Dotfile by Django-Extensions graph_models
-  // Created: 2025-07-02 10:11
-  // Cli Options: -a
+  // Created: 2025-07-06 19:48
+  // Cli Options: -a --arrow-shape normal -o ../Documentation/erd2.dot
 
   fontname = "Roboto"
   fontsize = 8
@@ -1182,20 +1182,171 @@ digraph model_graph {
 
 
 
+  api_models_APIKey [label=<
+    <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
+    <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
+    <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
+    APIKey
+    </B></FONT></TD></TR>
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto"><B>id</B></FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto"><B>BigAutoField</B></FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto"><B>user</B></FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto"><B>ForeignKey (id)</B></FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">created_at</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">DateTimeField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">is_active</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">BooleanField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">key</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">CharField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">last_used</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">DateTimeField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">name</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">CharField</FONT>
+    </TD></TR>
+  
+  
+    </TABLE>
+    >]
+
+  api_models_APIUsage [label=<
+    <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
+    <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
+    <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
+    APIUsage
+    </B></FONT></TD></TR>
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto"><B>id</B></FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto"><B>BigAutoField</B></FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto"><B>api_key</B></FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto"><B>ForeignKey (id)</B></FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">endpoint</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">CharField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">ip_address</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">GenericIPAddressField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">method</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">CharField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">response_code</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">IntegerField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">response_time</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">FloatField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">timestamp</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">DateTimeField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">user_agent</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">TextField</FONT>
+    </TD></TR>
+  
+  
+    </TABLE>
+    >]
+
+
+
+
   // Relations
 
   django_contrib_admin_models_LogEntry -> accounts_models_CustomUser
-  [label=" user (logentry)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" user (logentry)"] [arrowhead=none, arrowtail=normal, dir=both];
 
   django_contrib_admin_models_LogEntry -> django_contrib_contenttypes_models_ContentType
-  [label=" content_type (logentry)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" content_type (logentry)"] [arrowhead=none, arrowtail=normal, dir=both];
 
 
   django_contrib_auth_models_Permission -> django_contrib_contenttypes_models_ContentType
-  [label=" content_type (permission)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" content_type (permission)"] [arrowhead=none, arrowtail=normal, dir=both];
 
   django_contrib_auth_models_Group -> django_contrib_auth_models_Permission
-  [label=" permissions (group)"] [arrowhead=dot arrowtail=dot, dir=both];
+  [label=" permissions (group)"] [arrowhead=normal arrowtail=normal, dir=both];
 
 
 
@@ -1204,13 +1355,13 @@ digraph model_graph {
 
 
   dataset_models_Dataset -> accounts_models_CustomUser
-  [label=" author (authored_datasets)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" author (authored_datasets)"] [arrowhead=none, arrowtail=normal, dir=both];
 
   dataset_models_Comment -> dataset_models_Dataset
-  [label=" dataset (comments)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" dataset (comments)"] [arrowhead=none, arrowtail=normal, dir=both];
 
   dataset_models_Comment -> accounts_models_CustomUser
-  [label=" author (authored_comments)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" author (authored_comments)"] [arrowhead=none, arrowtail=normal, dir=both];
 
   django_contrib_auth_base_user_AbstractBaseUser [label=<
   <TABLE BGCOLOR="white" BORDER="0" CELLBORDER="0" CELLSPACING="0">
@@ -1232,10 +1383,10 @@ digraph model_graph {
   [label=" abstract\ninheritance"] [arrowhead=empty, arrowtail=none, dir=both];
 
   accounts_models_CustomUser -> django_contrib_auth_models_Group
-  [label=" groups (user)"] [arrowhead=dot arrowtail=dot, dir=both];
+  [label=" groups (user)"] [arrowhead=normal arrowtail=normal, dir=both];
 
   accounts_models_CustomUser -> django_contrib_auth_models_Permission
-  [label=" user_permissions (user)"] [arrowhead=dot arrowtail=dot, dir=both];
+  [label=" user_permissions (user)"] [arrowhead=normal arrowtail=normal, dir=both];
 
   accounts_models_CustomUser -> django_contrib_auth_models_AbstractUser
   [label=" abstract\ninheritance"] [arrowhead=empty, arrowtail=none, dir=both];
@@ -1245,25 +1396,32 @@ digraph model_graph {
 
 
   community_models_Thread -> community_models_Topic
-  [label=" topic (threads)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" topic (threads)"] [arrowhead=none, arrowtail=normal, dir=both];
 
   community_models_Thread -> accounts_models_CustomUser
-  [label=" author (threads)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" author (threads)"] [arrowhead=none, arrowtail=normal, dir=both];
 
   community_models_Post -> community_models_Thread
-  [label=" thread (posts)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" thread (posts)"] [arrowhead=none, arrowtail=normal, dir=both];
 
   community_models_Post -> accounts_models_CustomUser
-  [label=" author (posts)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" author (posts)"] [arrowhead=none, arrowtail=normal, dir=both];
 
   community_models_PostVote -> community_models_Post
-  [label=" post (votes)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" post (votes)"] [arrowhead=none, arrowtail=normal, dir=both];
 
   community_models_PostVote -> accounts_models_CustomUser
-  [label=" user (postvote)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" user (postvote)"] [arrowhead=none, arrowtail=normal, dir=both];
 
   community_models_UserActivity -> accounts_models_CustomUser
-  [label=" user (forum_activities)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label=" user (forum_activities)"] [arrowhead=none, arrowtail=normal, dir=both];
+
+
+  api_models_APIKey -> accounts_models_CustomUser
+  [label=" user (api_keys)"] [arrowhead=none, arrowtail=normal, dir=both];
+
+  api_models_APIUsage -> api_models_APIKey
+  [label=" api_key (usage_records)"] [arrowhead=none, arrowtail=normal, dir=both];
 
 
 }
