@@ -1,12 +1,57 @@
-venv
+# === Python bytecode ===
+__pycache__/
+*.py[cod]
+*$py.class
+
+# === Django SQLite DB (local dev only) ===
+*.sqlite3
+
+# === Virtual environments ===
+venv/
+.venv/
+env/
+ENV/
+
+# === Environment variables ===
+.env
+*.env
+
+# === Django migration caches ===
+**/migrations/__pycache__/
+**/templatetags/__pycache__/
+
+# === IDE/editor configs ===
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# === OS/system files ===
+.DS_Store
+Thumbs.db
+
+# === HTML test or scratch files ===
 try.html
 x.html
 
-accounts/__pycache__
-home/__pycache__
-user/__pycache__
-dataset/__pycache__
-afridata/__pycache__
-api/__pycache__
-community/__pycache__
-db.sqlite3
+
+# === Logs and reports ===
+*.log
+htmlcov/
+coverage/
+.coverage*
+.tox/
+.nox/
+.pytest_cache/
+.mypy_cache/
+
+# === Static/media/output ===
+static/
+staticfiles/
+media/
+
+# === Documentation artifacts ===
+*.dot
+*.pdf
+*.png
+test-output/
