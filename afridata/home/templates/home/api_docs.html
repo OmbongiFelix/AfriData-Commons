@@ -491,46 +491,88 @@ fetch('https://afridata.com/api/v1/datasets/upload/', {
 
                     <div id="apiKeySection" class="hidden">
                         <div class="space-y-4">
-                            <!-- Current API Keys -->
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                                    <i class="fas fa-key mr-2"></i>Your API Keys
-                                </h3>
-                                <div id="apiKeysList" class="space-y-3">
-                                    <!-- API keys will be loaded here -->
-                                </div>
-                            </div>
-
-                            <!-- Generate New Key -->
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                                    <i class="fas fa-plus mr-2"></i>Generate New API Key
-                                </h3>
-                                <div class="flex space-x-3">
-                                    <input type="text" id="keyName" placeholder="Enter key name (e.g., Production Key)" 
-                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <button id="generateKeyBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
-                                        <i class="fas fa-plus mr-2"></i>Generate Key
-                                    </button>
+                        <!-- Current API Keys -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Your API Keys</h3>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-medium text-gray-900">Production Key</p>
+                                        <p class="text-sm text-gray-500">Created: March 15, 2024</p>
+                                        <code class="text-xs bg-gray-200 px-2 py-1 rounded">ak_prod_1234567890abcdef...</code>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button class="text-sm text-blue-600 hover:text-blue-800">Copy</button>
+                                        <button class="text-sm text-red-600 hover:text-red-800">Revoke</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Generate New Key -->
+                        <div>
+                            <button id="generateKeyBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                Generate New API Key
+                            </button>
+                        </div>
+                    </div>
                     </div>
                 </section>
 
                 <!-- Usage Statistics -->
-                <section id="usage" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                    <h2 class="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
-                        <i class="fas fa-chart-line mr-3 text-green-600"></i>Usage Statistics
-                    </h2>
+                <section id="usage" class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Usage Statistics</h2>
                     
-                    <div id="usageStats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-blue-50 rounded-lg p-4">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm text-gray-600">Requests Today</p>
-                                    <p class="text-2xl font-bold text-blue-600">247</p>
-                                </div>
-                                <i class="fas fa-chart-line text-blue-600 text-2xl"></i>
-                            </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-blue-900">Requests Today</h3>
+                            <p class="text-2xl font-bold text-blue-700">247</p>
+                            <p class="text-xs text-blue-600">753 remaining</p>
                         </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-green-900">This Month</h3>
+                            <p class="text-2xl font-bold text-green-700">15,430</p>
+                            <p class="text-xs text-green-600">+12% from last month</p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-purple-900">Popular Endpoint</h3>
+                            <p class="text-sm font-bold text-purple-700">/datasets/</p>
+                            <p class="text-xs text-purple-600">67% of requests</p>
+                        </div>
+                        <div class="bg-orange-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-orange-900">Error Rate</h3>
+                            <p class="text-2xl font-bold text-orange-700">0.3%</p>
+                            <p class="text-xs text-orange-600">Mostly 404s</p>
+                        </div>
+                    </div>
+
+                    <!-- Usage Chart Placeholder -->
+                    <div class="bg-gray-100 rounded-lg p-8 text-center">
+                        <p class="text-gray-500">Usage chart would be implemented here</p>
+                        <p class="text-sm text-gray-400">(Could use Chart.js or similar)</p>
+                    </div>
+                </section>
+
+
+
+
+
+
+
+
+<script>
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Mock API key generation
+    document.getElementById('generateKeyBtn').addEventListener('click', function() {
+        alert('API key generation would be implemented here');
+    });
+</script>
