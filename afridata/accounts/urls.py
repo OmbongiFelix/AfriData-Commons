@@ -30,7 +30,13 @@ urlpatterns = [
 
     # Static Pages
     path('terms/', views.terms, name='terms'),
-    path('privacy', views.privacy_policy, name='privacy_policy'),
+    path('privacy/', views.privacy_policy, name='privacy_policy'),
+    path('settings/', views.settings, name='settings'),
+    path('data-standards/', views.data_standards, name='data_standards'),
+    path('data-license/', views.data_license, name='data_license'),
+
+    #download license PDF
+    path('download-license/', views.download_license_pdf, name='download_license_pdf'),
 
 ]
 
