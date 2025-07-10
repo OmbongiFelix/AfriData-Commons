@@ -99,8 +99,8 @@
                             <a href="{% url 'settings' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-cog mr-2"></i>Settings
                             </a>
-                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
-                                <i class="fas fa-chart-bar mr-2"></i>Dashboard
+                            <a href="{% url 'public_profile' user.id %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chart-bar mr-2"></i>Public Profile
                             </a>
                             <div class="border-t my-1"></div>
                             <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
