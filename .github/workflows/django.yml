@@ -15,7 +15,10 @@ jobs:
         python-version: ["3.11", "3.12"]
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_HOST: ${{ secrets.DB_HOST }} 
     steps:
       - uses: actions/checkout@v4
 
@@ -41,8 +44,12 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.11", "3.12"]
-    env:  
+    env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_HOST: ${{ secrets.DB_HOST }}  
     steps:
       - uses: actions/checkout@v4
 
