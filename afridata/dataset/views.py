@@ -15,6 +15,8 @@ import io
 from django.views.decorators.csrf import csrf_exempt
 from .forms import DatasetUploadForm
 import json
+from django.http import JsonResponse
+from django.urls import reverse
 
 
 def dataset_detail(request, dataset_id):
@@ -253,46 +255,42 @@ def download_dataset(request, dataset_id):
 
 @login_required
 def upload_dataset(request):
-    """Handle dataset upload via regular form submission"""
+    """Handle dataset upload via regular form submission and AJAX"""
     if request.method == 'POST':
         form = DatasetUploadForm(request.POST, request.FILES)
         if form.is_valid():
             dataset = form.save(commit=False)
             dataset.author = request.user
             dataset.save()
-            messages.success(request, 'Dataset uploaded successfully!')
-            return redirect('dataset_detail', dataset_id=dataset.pk)
+            
+            # Check if it's an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Dataset uploaded successfully!',
+                    'dataset_id': dataset.pk,
+                    'redirect_url': reverse('dataset_detail', kwargs={'dataset_id': dataset.pk})
+                })
+            else:
+                # Regular form submission - redirect as usual
+                messages.success(request, 'Dataset uploaded successfully!')
+                return redirect('dataset_detail', dataset_id=dataset.pk)
         else:
-            messages.error(request, 'Please correct the errors below.')
+            # Form has errors
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors,
+                    'message': 'Please correct the errors below.'
+                }, status=400)
+            else:
+                # Regular form submission with errors
+                messages.error(request, 'Please correct the errors below.')
     else:
         form = DatasetUploadForm()
-    
+   
     return render(request, 'dataset/upload.html', {'form': form})
 
-
-@login_required
-@require_POST
-def upload_dataset_ajax(request):
-    """Handle dataset upload via AJAX for modal"""
-    form = DatasetUploadForm(request.POST, request.FILES)
-    
-    if form.is_valid():
-        dataset = form.save(commit=False)
-        dataset.author = request.user
-        dataset.save()
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Dataset uploaded successfully!',
-            'dataset_id': dataset.pk,
-            'dataset_title': dataset.title
-        })
-    else:
-        return JsonResponse({
-            'success': False,
-            'errors': form.errors,
-            'message': 'Please correct the errors and try again.'
-        })
 
 
 @login_required
