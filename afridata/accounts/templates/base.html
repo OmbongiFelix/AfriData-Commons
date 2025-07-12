@@ -43,7 +43,7 @@
                         <span class="text-gray-700 font-medium">{{ user.get_full_name|default:user.username }}</span>
                     </div>
                     <a href="{% url 'profile' %}" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Profile</a>
-                    <a href="#" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Settings</a>
+                    <a href="{% url 'settings' %}" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Settings</a>
                     <a href="{% url 'logout' %}" class="block py-2 text-gray-700 hover:text-blue-600 pl-2">Logout</a>
                 </div>
                 {% else %}
@@ -96,11 +96,11 @@
                             <a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-user mr-2"></i>Profile
                             </a>
-                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                            <a href="{% url 'settings' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-cog mr-2"></i>Settings
                             </a>
-                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
-                                <i class="fas fa-chart-bar mr-2"></i>Dashboard
+                            <a href="{% url 'public_profile' user.id %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chart-bar mr-2"></i>Public Profile
                             </a>
                             <div class="border-t my-1"></div>
                             <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
@@ -181,7 +181,7 @@
                             <li><a href="{% url 'home:api_docs' %}" class="footer-link text-gray-300 flex items-center">
                                 <i class="fas fa-code mr-2 text-sm"></i>API Access
                             </a></li>
-                            <li><a href="#" class="footer-link text-gray-300 flex items-center">
+                            <li><a href="{% url 'data_standards' %}" class="footer-link text-gray-300 flex items-center">
                                 <i class="fas fa-chart-bar mr-2 text-sm"></i>Data Standards
                             </a></li>
                             <li><a href="#" class="footer-link text-gray-300 flex items-center">
@@ -259,7 +259,7 @@
                                 <a href="#" class="social-icon rounded-lg flex items-center justify-center">
                                     <i class="fab fa-linkedin"></i>
                                 </a>
-                                <a href="#" class="social-icon rounded-lg flex items-center justify-center">
+                                <a href="https://github.com/OmbongiFelix/AfriData-Commons.git" target="_blank" rel="noopener noreferrer" class="social-icon rounded-lg flex items-center justify-center">
                                     <i class="fab fa-github"></i>
                                 </a>
                                 <a href="#" class="social-icon rounded-lg flex items-center justify-center">
@@ -287,7 +287,7 @@
                     <div class="flex flex-wrap items-center space-x-6 text-sm">
                         <a href="{% url 'privacy_policy' %}" class="footer-link text-gray-400">Privacy Policy</a>
                         <a href="{% url 'terms' %}" class="footer-link text-gray-400">Terms of Service</a>
-                        <a href="#" class="footer-link text-gray-400">Data License</a>
+                        <a href="{% url 'data_license' %}" class="footer-link text-gray-400">Data License</a>
                         <a href="#" class="footer-link text-gray-400">Contact</a>
                     </div>
                 </div>

@@ -30,9 +30,33 @@ def terms(request):
     return render(request, 'accounts/terms.html')
 
 
+def settings(request):
+    """Render settings page"""
+    return render(request, 'accounts/settings.html')
+
+
+def data_license(request):
+    """Render the data license page"""
+    return render(request, 'accounts/data_license.html')
+
+
+def data_standards(request):
+    """Render the data standards page"""
+    return render(request, 'accounts/data_standards.html')
+
+
 def privacy_policy(request):
-    """Render the terms and conditions page"""
+    """Render the privacy policy page"""
     return render(request, 'accounts/privacy_policy.html')
+
+
+def download_license_pdf(request):
+    """Serve the data license PDF file"""
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="data_license.pdf"'
+    with open('path/to/data_license.pdf', 'rb') as pdf:
+        response.write(pdf.read())
+    return response
 
 
 def get_client_ip(request):

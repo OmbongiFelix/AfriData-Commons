@@ -1,0 +1,614 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Data Standards - AfriData{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'accounts/css/data_standards.css' %}">
+{% endblock %}
+
+{% block header_content %}
+<div class="mt-8 text-center">
+    <h1 class="text-4xl font-bold mb-2">Data Standards</h1>
+    <p class="text-xl opacity-90">Guidelines for high-quality, interoperable datasets</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="standards-container">
+    
+    <!-- Navigation -->
+    <div class="standards-nav">
+        <a href="#formats" class="nav-pill active">File Formats</a>
+        <a href="#metadata" class="nav-pill">Metadata</a>
+        <a href="#quality" class="nav-pill">Data Quality</a>
+        <a href="#documentation" class="nav-pill">Documentation</a>
+        <a href="#ethics" class="nav-pill">Ethics</a>
+        <a href="#submission" class="nav-pill">Submission</a>
+    </div>
+
+    <!-- File Formats Section -->
+    <div id="formats" class="standard-card">
+        <h3><i class="fas fa-file-alt"></i>Supported File Formats</h3>
+        <p class="text-gray-700 mb-4">
+            AfriData Commons supports a wide range of file formats to ensure maximum accessibility and interoperability. Here are our supported formats and recommendations:
+        </p>
+        
+        <table class="format-table">
+            <thead>
+                <tr>
+                    <th>Format</th>
+                    <th>Extension</th>
+                    <th>Support Level</th>
+                    <th>Use Case</th>
+                    <th>Max Size</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="status-indicator status-supported"></span>CSV</td>
+                    <td>.csv</td>
+                    <td><span class="requirement-badge">Recommended</span></td>
+                    <td>Structured tabular data</td>
+                    <td>100MB</td>
+                </tr>
+                <tr>
+                    <td><span class="status-indicator status-supported"></span>JSON</td>
+                    <td>.json</td>
+                    <td><span class="requirement-badge">Recommended</span></td>
+                    <td>Structured data, APIs</td>
+                    <td>50MB</td>
+                </tr>
+                <tr>
+                    <td><span class="status-indicator status-supported"></span>Excel</td>
+                    <td>.xlsx, .xls</td>
+                    <td><span class="requirement-badge">Supported</span></td>
+                    <td>Spreadsheet data with multiple sheets</td>
+                    <td>25MB</td>
+                </tr>
+                <tr>
+                    <td><span class="status-indicator status-supported"></span>XML</td>
+                    <td>.xml</td>
+                    <td><span class="requirement-badge">Supported</span></td>
+                    <td>Hierarchical structured data</td>
+                    <td>25MB</td>
+                </tr>
+                <tr>
+                    <td><span class="status-indicator status-partial"></span>Parquet</td>
+                    <td>.parquet</td>
+                    <td><span class="requirement-badge optional">Beta</span></td>
+                    <td>Large-scale analytics</td>
+                    <td>500MB</td>
+                </tr>
+                <tr>
+                    <td><span class="status-indicator status-supported"></span>GeoJSON</td>
+                    <td>.geojson</td>
+                    <td><span class="requirement-badge">Recommended</span></td>
+                    <td>Geographic data</td>
+                    <td>50MB</td>
+                </tr>
+                <tr>
+                    <td><span class="status-indicator status-supported"></span>Shapefile</td>
+                    <td>.shp + .shx + .dbf</td>
+                    <td><span class="requirement-badge">Supported</span></td>
+                    <td>GIS vector data</td>
+                    <td>100MB</td>
+                </tr>
+                <tr>
+                    <td><span class="status-indicator status-unsupported"></span>Proprietary</td>
+                    <td>.sav, .dta, .mat</td>
+                    <td><span class="requirement-badge">Convert Required</span></td>
+                    <td>Statistical software formats</td>
+                    <td>N/A</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Best Practice:</strong> For maximum compatibility and longevity, we recommend using open, non-proprietary formats like CSV, JSON, and GeoJSON. These formats are widely supported and accessible across different platforms and tools.
+            </div>
+        </div>
+    </div>
+
+    <!-- Metadata Section -->
+    <div id="metadata" class="standard-card">
+        <h3><i class="fas fa-tags"></i>Metadata Standards</h3>
+        <p class="text-gray-700 mb-4">
+            Comprehensive metadata is crucial for dataset discovery and proper usage. Our metadata schema follows international standards while accommodating African-specific context.
+        </p>
+        
+        <div class="standard-grid">
+            <div class="standard-item">
+                <h4><i class="fas fa-info"></i>Basic Information</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Dataset title and description</li>
+                    <li><i class="fas fa-check"></i>Creator/author information</li>
+                    <li><i class="fas fa-check"></i>Creation and modification dates</li>
+                    <li><i class="fas fa-check"></i>Version information</li>
+                    <li><i class="fas fa-check"></i>License and usage rights</li>
+                </ul>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-globe-africa"></i>Geographic Context</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Country/region coverage</li>
+                    <li><i class="fas fa-check"></i>Coordinate system (if applicable)</li>
+                    <li><i class="fas fa-check"></i>Administrative boundaries</li>
+                    <li><i class="fas fa-check"></i>Urban/rural classification</li>
+                    <li><i class="fas fa-check"></i>Language(s) used</li>
+                </ul>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-calendar"></i>Temporal Coverage</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Data collection period</li>
+                    <li><i class="fas fa-check"></i>Temporal resolution</li>
+                    <li><i class="fas fa-check"></i>Update frequency</li>
+                    <li><i class="fas fa-check"></i>Historical context</li>
+                    <li><i class="fas fa-check"></i>Seasonal considerations</li>
+                </ul>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-microscope"></i>Methodology</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Data collection methods</li>
+                    <li><i class="fas fa-check"></i>Sampling techniques</li>
+                    <li><i class="fas fa-check"></i>Quality control measures</li>
+                    <li><i class="fas fa-check"></i>Processing steps</li>
+                    <li><i class="fas fa-check"></i>Limitations and biases</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4 class="text-lg font-semibold mb-3 mt-6">Example Metadata Schema (JSON)</h4>
+        <div class="code-block">
+<span class="comment">// AfriData Commons Metadata Schema</span>
+{
+  <span class="key">"title"</span>: <span class="string">"Kenya Agricultural Survey 2024"</span>,
+  <span class="key">"description"</span>: <span class="string">"Comprehensive survey of agricultural practices..."</span>,
+  <span class="key">"creator"</span>: {
+    <span class="key">"name"</span>: <span class="string">"Dr. Jane Doe"</span>,
+    <span class="key">"affiliation"</span>: <span class="string">"University of Nairobi"</span>,
+    <span class="key">"email"</span>: <span class="string">"jane.doe@uonbi.ac.ke"</span>
+  },
+  <span class="key">"geographic_coverage"</span>: {
+    <span class="key">"country"</span>: <span class="string">"Kenya"</span>,
+    <span class="key">"regions"</span>: [<span class="string">"Central"</span>, <span class="string">"Eastern"</span>, <span class="string">"Western"</span>],
+    <span class="key">"coordinate_system"</span>: <span class="string">"WGS84"</span>
+  },
+  <span class="key">"temporal_coverage"</span>: {
+    <span class="key">"start_date"</span>: <span class="string">"2024-01-01"</span>,
+    <span class="key">"end_date"</span>: <span class="string">"2024-12-31"</span>,
+    <span class="key">"frequency"</span>: <span class="string">"Annual"</span>
+  },
+  <span class="key">"methodology"</span>: {
+    <span class="key">"collection_method"</span>: <span class="string">"Survey"</span>,
+    <span class="key">"sample_size"</span>: <span class="number">5000</span>,
+    <span class="key">"sampling_method"</span>: <span class="string">"Stratified random sampling"</span>
+  },
+  <span class="key">"license"</span>: <span class="string">"CC BY 4.0"</span>,
+  <span class="key">"version"</span>: <span class="string">"1.0"</span>,
+  <span class="key">"created_date"</span>: <span class="string">"2024-03-15"</span>,
+  <span class="key">"file_format"</span>: <span class="string">"CSV"</span>,
+  <span class="key">"file_size"</span>: <span class="string">"45.7 MB"</span>
+}
+        </div>
+    </div>
+
+    <!-- Data Quality Section -->
+    <div id="quality" class="standard-card">
+        <h3><i class="fas fa-chart-line"></i>Data Quality Standards</h3>
+        <p class="text-gray-700 mb-4">
+            High-quality data is essential for reliable research and analysis. Our quality standards ensure datasets meet international best practices.
+        </p>
+        
+        <div class="standard-grid">
+            <div class="standard-item">
+                <h4><i class="fas fa-check-double"></i>Completeness</h4>
+                <p class="text-gray-600 mb-3">Ensure your dataset is as complete as possible:</p>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Missing values < 5% per column</li>
+                    <li><i class="fas fa-check"></i>Clear indication of null/missing data</li>
+                    <li><i class="fas fa-check"></i>Explanation for missing values</li>
+                    <li><i class="fas fa-check"></i>Complete geographic coverage</li>
+                </ul>
+                <div class="quality-metric">
+                    <span class="quality-score">Target: 95%+</span>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: 95%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-bullseye"></i>Accuracy</h4>
+                <p class="text-gray-600 mb-3">Verify data accuracy through validation:</p>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Cross-validation with external sources</li>
+                    <li><i class="fas fa-check"></i>Outlier detection and handling</li>
+                    <li><i class="fas fa-check"></i>Unit consistency checks</li>
+                    <li><i class="fas fa-check"></i>Temporal consistency validation</li>
+                </ul>
+                <div class="quality-metric">
+                    <span class="quality-score">Target: 98%+</span>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: 98%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-clock"></i>Timeliness</h4>
+                <p class="text-gray-600 mb-3">Ensure data is current and relevant:</p>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Regular update schedule</li>
+                    <li><i class="fas fa-check"></i>Clear versioning system</li>
+                    <li><i class="fas fa-check"></i>Timestamp for data collection</li>
+                    <li><i class="fas fa-check"></i>Deprecation notices for old data</li>
+                </ul>
+                <div class="quality-metric">
+                    <span class="quality-score">Target: 90%+</span>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: 90%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-equals"></i>Consistency</h4>
+                <p class="text-gray-600 mb-3">Maintain consistent data formats:</p>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Standardized naming conventions</li>
+                    <li><i class="fas fa-check"></i>Uniform data types</li>
+                    <li><i class="fas fa-check"></i>Consistent units of measurement</li>
+                    <li><i class="fas fa-check"></i>Harmonized categorical values</li>
+                </ul>
+                <div class="quality-metric">
+                    <span class="quality-score">Target: 95%+</span>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: 95%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Quality Assurance:</strong> All datasets undergo automated quality checks upon submission. Datasets not meeting minimum quality thresholds will be flagged for review before publication.
+            </div>
+        </div>
+    </div>
+
+    <!-- Documentation Section -->
+    <div id="documentation" class="standard-card">
+        <h3><i class="fas fa-book"></i>Documentation Standards</h3>
+        <p class="text-gray-700 mb-4">
+            Comprehensive documentation ensures your dataset can be understood and used effectively by other researchers and practitioners.
+        </p>
+        
+        <div class="standard-grid">
+            <div class="standard-item">
+                <h4><i class="fas fa-file-text"></i>Data Dictionary</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Column/variable descriptions</li>
+                    <li><i class="fas fa-check"></i>Data types and formats</li>
+                    <li><i class="fas fa-check"></i>Valid ranges and constraints</li>
+                    <li><i class="fas fa-check"></i>Relationships between variables</li>
+                    <li><i class="fas fa-check"></i>Coding schemes for categorical data</li>
+                </ul>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-clipboard-list"></i>Methodology Document</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Research objectives and questions</li>
+                    <li><i class="fas fa-check"></i>Sampling methodology</li>
+                    <li><i class="fas fa-check"></i>Data collection procedures</li>
+                    <li><i class="fas fa-check"></i>Quality control measures</li>
+                    <li><i class="fas fa-check"></i>Known limitations and biases</li>
+                </ul>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-code"></i>Technical Documentation</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Processing scripts and code</li>
+                    <li><i class="fas fa-check"></i>Software versions and dependencies</li>
+                    <li><i class="fas fa-check"></i>Hardware specifications</li>
+                    <li><i class="fas fa-check"></i>Computational environment details</li>
+                    <li><i class="fas fa-check"></i>Reproducibility instructions</li>
+                </ul>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-users"></i>Usage Guidelines</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Intended use cases</li>
+                    <li><i class="fas fa-check"></i>Appropriate analysis methods</li>
+                    <li><i class="fas fa-check"></i>Citation requirements</li>
+                    <li><i class="fas fa-check"></i>Contact information for questions</li>
+                    <li><i class="fas fa-check"></i>Update and maintenance schedule</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="documentation-example">
+            <h5><i class="fas fa-lightbulb"></i>Example Data Dictionary Entry</h5>
+            <div class="code-block">
+<span class="comment">// Variable: household_income</span>
+{
+  <span class="key">"name"</span>: <span class="string">"household_income"</span>,
+  <span class="key">"description"</span>: <span class="string">"Monthly household income in Kenyan Shillings"</span>,
+  <span class="key">"type"</span>: <span class="string">"numeric"</span>,
+  <span class="key">"format"</span>: <span class="string">"integer"</span>,
+  <span class="key">"unit"</span>: <span class="string">"KES"</span>,
+  <span class="key">"range"</span>: {
+    <span class="key">"min"</span>: <span class="number">0</span>,
+    <span class="key">"max"</span>: <span class="number">500000</span>
+  },
+  <span class="key">"missing_values"</span>: <span class="string">"-999"</span>,
+  <span class="key">"notes"</span>: <span class="string">"Self-reported income; may include informal sources"</span>
+}
+            </div>
+        </div>
+    </div>
+
+    <!-- Ethics Section -->
+    <div id="ethics" class="standard-card">
+        <h3><i class="fas fa-shield-alt"></i>Ethics and Privacy Standards</h3>
+        <p class="text-gray-700 mb-4">
+            Ethical data sharing is fundamental to AfriData Commons. All datasets must comply with ethical guidelines and privacy regulations.
+        </p>
+        
+        <div class="ethics-principle">
+            <h5><i class="fas fa-user-shield"></i>Privacy Protection</h5>
+            <p class="text-gray-600">
+                Personal and sensitive data must be properly anonymized or aggregated. Direct identifiers should be removed, and indirect identifiers should be assessed for re-identification risks.
+            </p>
+        </div>
+        
+        <div class="ethics-principle">
+            <h5><i class="fas fa-handshake"></i>Informed Consent</h5>
+            <p class="text-gray-600">
+                Data subjects must have provided informed consent for data collection and sharing. If consent was not explicitly obtained for public sharing, data must be sufficiently anonymized.
+            </p>
+        </div>
+        
+        <div class="ethics-principle">
+            <h5><i class="fas fa-balance-scale"></i>Fairness and Non-discrimination</h5>
+            <p class="text-gray-600">
+                Datasets should not perpetuate or amplify existing biases. Consider the potential for discriminatory use and provide appropriate warnings or safeguards.
+            </p>
+        </div>
+        
+        <div class="ethics-principle">
+            <h5><i class="fas fa-globe"></i>Cultural Sensitivity</h5>
+            <p class="text-gray-600">
+                Respect cultural contexts and sensitivities. Engage with local communities and stakeholders when appropriate, especially for data about indigenous or marginalized populations.
+            </p>
+        </div>
+
+        <div class="standard-grid">
+            <div class="standard-item">
+                <h4><i class="fas fa-eye-slash"></i>Anonymization Requirements</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Remove direct identifiers (names, IDs, addresses)</li>
+                    <li><i class="fas fa-check"></i>Assess quasi-identifiers (age, location, profession)</li>
+                    <li><i class="fas fa-check"></i>Apply k-anonymity (k≥5) for sensitive data</li>
+                    <li><i class="fas fa-check"></i>Use differential privacy for high-risk datasets</li>
+                    <li><i class="fas fa-check"></i>Document anonymization methods</li>
+                </ul>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-clipboard-check"></i>Ethical Review</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i>Institutional Review Board (IRB) approval</li>
+                    <li><i class="fas fa-check"></i>Ethics committee review documentation</li>
+                    <li><i class="fas fa-check"></i>Data sharing agreements</li>
+                    <li><i class="fas fa-check"></i>Consent forms and protocols</li>
+                    <li><i class="fas fa-check"></i>Risk assessment documentation</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Ethics Review Required:</strong> All datasets containing human subjects data must undergo ethics review before publication. Contact our ethics committee if you're unsure about requirements.
+            </div>
+        </div>
+    </div>
+
+    <!-- Submission Section -->
+    <div id="submission" class="standard-card">
+        <h3><i class="fas fa-upload"></i>Submission Process</h3>
+        <p class="text-gray-700 mb-4">
+            Follow these steps to ensure your dataset meets our standards and is successfully published on AfriData Commons.
+        </p>
+        
+        <div class="submission-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h5>Prepare Your Dataset</h5>
+                <p class="text-gray-600">
+                    Ensure your data is in a supported format, properly structured, and cleaned. Remove any sensitive information and create comprehensive documentation.
+                </p>
+            </div>
+        </div>
+        
+        <div class="submission-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h5>Complete Metadata</h5>
+                <p class="text-gray-600">
+                    Fill out all required metadata fields using our online form. Provide detailed descriptions, geographic coverage, and methodology information.
+                </p>
+            </div>
+        </div>
+        
+        <div class="submission-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h5>Upload Files</h5>
+                <p class="text-gray-600">
+                    Upload your dataset files, documentation, and any supplementary materials. Ensure file sizes are within limits and formats are supported.
+                </p>
+            </div>
+        </div>
+        
+        <div class="submission-step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h5>Quality Check</h5>
+                <p class="text-gray-600">
+                    Our automated system will run quality checks on your dataset. Review any flagged issues and make necessary corrections.
+                </p>
+            </div>
+        </div>
+        
+        <div class="submission-step">
+            <div class="step-number">5</div>
+            <div class="step-content">
+                <h5>Peer Review</h5>
+                <p class="text-gray-600">
+                    Your dataset will undergo peer review by domain experts. This typically takes 2-4 weeks depending on complexity and reviewer availability.
+                </p>
+            </div>
+        </div>
+        
+        <div class="submission-step">
+            <div class="step-number">6</div>
+            <div class="step-content">
+                <h5>Publication</h5>
+                <p class="text-gray-600">
+                    Once approved, your dataset will be published with a DOI and made available to the research community. You'll receive a notification with the publication details.
+                </p>
+            </div>
+        </div>
+
+        <div class="alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Need Help?</strong> Our data curation team is available to assist with the submission process. Contact us at <a href="mailto:data@afridata.org" class="text-blue-600">data@afridata.org</a> for guidance.
+            </div>
+        </div>
+        
+        <div class="text-center mt-6">
+            <a href="/submit" class="btn-primary">
+                <i class="fas fa-upload"></i>
+                Submit Your Dataset
+            </a>
+        </div>
+    </div>
+
+    <!-- Additional Resources -->
+    <div class="standard-card">
+        <h3><i class="fas fa-book-open"></i>Additional Resources</h3>
+        <p class="text-gray-700 mb-4">
+            Explore these resources to learn more about data standards and best practices for African research contexts.
+        </p>
+        
+        <div class="standard-grid">
+            <div class="standard-item">
+                <h4><i class="fas fa-download"></i>Templates and Tools</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i><a href="/templates/metadata-template.json" class="text-blue-600">Metadata Template (JSON)</a></li>
+                    <li><i class="fas fa-check"></i><a href="/templates/data-dictionary.xlsx" class="text-blue-600">Data Dictionary Template</a></li>
+                    <li><i class="fas fa-check"></i><a href="/tools/quality-checker" class="text-blue-600">Data Quality Checker</a></li>
+                    <li><i class="fas fa-check"></i><a href="/tools/anonymization-guide" class="text-blue-600">Anonymization Guide</a></li>
+                </ul>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-graduation-cap"></i>Training Materials</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i><a href="/training/data-management" class="text-blue-600">Data Management Course</a></li>
+                    <li><i class="fas fa-check"></i><a href="/training/ethics-workshop" class="text-blue-600">Research Ethics Workshop</a></li>
+                    <li><i class="fas fa-check"></i><a href="/training/metadata-best-practices" class="text-blue-600">Metadata Best Practices</a></li>
+                    <li><i class="fas fa-check"></i><a href="/training/open-science" class="text-blue-600">Open Science Principles</a></li>
+                </ul>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-external-link-alt"></i>External Standards</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i><a href="https://www.go-fair.org/fair-principles/" class="text-blue-600" target="_blank">FAIR Data Principles</a></li>
+                    <li><i class="fas fa-check"></i><a href="https://www.dublincore.org/" class="text-blue-600" target="_blank">Dublin Core Metadata</a></li>
+                    <li><i class="fas fa-check"></i><a href="https://www.iso.org/standard/53798.html" class="text-blue-600" target="_blank">ISO 19115 Geographic Information</a></li>
+                    <li><i class="fas fa-check"></i><a href="https://www.cessda.eu/DMGuide" class="text-blue-600" target="_blank">CESSDA Data Management Guide</a></li>
+                </ul>
+            </div>
+            
+            <div class="standard-item">
+                <h4><i class="fas fa-question-circle"></i>Support</h4>
+                <ul class="checklist">
+                    <li><i class="fas fa-check"></i><a href="/faq" class="text-blue-600">Frequently Asked Questions</a></li>
+                    <li><i class="fas fa-check"></i><a href="/community/forum" class="text-blue-600">Community Forum</a></li>
+                    <li><i class="fas fa-check"></i><a href="/support/tickets" class="text-blue-600">Technical Support</a></li>
+                    <li><i class="fas fa-check"></i><a href="/webinars" class="text-blue-600">Monthly Webinars</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add smooth scrolling for navigation -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Navigation functionality
+    const navPills = document.querySelectorAll('.nav-pill');
+    
+    navPills.forEach(pill => {
+        pill.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all pills
+            navPills.forEach(p => p.classList.remove('active'));
+            
+            // Add active class to clicked pill
+            this.classList.add('active');
+            
+            // Scroll to target section
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Update active navigation based on scroll position
+    window.addEventListener('scroll', function() {
+        const sections = document.querySelectorAll('.standard-card');
+        let current = '';
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            
+            if (window.pageYOffset >= sectionTop - 200) {
+                current = section.getAttribute('id');
+            }
+        });
+        
+        navPills.forEach(pill => {
+            pill.classList.remove('active');
+            if (pill.getAttribute('href') === '#' + current) {
+                pill.classList.add('active');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

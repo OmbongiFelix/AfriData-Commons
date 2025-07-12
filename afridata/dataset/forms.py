@@ -37,10 +37,10 @@ class DatasetUploadForm(forms.ModelForm):
                 raise forms.ValidationError('File size cannot exceed 10MB')
             
             # Check file extension
-            allowed_extensions = ['.csv', '.xlsx', '.xls']
+            allowed_extensions = ['.csv', '.xlsx', '.xls', '.pdf', '.txt', '.json', '.xml', '.zip', '.yaml', '.yml', '.parquet']
             file_extension = file.name.lower().split('.')[-1]
             if f'.{file_extension}' not in allowed_extensions:
-                raise forms.ValidationError('Only CSV and Excel files are allowed')
-        
+                raise forms.ValidationError('Only CSV, Excel, PDF, TXT, JSON, XML, ZIP, YAML, and Parquet files are allowed')
+
         return file
 

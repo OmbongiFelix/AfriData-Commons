@@ -166,12 +166,40 @@
                 <h4 class="font-semibold mb-4 text-gray-800">📄 File Format</h4>
                 <div class="space-y-2">
                     <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" onchange="filterByFormat('csv')" class="text-blue-600"> 
+                        <input type="checkbox" onchange="filterByFormat('csv')" class="text-blue-600">
                         <span>CSV ({{ format_counts.csv|default:0 }})</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" onchange="filterByFormat('excel')" class="text-blue-600"> 
+                        <input type="checkbox" onchange="filterByFormat('excel')" class="text-blue-600">
                         <span>Excel ({{ format_counts.excel|default:0 }})</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" onchange="filterByFormat('pdf')" class="text-blue-600">
+                        <span>PDF ({{ format_counts.pdf|default:0 }})</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" onchange="filterByFormat('txt')" class="text-blue-600">
+                        <span>Text ({{ format_counts.txt|default:0 }})</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" onchange="filterByFormat('json')" class="text-blue-600">
+                        <span>JSON ({{ format_counts.json|default:0 }})</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" onchange="filterByFormat('xml')" class="text-blue-600">
+                        <span>XML ({{ format_counts.xml|default:0 }})</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" onchange="filterByFormat('zip')" class="text-blue-600">
+                        <span>ZIP Archive ({{ format_counts.zip|default:0 }})</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" onchange="filterByFormat('yaml')" class="text-blue-600">
+                        <span>YAML ({{ format_counts.yaml|default:0 }})</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" onchange="filterByFormat('parquet')" class="text-blue-600">
+                        <span>Parquet ({{ format_counts.parquet|default:0 }})</span>
                     </label>
                 </div>
             </div>
@@ -303,6 +331,14 @@
                         <option value="">Select dataset type</option>
                         <option value="csv">CSV</option>
                         <option value="excel">Excel</option>
+                        <option value="pdf">PDF</option>
+                        <option value="text">Text</option>
+                        <option value="json">JSON</option>
+                        <option value="xml">XML</option>
+                        <option value="zip">ZIP</option>
+                        <option value="yaml">YAML</option>
+                        <option value="parquet">Parquet</option>
+
                     </select>
                     <div id="dataset_type-error" class="text-red-600 text-sm mt-1 hidden"></div>
                 </div>
@@ -313,7 +349,7 @@
                     </label>
                     <input type="file" id="file" name="file" required accept=".csv,.xlsx,.xls"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-sm text-gray-500 mt-1">Supported formats: CSV, Excel (.xlsx, .xls). Max size: 10MB</p>
+                    <p class="text-sm text-gray-500 mt-1">Supported formats: CSV, Excel, PDF, TXT, JSON, XML, ZIP, YAML, and Parquet.Max size: 10MB</p>
                     <div id="file-error" class="text-red-600 text-sm mt-1 hidden"></div>
                 </div>
 
@@ -508,7 +544,7 @@
             try {
                 const formData = new FormData(this);
                 
-                const response = await fetch('{% url "upload_dataset_ajax" %}', {
+                const response = await fetch('{% url "upload_dataset" %}', {
                     method: 'POST',
                     body: formData,
                     headers: {

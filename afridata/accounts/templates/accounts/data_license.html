@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Data License - AfriData{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'accounts/css/data_license.css' %}">
+{% endblock %}
+
+{% block header_content %}
+<div class="mt-8 text-center">
+    <h1 class="text-4xl font-bold mb-2">Data License</h1>
+    <p class="text-xl opacity-90">Understanding your rights and responsibilities with AfriData datasets</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="license-container">
+    <div class="license-card">
+        <div class="license-header">
+            <div class="license-icon">
+                <i class="fas fa-certificate"></i>
+            </div>
+            <div class="license-type">Open Data License v1.0</div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">AfriData Commons Data License</h2>
+            <p class="text-gray-600">Promoting open access to African datasets while ensuring ethical use and proper attribution</p>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h4><i class="fas fa-list mr-2"></i>Table of Contents</h4>
+            <ul>
+                <li><a href="#overview">1. License Overview</a></li>
+                <li><a href="#permissions">2. Permissions</a></li>
+                <li><a href="#requirements">3. Requirements</a></li>
+                <li><a href="#restrictions">4. Restrictions</a></li>
+                <li><a href="#attribution">5. Attribution Guidelines</a></li>
+                <li><a href="#commercial">6. Commercial Use</a></li>
+                <li><a href="#liability">7. Liability and Warranties</a></li>
+                <li><a href="#termination">8. Termination</a></li>
+            </ul>
+        </div>
+
+        <!-- License Overview -->
+        <div class="license-section" id="overview">
+            <h3><i class="fas fa-info-circle"></i>License Overview</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+                This license governs the use of datasets available through AfriData Commons. By downloading, accessing, or using any dataset from our platform, you agree to be bound by the terms and conditions outlined in this license.
+            </p>
+            <div class="success-box">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <strong>Our Mission:</strong> To democratize access to African data while ensuring responsible use that benefits African communities and promotes ethical data science practices.
+                </div>
+            </div>
+        </div>
+
+        <!-- Permissions -->
+        <div class="license-section" id="permissions">
+            <h3><i class="fas fa-check"></i>Permissions</h3>
+            <p class="text-gray-700 mb-4">Under this license, you are granted the following permissions:</p>
+            <ul class="license-list">
+                <li>
+                    <i class="fas fa-download"></i>
+                    <div>
+                        <strong>Use:</strong> Download, access, and use datasets for research, analysis, and educational purposes.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-share"></i>
+                    <div>
+                        <strong>Share:</strong> Distribute and share datasets with proper attribution and under the same license terms.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-edit"></i>
+                    <div>
+                        <strong>Modify:</strong> Transform, adapt, and build upon datasets for your specific use cases.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-chart-bar"></i>
+                    <div>
+                        <strong>Analyze:</strong> Perform statistical analysis, machine learning, and data visualization.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-graduation-cap"></i>
+                    <div>
+                        <strong>Academic Use:</strong> Use datasets in academic research, publications, and educational materials.
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Requirements -->
+        <div class="license-section" id="requirements">
+            <h3><i class="fas fa-clipboard-check"></i>Requirements</h3>
+            <p class="text-gray-700 mb-4">When using datasets from AfriData Commons, you must:</p>
+            <ul class="license-list">
+                <li>
+                    <i class="fas fa-quote-left"></i>
+                    <div>
+                        <strong>Attribution:</strong> Provide clear attribution to the original dataset creator and AfriData Commons.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-link"></i>
+                    <div>
+                        <strong>Source Citation:</strong> Include a link to the original dataset source on AfriData Commons.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-balance-scale"></i>
+                    <div>
+                        <strong>License Preservation:</strong> Maintain license information when redistributing datasets.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-heart"></i>
+                    <div>
+                        <strong>Ethical Use:</strong> Use datasets in ways that respect African communities and promote positive outcomes.
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Restrictions -->
+        <div class="license-section" id="restrictions">
+            <h3><i class="fas fa-ban"></i>Restrictions</h3>
+            <p class="text-gray-700 mb-4">The following activities are prohibited:</p>
+            <ul class="license-list">
+                <li>
+                    <i class="fas fa-user-secret"></i>
+                    <div>
+                        <strong>Re-identification:</strong> Attempting to identify individuals from anonymized datasets.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Harmful Use:</strong> Using datasets for discriminatory, harmful, or illegal purposes.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-copyright"></i>
+                    <div>
+                        <strong>False Claims:</strong> Claiming ownership of datasets or misrepresenting their origin.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-shield-alt"></i>
+                    <div>
+                        <strong>Security Violations:</strong> Using datasets to compromise security or privacy of individuals or organizations.
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Attribution Guidelines -->
+        <div class="license-section" id="attribution">
+            <h3><i class="fas fa-tag"></i>Attribution Guidelines</h3>
+            <p class="text-gray-700 mb-4">Proper attribution should include the following elements:</p>
+            <div class="license-grid">
+                <div class="license-card-small">
+                    <h4><i class="fas fa-user"></i>Creator Attribution</h4>
+                    <p class="text-gray-600">Credit the original dataset creator(s) by name and affiliation.</p>
+                    <div class="mt-3 p-3 bg-gray-50 rounded text-sm font-mono">
+                        "Dataset created by Dr. Jane Doe, University of Nairobi"
+                    </div>
+                </div>
+                <div class="license-card-small">
+                    <h4><i class="fas fa-database"></i>Dataset Title</h4>
+                    <p class="text-gray-600">Include the full title of the dataset as published on AfriData Commons.</p>
+                    <div class="mt-3 p-3 bg-gray-50 rounded text-sm font-mono">
+                        "Kenya Agricultural Survey 2024"
+                    </div>
+                </div>
+                <div class="license-card-small">
+                    <h4><i class="fas fa-calendar"></i>Access Date</h4>
+                    <p class="text-gray-600">Specify when you accessed or downloaded the dataset.</p>
+                    <div class="mt-3 p-3 bg-gray-50 rounded text-sm font-mono">
+                        "Accessed: January 15, 2025"
+                    </div>
+                </div>
+                <div class="license-card-small">
+                    <h4><i class="fas fa-globe"></i>Platform Credit</h4>
+                    <p class="text-gray-600">Acknowledge AfriData Commons as the platform source.</p>
+                    <div class="mt-3 p-3 bg-gray-50 rounded text-sm font-mono">
+                        "via AfriData Commons (afridata.org)"
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert-box">
+                <i class="fas fa-lightbulb"></i>
+                <div>
+                    <strong>Example Citation:</strong> "Kenya Agricultural Survey 2024" by Dr. Jane Doe, University of Nairobi. Accessed January 15, 2025, via AfriData Commons (afridata.org). Licensed under AfriData Commons Open Data License v1.0.
+                </div>
+            </div>
+        </div>
+
+        <!-- Commercial Use -->
+        <div class="license-section" id="commercial">
+            <h3><i class="fas fa-building"></i>Commercial Use</h3>
+            <p class="text-gray-700 mb-4">
+                Commercial use of datasets is generally permitted under this license, subject to the following conditions:
+            </p>
+            <ul class="license-list">
+                <li>
+                    <i class="fas fa-handshake"></i>
+                    <div>
+                        <strong>Ethical Standards:</strong> Commercial use must align with ethical data practices and benefit African communities.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-share-alt"></i>
+                    <div>
+                        <strong>Derivative Works:</strong> If you create derivative works, consider sharing insights back with the community.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-dollar-sign"></i>
+                    <div>
+                        <strong>Revenue Sharing:</strong> For significant commercial ventures, consider contributing back to AfriData Commons.
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Liability and Warranties -->
+        <div class="license-section" id="liability">
+            <h3><i class="fas fa-shield-alt"></i>Liability and Warranties</h3>
+            <p class="text-gray-700 mb-4">
+                Datasets are provided "as is" without warranties of any kind. AfriData Commons and dataset creators:
+            </p>
+            <ul class="license-list">
+                <li>
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div>
+                        <strong>No Warranties:</strong> Make no representations about the accuracy, completeness, or reliability of datasets.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-gavel"></i>
+                    <div>
+                        <strong>Limited Liability:</strong> Are not liable for any damages arising from the use of datasets.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-user-check"></i>
+                    <div>
+                        <strong>User Responsibility:</strong> Users are responsible for validating data quality and suitability for their use cases.
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Termination -->
+        <div class="license-section" id="termination">
+            <h3><i class="fas fa-times-circle"></i>Termination</h3>
+            <p class="text-gray-700 mb-4">
+                This license may be terminated if you:
+            </p>
+            <ul class="license-list">
+                <li>
+                    <i class="fas fa-ban"></i>
+                    <div>
+                        <strong>Violate Terms:</strong> Fail to comply with any terms of this license.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Harmful Use:</strong> Use datasets for harmful, illegal, or unethical purposes.
+                    </div>
+                </li>
+                <li>
+                    <i class="fas fa-copyright"></i>
+                    <div>
+                        <strong>Attribution Failure:</strong> Fail to provide proper attribution or violate intellectual property rights.
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Version History -->
+        <div class="license-section" id="version-history">
+            <h3><i class="fas fa-history"></i>Version History</h3>
+            <p class="text-gray-700 mb-4">
+                This license may be updated from time to time. Here's the version history:
+            </p>
+            <ul class="license-list">
+                <li>
+                    <i class="fas fa-calendar-alt"></i>
+                    <div>
+                        <strong>Version 1.0:</strong> Initial release of the AfriData Commons Open Data License (January 2025).
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="license-section" id="contact">
+            <h3><i class="fas fa-envelope"></i>Contact Information</h3>
+            <p class="text-gray-700 mb-4">
+                For questions about this license or specific use cases, please contact:
+            </p>
+            <div class="license-grid">
+                <div class="license-card-small">
+                    <h4><i class="fas fa-balance-scale"></i>Legal Team</h4>
+                    <p class="text-gray-600">For legal questions and license interpretation.</p>
+                    <div class="mt-3 p-3 bg-gray-50 rounded text-sm">
+                        <strong>Email:</strong> legal@afridata.org<br>
+                        <strong>Response Time:</strong> 3-5 business days
+                    </div>
+                </div>
+                <div class="license-card-small">
+                    <h4><i class="fas fa-headset"></i>General Support</h4>
+                    <p class="text-gray-600">For general questions about dataset usage.</p>
+                    <div class="mt-3 p-3 bg-gray-50 rounded text-sm">
+                        <strong>Email:</strong> support@afridata.org<br>
+                        <strong>Response Time:</strong> 1-2 business days
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download and Contact -->
+        <div class="text-center mt-8">
+            <a href="{% url 'download_license_pdf' %}" class="btn-download mr-4">
+                <i class="fas fa-download"></i>
+                Download License (PDF)
+            </a>
+            <a href="mailto:legal@afridata.org" class="btn-download">
+                <i class="fas fa-envelope"></i>
+                Contact Legal Team
+            </a>
+        </div>
+
+        <div class="alert-box mt-6">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Questions?</strong> If you have questions about this license or need clarification on specific use cases, please contact our legal team at legal@afridata.org.
+            </div>
+        </div>
+
+        <!-- Footer Notice -->
+        <div class="text-center mt-6 pt-6 border-t border-gray-200">
+            <p class="text-sm text-gray-500">
+                Last updated: January 2025 | Version 1.0<br>
+                © 2025 AfriData Commons. This license is based on open data principles and international best practices.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -89,6 +89,13 @@
                             <option value="">Select dataset type</option>
                             <option value="csv">CSV</option>
                             <option value="excel">Excel</option>
+                            <option value="pdf">PDF</option>
+                            <option value="txt">Text</option>
+                            <option value="json">JSON</option>
+                            <option value="xml">XML</option>
+                            <option value="zip">ZIP Archive</option>
+                            <option value="yaml">YAML</option>
+                            <option value="parquet">Parquet</option>
                         </select>
                         <div id="dataset_type-error" class="text-red-600 text-sm mt-1 hidden"></div>
                     </div>
@@ -102,14 +109,14 @@
                                    id="file" 
                                    name="file" 
                                    required 
-                                   accept=".csv,.xlsx,.xls" 
+                                   accept=".csv,.xlsx,.xls,.pdf,.txt,.json,.xml,.zip,.yaml,.yml,.parquet" 
                                    class="hidden">
                             <div id="file-upload-content">
                                 <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
                                 <p class="text-gray-600 mb-2">
                                     <span class="font-medium">Click to upload</span> or drag and drop
                                 </p>
-                                <p class="text-sm text-gray-500">CSV, Excel (.xlsx, .xls) up to 10MB</p>
+                                <p class="text-sm text-gray-500">CSV, Excel, PDF, TXT, JSON, XML, ZIP, YAML, Parquet up to 10MB</p>
                             </div>
                             <div id="file-selected" class="hidden">
                                 <i class="fas fa-file-alt text-4xl text-green-500 mb-4"></i>
@@ -227,17 +234,53 @@
         // Validate file
         function validateFile(file) {
             const maxSize = 10 * 1024 * 1024; // 10MB
-            const allowedTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+            const allowedExtensions = ['.csv', '.xlsx', '.xls', '.pdf', '.txt', '.json', '.xml', '.zip', '.yaml', '.yml', '.parquet'];
+            const allowedTypes = [
+                'text/csv', 
+                'application/vnd.ms-excel', 
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/pdf',
+                'text/plain',
+                'application/json',
+                'application/xml',
+                'text/xml',
+                'application/zip',
+                'application/x-zip-compressed',
+                'text/yaml',
+                'application/x-yaml',
+                'application/octet-stream' // For parquet files
+            ];
             
             if (file.size > maxSize) {
                 return 'File size must be less than 10MB';
             }
             
-            if (!allowedTypes.includes(file.type) && !file.name.match(/\.(csv|xlsx|xls)$/i)) {
-                return 'Please upload a CSV or Excel file';
+            // Check file extension
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            if (!allowedExtensions.includes(fileExtension)) {
+                return 'Please upload a valid file type: ' + allowedExtensions.join(', ');
             }
             
             return null;
+        }
+
+        // Get dataset type from file extension
+        function getDatasetTypeFromFile(fileName) {
+            const extension = fileName.toLowerCase().split('.').pop();
+            const typeMap = {
+                'csv': 'csv',
+                'xlsx': 'excel',
+                'xls': 'excel',
+                'pdf': 'pdf',
+                'txt': 'txt',
+                'json': 'json',
+                'xml': 'xml',
+                'zip': 'zip',
+                'yaml': 'yaml',
+                'yml': 'yaml',
+                'parquet': 'parquet'
+            };
+            return typeMap[extension] || '';
         }
 
         // Handle file selection
@@ -256,10 +299,9 @@
             
             // Auto-detect dataset type
             const datasetTypeSelect = document.getElementById('dataset_type');
-            if (file.name.toLowerCase().endsWith('.csv')) {
-                datasetTypeSelect.value = 'csv';
-            } else if (file.name.toLowerCase().match(/\.(xlsx|xls)$/)) {
-                datasetTypeSelect.value = 'excel';
+            const detectedType = getDatasetTypeFromFile(file.name);
+            if (detectedType) {
+                datasetTypeSelect.value = detectedType;
             }
         }
 
@@ -338,7 +380,7 @@
             submitBtn.classList.add('animate-pulse');
             progressContainer.classList.remove('hidden');
             
-            // Simulate progress (since we can't track real progress in regular form submission)
+            // Simulate progress
             let progress = 0;
             const progressInterval = setInterval(() => {
                 progress += Math.random() * 20;
@@ -350,7 +392,7 @@
             // Create FormData
             const formData = new FormData(form);
             
-            // Submit via fetch for better control
+            // Submit via fetch
             fetch(form.action || window.location.href, {
                 method: 'POST',
                 body: formData,
@@ -363,35 +405,21 @@
                 progressFill.style.width = '100%';
                 progressText.textContent = 'Processing...';
                 
-                if (response.ok) {
-                    return response.text();
-                } else {
-                    throw new Error('Upload failed');
-                }
+                // Parse JSON response
+                return response.json();
             })
             .then(data => {
-                // Try to parse as JSON (for AJAX responses)
-                try {
-                    const jsonData = JSON.parse(data);
-                    if (jsonData.success) {
-                        showMessage('success', jsonData.message || 'Dataset uploaded successfully!');
-                        setTimeout(() => {
-                            window.location.href = `/dataset/${jsonData.dataset_id}/`;
-                        }, 1500);
-                    } else {
-                        showFieldErrors(jsonData.errors || {});
-                        showMessage('error', jsonData.message || 'Please correct the errors below.');
+                if (data.success) {
+                    showMessage('success', data.message);
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 1500);
+                } else {
+                    // Handle form errors
+                    if (data.errors) {
+                        showFieldErrors(data.errors);
                     }
-                } catch (e) {
-                    // Handle regular form response (redirect or HTML)
-                    if (data.includes('successfully')) {
-                        showMessage('success', 'Dataset uploaded successfully!');
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                    } else {
-                        showMessage('error', 'Please check your input and try again.');
-                    }
+                    showMessage('error', data.message);
                 }
             })
             .catch(error => {
