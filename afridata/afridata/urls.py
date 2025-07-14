@@ -4,7 +4,8 @@ from schema_graph.views import Schema
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('home.urls')),
+    #path('', include('home.urls')),
+    path('', lambda request: HttpResponse("Homepage is working ✅")),
     path('api/', include('api.urls')),
     path('accounts/', include('accounts.urls')),
     path('dataset/', include('dataset.urls')),
