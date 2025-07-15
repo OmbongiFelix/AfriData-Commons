@@ -1,5 +1,6 @@
 import environ
 import os
+import dj_database_url
 
 #defining a custom user model instead of default auth.User
 AUTH_USER_MODEL = 'accounts.CustomUser'
@@ -94,20 +95,23 @@ WSGI_APPLICATION = 'afridata.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME':env('DB_NAME', default='afridata'),
-        'USER':env('DB_USER'),
-        'PASSWORD':env('DB_PASSWORD'),
-        'HOST':env('DB_HOST', default='localhost'),
-        'PORT':env('DB_PORT', default='3306'),
-        'OPTIONS':{
-            'charset':'utf8mb4',
-        },
+if os.environ.get('RENDER'):
+    # Production database (Render)
+    DATABASES = {
+        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
     }
-}
-
+else:
+    # Local development database
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'afridata_local',  # your local db name
+            'USER': 'your_local_user',
+            'PASSWORD': 'your_local_password',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
