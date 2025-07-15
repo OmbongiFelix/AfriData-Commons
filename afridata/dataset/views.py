@@ -17,6 +17,9 @@ from .forms import DatasetUploadForm
 import json
 from django.http import JsonResponse
 from django.urls import reverse
+from django.contrib.auth import get_user_model
+
+User = get_user_model() 
 
 
 def dataset_detail(request, dataset_id):
@@ -298,6 +301,7 @@ def home(request):
     """Render authenticated user's home page - Dynamic home page view with real data"""
     
     # Get total statistics
+    total_researchers = User.objects.count()
     total_datasets = Dataset.objects.count()
     total_downloads = Dataset.objects.aggregate(Sum('downloads'))['downloads__sum'] or 0
     total_views = Dataset.objects.aggregate(Sum('views'))['views__sum'] or 0
@@ -329,12 +333,19 @@ def home(request):
         popular_terms = [category[0].title() for category in top_categories[:6]]
     
     # Get featured datasets (highest rated or most downloaded)
-    featured_datasets = Dataset.objects.select_related('author').order_by('-rating', '-downloads')[:3]
+    featured_datasets = Dataset.objects.select_related('author').order_by('-rating', '-downloads')[:4]
     
     # Get file format counts
     format_counts = {
         'csv': Dataset.objects.filter(dataset_type='csv').count(),
         'excel': Dataset.objects.filter(dataset_type='excel').count(),
+        'pdf': Dataset.objects.filter(dataset_type='pdf').count(),
+        'txt': Dataset.objects.filter(dataset_type='txt').count(),
+        'json': Dataset.objects.filter(dataset_type='json').count(),
+        'yaml': Dataset.objects.filter(dataset_type='yaml').count(),
+        'xml': Dataset.objects.filter(dataset_type='xml').count(),
+        'zip': Dataset.objects.filter(dataset_type='zip').count(),
+        'parquet': Dataset.objects.filter(dataset_type='parquet').count(),
     }
     
     context = {
@@ -342,7 +353,7 @@ def home(request):
         'total_downloads': total_downloads,
         'total_views': total_views,
         'total_countries': 54,  # Static for now
-        'total_researchers': total_views // 50,  # Rough estimate
+        'total_researchers': total_researchers, 
         'trending_datasets': trending_datasets,
         'top_categories': top_categories,
         'popular_terms': popular_terms,
