@@ -1,0 +1,7 @@
+build commands on my render web service settings
+
+pip install -r ../requirements.txt && python manage.py migrate && python manage.py collectstatic --no-input
+doesn't work as the build fails but 
+
+pip install -r ../requirements.txt && python manage.py migrate
+works but there is no css for my web app.
