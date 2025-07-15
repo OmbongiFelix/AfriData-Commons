@@ -26,7 +26,9 @@ if os.environ.get('GITHUB_ACTIONS') != 'true':
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=True)
+DEBUG = env.bool('DEBUG', default=False)
+
+ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1', 'https://afridata-commons-1.onrender.com/']
 
 ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1', 'https://afridata-commons-1.onrender.com/']
 
@@ -104,12 +106,15 @@ else:
     # Local development database
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'afridata_local',  # your local db name
-            'USER': 'your_local_user',
-            'PASSWORD': 'your_local_password',
-            'HOST': 'localhost',
-            'PORT': '5432',
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME':env('DB_NAME', default='afridata'),  # your local db name
+            'USER':env('DB_USER'),
+            'PASSWORD':env('DB_PASSWORD'),
+            'HOST':env('DB_HOST', default='localhost'),  # your local db host
+            'PORT':env('DB_PORT', default=3306),
+            'OPTIONS':{
+                'charset':'utf8mb4',
+                },
         }
     }
 
