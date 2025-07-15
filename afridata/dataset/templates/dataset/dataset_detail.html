@@ -1,16 +1,16 @@
+{% extends 'base.html' %}
 {% load static %}
 {% load dict_extras %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% if dataset %}{{ dataset.title }}{% else %}Dataset Page{% endif %}</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+{% block title %}
+  {% if dataset %}{{ dataset.title }}{% else %}Dataset Page{% endif %}
+{% endblock %}
+
+{% block extra_css %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-gray-100">
+{% endblock %}
+
+{% block content %}
   <div class="max-w-6xl mx-auto p-6">
     <!-- Dataset Header -->
     <div class="bg-white p-6 rounded shadow mb-6">
@@ -167,7 +167,9 @@
       {% endif %}
     </div>
   </div>
+{% endblock %}
 
+{% block extra_js %}
   <script>
     {% if graph_data %}
     // Initialize chart with dynamic data
@@ -195,5 +197,5 @@
     console.log('Dataset page loaded - no chart data available');
     {% endif %}
   </script>
-</body>
-</html>
+{% endblock %}
+
