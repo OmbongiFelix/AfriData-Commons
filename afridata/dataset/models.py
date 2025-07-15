@@ -8,12 +8,19 @@ class Dataset(models.Model):
     DATASET_TYPES = [
         ('csv', 'CSV'),
         ('excel', 'Excel'),
+        ('pdf', 'PDF'),
+        ('txt', 'Text'),
+        ('json', 'JSON'),
+        ('xml', 'XML'),
+        ('zip', 'ZIP Archive'),
+        ('yaml', 'YAML'),
+        ('parquet', 'Parquet'),
     ]
     
     title = models.CharField(max_length=255)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='authored_datasets')
     file = models.FileField(upload_to='datasets/')
-    dataset_type = models.CharField(max_length=10, choices=DATASET_TYPES)
+    dataset_type = models.CharField(max_length=20, choices=DATASET_TYPES)  # Increased max_length from 10 to 20
     bio = models.TextField()
     topics = models.CharField(max_length=500, help_text="Comma-separated topics")
     rating = models.FloatField(default=0.0, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)])
