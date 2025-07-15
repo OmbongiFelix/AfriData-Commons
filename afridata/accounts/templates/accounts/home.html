@@ -238,7 +238,9 @@
                         <option value="recent">Recently Added</option>
                         <option value="rating">Highest Rated</option>
                     </select>
-                    <button onclick="showUploadForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">+ Upload Dataset</button>
+                    <button onclick="redirectToUpload()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-upload mr-2"></i>Upload Dataset
+                    </button>
                 </div>
             </div>
             
@@ -278,7 +280,9 @@
                     <div class="text-6xl mb-4">📊</div>
                     <h3 class="text-xl font-semibold text-gray-800 mb-2">No Featured Datasets Available</h3>
                     <p class="text-gray-600 mb-4">Be the first to upload a dataset and get featured!</p>
-                    <button onclick="showUploadForm()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">Upload Your Dataset</button>
+                    <button onclick="redirectToUpload()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-upload mr-2"></i>Upload Your Dataset
+                    </button>
                 </div>
                 {% endfor %}
             </div>
@@ -293,101 +297,6 @@
         </div>
     </div>
 </section>
-
-<!-- Upload Modal -->
-<div id="uploadModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
-        <div class="p-6">
-            <!-- Modal Header -->
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">Upload New Dataset</h2>
-                <button onclick="hideUploadForm()" class="text-gray-400 hover:text-gray-600 text-2xl">
-                    ×
-                </button>
-            </div>
-
-            <!-- Success/Error Messages -->
-            <div id="uploadMessages" class="hidden mb-4"></div>
-
-            <!-- Upload Form -->
-            <form id="uploadForm" enctype="multipart/form-data" class="space-y-6">
-                {% csrf_token %}
-                <div>
-                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
-                        Dataset Title *
-                    </label>
-                    <input type="text" id="title" name="title" required 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Enter dataset title">
-                    <div id="title-error" class="text-red-600 text-sm mt-1 hidden"></div>
-                </div>
-
-                <div>
-                    <label for="dataset_type" class="block text-sm font-medium text-gray-700 mb-2">
-                        Dataset Type *
-                    </label>
-                    <select id="dataset_type" name="dataset_type" required 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select dataset type</option>
-                        <option value="csv">CSV</option>
-                        <option value="excel">Excel</option>
-                        <option value="pdf">PDF</option>
-                        <option value="text">Text</option>
-                        <option value="json">JSON</option>
-                        <option value="xml">XML</option>
-                        <option value="zip">ZIP</option>
-                        <option value="yaml">YAML</option>
-                        <option value="parquet">Parquet</option>
-
-                    </select>
-                    <div id="dataset_type-error" class="text-red-600 text-sm mt-1 hidden"></div>
-                </div>
-
-                <div>
-                    <label for="file" class="block text-sm font-medium text-gray-700 mb-2">
-                        Dataset File *
-                    </label>
-                    <input type="file" id="file" name="file" required accept=".csv,.xlsx,.xls"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-sm text-gray-500 mt-1">Supported formats: CSV, Excel, PDF, TXT, JSON, XML, ZIP, YAML, and Parquet.Max size: 10MB</p>
-                    <div id="file-error" class="text-red-600 text-sm mt-1 hidden"></div>
-                </div>
-
-                <div>
-                    <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">
-                        Description *
-                    </label>
-                    <textarea id="bio" name="bio" required rows="4"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="Describe your dataset..."></textarea>
-                    <div id="bio-error" class="text-red-600 text-sm mt-1 hidden"></div>
-                </div>
-
-                <div>
-                    <label for="topics" class="block text-sm font-medium text-gray-700 mb-2">
-                        Topics *
-                    </label>
-                    <input type="text" id="topics" name="topics" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="machine learning, data science, statistics">
-                    <p class="text-sm text-gray-500 mt-1">Separate topics with commas</p>
-                    <div id="topics-error" class="text-red-600 text-sm mt-1 hidden"></div>
-                </div>
-
-                <div class="flex justify-end space-x-4 pt-4">
-                    <button type="button" onclick="hideUploadForm()" 
-                            class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        Cancel
-                    </button>
-                    <button type="submit" id="submitBtn"
-                            class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                        Upload Dataset
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 {% endblock %}
 
@@ -440,6 +349,11 @@
         alert('Contact form coming soon!');
     }
 
+    // Redirect to upload page
+    function redirectToUpload() {
+        window.location.href = '{% url "upload_dataset" %}';
+    }
+
     // Add search functionality on Enter key press
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('searchInput');
@@ -462,136 +376,6 @@
             item.addEventListener('mouseleave', function() {
                 this.classList.remove('bg-gray-100', 'text-blue-600');
             });
-        });
-    });
-
-    // Get CSRF token for Django
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    function showUploadForm() {
-        document.getElementById('uploadModal').classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function hideUploadForm() {
-        document.getElementById('uploadModal').classList.add('hidden');
-        document.body.style.overflow = 'auto';
-        
-        document.getElementById('uploadForm').reset();
-        clearMessages();
-        clearErrors();
-    }
-
-    function showMessage(message, type = 'success') {
-        const messagesDiv = document.getElementById('uploadMessages');
-        messagesDiv.className = `mb-4 p-4 rounded-md ${type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`;
-        messagesDiv.textContent = message;
-        messagesDiv.classList.remove('hidden');
-    }
-
-    function clearMessages() {
-        document.getElementById('uploadMessages').classList.add('hidden');
-    }
-
-    function showFieldError(field, message) {
-        const errorDiv = document.getElementById(`${field}-error`);
-        errorDiv.textContent = message;
-        errorDiv.classList.remove('hidden');
-        
-        const input = document.getElementById(field);
-        input.classList.add('border-red-500');
-    }
-
-    function clearErrors() {
-        const errorDivs = document.querySelectorAll('[id$="-error"]');
-        errorDivs.forEach(div => {
-            div.classList.add('hidden');
-            div.textContent = '';
-        });
-        
-        const inputs = document.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            input.classList.remove('border-red-500');
-        });
-    }
-
-    // Initialize form handling when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            clearMessages();
-            clearErrors();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const originalText = submitBtn.textContent;
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
-            
-            try {
-                const formData = new FormData(this);
-                
-                const response = await fetch('{% url "upload_dataset" %}', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showMessage('Dataset uploaded successfully!', 'success');
-                    setTimeout(() => {
-                        hideUploadForm();
-                        window.location.reload(); // Refresh to show new dataset
-                    }, 2000);
-                } else {
-                    showMessage(data.message || 'Upload failed. Please try again.', 'error');
-                    
-                    if (data.errors) {
-                        for (const [field, errors] of Object.entries(data.errors)) {
-                            if (errors && errors.length > 0) {
-                                showFieldError(field, errors[0]);
-                            }
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Upload error:', error);
-                showMessage('An error occurred. Please try again.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-            }
-        });
-
-        // Close modal when clicking outside
-        document.getElementById('uploadModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                hideUploadForm();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !document.getElementById('uploadModal').classList.contains('hidden')) {
-                hideUploadForm();
-            }
         });
     });
 </script>
@@ -650,3 +434,4 @@
     }
 </style>
 {% endblock %}
+
