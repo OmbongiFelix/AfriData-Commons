@@ -139,34 +139,36 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<!-- Header Section -->
-<div class="search-section">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="flex justify-center">
-            <div class="w-full max-w-2xl text-center">
-                <h1 class="text-5xl font-bold mb-3">Community Forums</h1>
-                <p class="text-xl mb-6 opacity-90">Connect, discuss, and share knowledge with our community</p>
-                
-                <!-- Search Form -->
-                <form method="GET" action="{% url 'community:search' %}" class="mb-0">
-                    <div class="flex">
-                        <input type="text" 
-                               class="flex-1 px-4 py-3 text-lg rounded-l-lg border-0 focus:outline-none text-gray-900" 
-                               name="q" 
-                               placeholder="Search discussions..." 
-                               value="{% if request.GET.q %}{{ request.GET.q }}{% endif %}">
-                        <button class="bg-white text-gray-900 px-6 py-3 rounded-r-lg hover:bg-gray-100 transition-colors" type="submit">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
+{% block header_content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="text-center">
+    <h1 class="text-4xl md:text-5xl font-bold mb-4">Community Forums</h1>
+    <p class="text-xl text-blue-100 mb-2">Connect, discuss, and share knowledge with our community</p>
+    <!-- Search Form -->
+    <form method="GET" action="{% url 'community:search' %}" class="mb-0">
+        <div class="flex">
+            <input type="text" 
+            class="flex-1 px-4 py-3 text-lg rounded-l-lg border-0 focus:outline-none text-gray-900" 
+            name="q" 
+            placeholder="Search discussions..." 
+            value="{% if request.GET.q %}{{ request.GET.q }}{% endif %}">
+            <button class="bg-white text-gray-900 px-6 py-3 rounded-r-lg hover:bg-gray-100 transition-colors" type="submit">
+                <i class="fas fa-search"></i>
+            </button>
         </div>
-    </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block content %}
+
+<div>
+    
 </div>
 
-<div class="max-w-7xl mx-auto px-4">
+<div class="max-w-7xl mx-auto px-4" style="border-top: 20px solid #e5e7eb;">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Content -->
         <div class="lg:col-span-2">
