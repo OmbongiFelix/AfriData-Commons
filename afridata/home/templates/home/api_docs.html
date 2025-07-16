@@ -5,95 +5,22 @@
 
 {% block extra_css %}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet">
-    <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .code-block {
-            background: #1a1a1a;
-            border-radius: 8px;
-            padding: 1rem;
-            overflow-x: auto;
-        }
-        .animate-pulse-slow {
-            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1001;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            color: white;
-            opacity: 0;
-            transform: translateX(100%);
-            transition: all 0.3s ease;
-        }
-        .notification.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        .notification.success {
-            background-color: #10b981;
-        }
-        .notification.error {
-            background-color: #ef4444;
-        }
-        .nav-link.active {
-            background-color: #dbeafe;
-            color: #1d4ed8;
-        }
-        .lang-btn.active {
-            background-color: #2563eb;
-            color: white;
-        }
-        .example-block {
-            transition: opacity 0.3s ease;
-        }
-        .example-block.hidden {
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'home/css/api_docs.css' %}">
 {% endblock %}
 
-{% block content %}
-    <!-- API Header -->
-    <header class="gradient-bg shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-6">
-                <div class="flex items-center space-x-4">
-                    <i class="fas fa-database text-white text-2xl"></i>
-                    <h1 class="text-3xl font-bold text-white">AfriData API</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-white/80">Version 1.0</span>
-                    <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm animate-pulse-slow">
-                        <i class="fas fa-circle text-xs mr-1"></i>Live
-                    </span>
-                    <div id="authStatus" class="flex items-center space-x-2">
-                        <div id="authenticatedSection" class="hidden">
-                            <span id="userDisplayName" class="text-white mr-2"></span>
-                            <span class="bg-green-500/20 text-green-200 px-3 py-1 rounded-full text-sm">
-                                <i class="fas fa-check-circle text-xs mr-1"></i>Authenticated
-                            </span>
-                        </div>
-                        <div id="unauthenticatedSection" class="hidden">
-                            <span class="bg-red-500/20 text-red-200 px-3 py-1 rounded-full text-sm">
-                                <i class="fas fa-times-circle text-xs mr-1"></i>Not Authenticated
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
 
+{% block header_content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="text-center">
+    <h1 class="text-4xl md:text-5xl font-bold mb-4">API Documentation</h1>
+    <p class="text-xl text-blue-100 mb-2">Explore the API endpoints and their usage</p>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block content %}
+    <section></section>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <!-- Sidebar Navigation -->
@@ -464,48 +391,127 @@ fetch('https://afridata.com/api/v1/datasets/upload/', {
                         <i class="fas fa-cogs mr-3 text-red-600"></i>API Key Management
                     </h2>
                     
-                    <div id="authWarning" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm text-yellow-700">You must be logged in to generate and manage API keys. Please <a href="{% url 'login_signup' %}" class="text-yellow-800 underline">login</a> or <a href="{% url 'login_signup' %}" class="text-yellow-800 underline">register</a> first.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="apiKeySection" class="hidden">
-                        <div class="space-y-4">
-                            <!-- Current API Keys -->
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-800 mb-3">Your API Keys</h3>
-                                <div id="apiKeysList" class="space-y-3">
-                                    <!-- API keys will be loaded here -->
+                    <div class="space-y-6">
+                        <!-- Welcome Message -->
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-check-circle text-green-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-green-700">
+                                        Welcome! You can manage your API keys below. Generate new keys or revoke existing ones as needed.
+                                    </p>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Generate New Key -->
-                            <div>
-                                <button id="generateKeyBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                                    <i class="fas fa-plus mr-2"></i>Generate New API Key
-                                </button>
+                        <!-- Current API Keys -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Your API Keys</h3>
+                            <div class="space-y-3">
+                                <!-- Sample API Key 1 -->
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="flex items-center space-x-3">
+                                                <code class="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                                                    afridata_***************_xyz789
+                                                </code>
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Active
+                                                </span>
+                                            </div>
+                                            <div class="text-sm text-gray-500 mt-1">
+                                                Created: January 15, 2025 • Last used: 2 hours ago
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                                <i class="fas fa-copy mr-1"></i>Copy
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                <i class="fas fa-trash mr-1"></i>Revoke
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sample API Key 2 -->
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="flex items-center space-x-3">
+                                                <code class="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                                                    afridata_***************_abc123
+                                                </code>
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Active
+                                                </span>
+                                            </div>
+                                            <div class="text-sm text-gray-500 mt-1">
+                                                Created: December 28, 2024 • Last used: 1 day ago
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                                <i class="fas fa-copy mr-1"></i>Copy
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                <i class="fas fa-trash mr-1"></i>Revoke
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+
+                        <!-- Generate New Key -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Generate New API Key</h3>
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-600 mb-2">
+                                            Create a new API key for your applications. Each key can be revoked independently.
+                                        </p>
+                                        <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>You can have up to 10 active API keys at a time</span>
+                                        </div>
+                                    </div>
+                                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                                        <i class="fas fa-plus mr-2"></i>Generate New Key
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- API Key Usage Guidelines -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h4 class="text-sm font-semibold text-blue-900 mb-2">
+                                <i class="fas fa-lightbulb mr-2"></i>API Key Best Practices
+                            </h4>
+                            <ul class="text-sm text-gray-600">
+                                <li class="mb-1">Keep your API keys secret. Do not expose them in client-side code.</li>
+                                <li class="mb-1">Rotate your API keys regularly to minimize the impact of a compromised key.</li>
+                                <li class="mb-1">Use environment variables to store your API keys securely.</li>
+                                <li class="mb-1">Monitor your API key usage for any suspicious activity.</li>
+                            </ul>
                 </section>
 
-                <!-- Usage Statistics -->
+                    <!-- Usage Statistics -->
                 <section id="usage" class="bg-white rounded-lg shadow-sm p-6">
                     <h2 class="text-2xl font-semibold text-gray-900 mb-6">Usage Statistics</h2>
                     
                     <div id="usageStatsContainer">
-                        <div id="authRequiredUsage" class="text-center py-8">
+                        <!--<div id="authRequiredUsage" class="text-center py-8">
                             <i class="fas fa-lock text-gray-400 text-4xl mb-4"></i>
                             <p class="text-gray-600">Please authenticate to view your usage statistics.</p>
                         </div>
                         
-                        <div id="usageStats" class="hidden">
+                        <div id="usageStats" class="hidden"> -->
+                        <div id="usageStats" class=""></div>
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                                 <div class="bg-blue-50 p-4 rounded-lg">
                                     <h3 class="text-sm font-medium text-blue-900">Requests Today</h3>
@@ -531,10 +537,10 @@ fetch('https://afridata.com/api/v1/datasets/upload/', {
                         </div>
                     </div>
                 </section>
+                
             </div>
         </div>
     </div>
-
 
 
 {% block extra_js %}
@@ -542,3 +548,4 @@ fetch('https://afridata.com/api/v1/datasets/upload/', {
 {% endblock %}
 
 {% endblock %}
+
