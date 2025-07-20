@@ -4,11 +4,11 @@ from schema_graph.views import Schema
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('admin_dashboard/', include('admin_dashboard.urls')),
     path('', include('home.urls')),
     path('api/', include('api.urls')),
     path('accounts/', include('accounts.urls')),
     path('dataset/', include('dataset.urls')),
-    path('user/', include('user.urls')),
     path('community/', include('community.urls')),
 
     #url to schema diagram
