@@ -1,0 +1,371 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Community Management - Admin Dashboard{% endblock %}
+{% block page_title %}Community Management{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Community Management</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">{{ topics.count }}</h4>
+                <p class="text-muted mb-0">Topics</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info">{{ recent_threads.count }}</h4>
+                <p class="text-muted mb-0">Total Threads</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">{{ recent_posts.count }}</h4>
+                <p class="text-muted mb-0">Total Posts</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning">{{ active_users.count }}</h4>
+                <p class="text-muted mb-0">Active Users</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Topics Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">Forum Topics</h6>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createTopicModal">
+                    <i class="fas fa-plus"></i> Create Topic
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Topic</th>
+                                <th>Threads</th>
+                                <th>Posts</th>
+                                <th>Latest Activity</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for topic in topics %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong>{{ topic.name }}</strong>
+                                        {% if topic.description %}
+                                            <br><small class="text-muted">{{ topic.description|truncatewords:10 }}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ topic.thread_count }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ topic.post_count }}</span>
+                                </td>
+                                <td>
+                                    {% if topic.updated_at %}
+                                        {{ topic.updated_at|timesince }} ago
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" 
+                                                data-bs-toggle="dropdown">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#" onclick="editTopic({{ topic.id }})">Edit</a></li>
+                                            <li><a class="dropdown-item" href="#">View Threads</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#" 
+                                                   onclick="deleteTopic({{ topic.id }})">Delete</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No topics found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Section -->
+<div class="row">
+    <!-- Recent Threads -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Recent Threads</h6>
+            </div>
+            <div class="card-body">
+                {% if recent_threads %}
+                    <div class="list-group list-group-flush">
+                        {% for thread in recent_threads|slice:":10" %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ thread.title }}</h6>
+                                    <p class="mb-1 small">{{ thread.content|truncatewords:15 }}</p>
+                                    <small class="text-muted">
+                                        by <a href="{% url 'admin_dashboard:user_detail' thread.author.id %}" 
+                                              class="text-decoration-none">{{ thread.author.username }}</a>
+                                        in {{ thread.topic.name }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">{{ thread.created_at|timesince }} ago</small>
+                                    <br>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="viewThread({{ thread.id }})">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteThread({{ thread.id }})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No recent threads</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Posts -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Recent Posts</h6>
+            </div>
+            <div class="card-body">
+                {% if recent_posts %}
+                    <div class="list-group list-group-flush">
+                        {% for post in recent_posts|slice:":10" %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ post.thread.title }}</h6>
+                                    <p class="mb-1 small">{{ post.content|truncatewords:15 }}</p>
+                                    <small class="text-muted">
+                                        by <a href="{% url 'admin_dashboard:user_detail' post.author.id %}" 
+                                              class="text-decoration-none">{{ post.author.username }}</a>
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">{{ post.created_at|timesince }} ago</small>
+                                    <br>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="viewPost({{ post.id }})">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="deletePost({{ post.id }})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-comment fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No recent posts</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Most Active Users -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Most Active Users</h6>
+            </div>
+            <div class="card-body">
+                {% if active_users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Posts</th>
+                                    <th>Reputation</th>
+                                    <th>Last Activity</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in active_users|slice:":10" %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                                 style="width: 32px; height: 32px;">
+                                                <span class="text-white small fw-bold">
+                                                    {{ activity.user.username|first|upper }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                {{ activity.user.full_name|default:activity.user.username }}
+                                                <br><small class="text-muted">@{{ activity.user.username }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ activity.post_count|default:0 }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-warning">
+                                            <i class="fas fa-star"></i> {{ activity.reputation|default:0 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if activity.last_activity %}
+                                            {{ activity.last_activity|timesince }} ago
+                                        {% else %}
+                                            Never
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'admin_dashboard:user_detail' activity.user.id %}" 
+                                           class="btn btn-sm btn-outline-primary">View Profile</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No user activity found</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Topic Modal -->
+<div class="modal fade" id="createTopicModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Topic</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="#">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Topic Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_active" checked>
+                            <label class="form-check-label">Active</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Topic</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function editTopic(topicId) {
+    // Implement edit topic functionality
+    console.log('Edit topic:', topicId);
+}
+
+function deleteTopic(topicId) {
+    if (confirm('Are you sure you want to delete this topic? This will also delete all associated threads and posts.')) {
+        // Implement delete topic functionality
+        console.log('Delete topic:', topicId);
+    }
+}
+
+function viewThread(threadId) {
+    // Implement view thread functionality
+    console.log('View thread:', threadId);
+}
+
+function deleteThread(threadId) {
+    if (confirm('Are you sure you want to delete this thread?')) {
+        // Implement delete thread functionality
+        console.log('Delete thread:', threadId);
+    }
+}
+
+function viewPost(postId) {
+    // Implement view post functionality
+    console.log('View post:', postId);
+}
+
+function deletePost(postId) {
+    if (confirm('Are you sure you want to delete this post?')) {
+        // Implement delete post functionality
+        console.log('Delete post:', postId);
+    }
+}
+</script>
+{% endblock %}

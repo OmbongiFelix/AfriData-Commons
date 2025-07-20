@@ -1,0 +1,240 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Data Export - Admin Dashboard{% endblock %}
+{% block page_title %}Data Export{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Data Export</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Export Options -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Export Data</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">Export system data in CSV format for analysis or backup purposes.</p>
+                
+                <div class="row g-4">
+                    <!-- Users Export -->
+                    <div class="col-sm-6">
+                        <div class="card border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">Users Data</h5>
+                                <p class="card-text text-muted">
+                                    Export all user accounts including email, name, status, and registration date.
+                                </p>
+                                <a href="{% url 'admin_dashboard:export_data' %}?type=users" class="btn btn-primary">
+                                    <i class="fas fa-download me-2"></i>Export Users
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Datasets Export -->
+                    <div class="col-sm-6">
+                        <div class="card border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-database fa-3x text-success mb-3"></i>
+                                <h5 class="card-title">Datasets Data</h5>
+                                <p class="card-text text-muted">
+                                    Export all datasets with title, author, type, rating, and download counts.
+                                </p>
+                                <a href="{% url 'admin_dashboard:export_data' %}?type=datasets" class="btn btn-success">
+                                    <i class="fas fa-download me-2"></i>Export Datasets
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- API Usage Export -->
+                    <div class="col-sm-6">
+                        <div class="card border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-code fa-3x text-info mb-3"></i>
+                                <h5 class="card-title">API Usage</h5>
+                                <p class="card-text text-muted">
+                                    Export API usage statistics and endpoint performance data.
+                                </p>
+                                <button class="btn btn-info" onclick="exportAPIUsage()">
+                                    <i class="fas fa-download me-2"></i>Export API Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- System Logs Export -->
+                    <div class="col-sm-6">
+                        <div class="card border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-list-alt fa-3x text-warning mb-3"></i>
+                                <h5 class="card-title">System Logs</h5>
+                                <p class="card-text text-muted">
+                                    Export admin activity logs and system events for audit purposes.
+                                </p>
+                                <button class="btn btn-warning" onclick="exportSystemLogs()">
+                                    <i class="fas fa-download me-2"></i>Export Logs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Info -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Export Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>File Format:</strong> All exports are in CSV format for easy import into spreadsheet applications.
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Data Privacy:</strong> Exported files may contain sensitive information. Handle with care.
+                </div>
+                
+                <h6 class="fw-bold mb-2">Export Guidelines:</h6>
+                <ul class="small">
+                    <li>Files are generated in real-time</li>
+                    <li>Large datasets may take time to process</li>
+                    <li>Ensure you have adequate storage space</li>
+                    <li>Review data privacy policies before sharing</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Recent Exports -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Recent Exports</h6>
+            </div>
+            <div class="card-body">
+                <div id="recent-exports">
+                    <p class="text-muted small">No recent exports found.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">Exporting Data</h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Please wait while we prepare your export...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Track recent exports in localStorage (if available, otherwise use session storage)
+function addToRecentExports(type, filename) {
+    try {
+        let recent = JSON.parse(sessionStorage.getItem('recentExports') || '[]');
+        recent.unshift({
+            type: type,
+            filename: filename,
+            timestamp: new Date().toLocaleString()
+        });
+        
+        // Keep only last 5 exports
+        recent = recent.slice(0, 5);
+        sessionStorage.setItem('recentExports', JSON.stringify(recent));
+        updateRecentExportsDisplay();
+    } catch (e) {
+        console.warn('Could not save to session storage');
+    }
+}
+
+function updateRecentExportsDisplay() {
+    try {
+        const recent = JSON.parse(sessionStorage.getItem('recentExports') || '[]');
+        const container = document.getElementById('recent-exports');
+        
+        if (recent.length === 0) {
+            container.innerHTML = '<p class="text-muted small">No recent exports found.</p>';
+            return;
+        }
+        
+        const html = recent.map(item => `
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                <div>
+                    <div class="fw-medium small">${item.type}</div>
+                    <div class="text-muted small">${item.timestamp}</div>
+                </div>
+                <i class="fas fa-download text-success"></i>
+            </div>
+        `).join('');
+        
+        container.innerHTML = html;
+    } catch (e) {
+        console.warn('Could not load recent exports');
+    }
+}
+
+function showExportModal() {
+    const modal = new bootstrap.Modal(document.getElementById('exportModal'));
+    modal.show();
+    return modal;
+}
+
+function exportAPIUsage() {
+    const modal = showExportModal();
+    // Simulate API call - replace with actual endpoint
+    setTimeout(() => {
+        modal.hide();
+        addToRecentExports('API Usage', 'api_usage_export.csv');
+        alert('API Usage export would be downloaded here');
+    }, 2000);
+}
+
+function exportSystemLogs() {
+    const modal = showExportModal();
+    // Simulate API call - replace with actual endpoint
+    setTimeout(() => {
+        modal.hide();
+        addToRecentExports('System Logs', 'system_logs_export.csv');
+        alert('System Logs export would be downloaded here');
+    }, 2000);
+}
+
+// Update display on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateRecentExportsDisplay();
+    
+    // Add event listeners to existing export links
+    document.querySelectorAll('a[href*="export_data"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            const type = this.href.includes('users') ? 'Users Data' : 'Datasets Data';
+            addToRecentExports(type, `${type.toLowerCase().replace(' ', '_')}_export.csv`);
+        });
+    });
+});
+</script>
+{% endblock %}

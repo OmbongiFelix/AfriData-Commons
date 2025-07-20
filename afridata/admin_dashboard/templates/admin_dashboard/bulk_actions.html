@@ -1,0 +1,349 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Bulk Actions - Admin Dashboard{% endblock %}
+{% block page_title %}Bulk Actions{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Bulk Actions</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- User Bulk Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">User Bulk Actions</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'admin_dashboard:bulk_actions' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action_type" value="users">
+                    
+                    <div class="mb-3">
+                        <label for="user_action" class="form-label">Select Action</label>
+                        <select class="form-select" id="user_action" name="action" required>
+                            <option value="">Choose an action...</option>
+                            <option value="activate">Activate Users</option>
+                            <option value="deactivate">Deactivate Users</option>
+                            <option value="verify">Verify Users</option>
+                            <option value="unverify">Remove Verification</option>
+                            <option value="delete">Delete Users (Danger)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="user_filter" class="form-label">Filter Criteria</label>
+                        <select class="form-select" id="user_filter" name="filter">
+                            <option value="all">All Users</option>
+                            <option value="inactive">Inactive Users Only</option>
+                            <option value="unverified">Unverified Users Only</option>
+                            <option value="no_login">Never Logged In</option>
+                            <option value="old_accounts">Accounts older than 30 days</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirm_user_action" required>
+                            <label class="form-check-input-label" for="confirm_user_action">
+                                I understand this action will affect multiple users
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-users-cog me-2"></i>Execute User Action
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Dataset Bulk Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Dataset Bulk Actions</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'admin_dashboard:bulk_actions' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action_type" value="datasets">
+                    
+                    <div class="mb-3">
+                        <label for="dataset_action" class="form-label">Select Action</label>
+                        <select class="form-select" id="dataset_action" name="action" required>
+                            <option value="">Choose an action...</option>
+                            <option value="feature">Mark as Featured</option>
+                            <option value="unfeature">Remove Featured Status</option>
+                            <option value="archive">Archive Datasets</option>
+                            <option value="delete">Delete Datasets (Danger)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dataset_filter" class="form-label">Filter Criteria</label>
+                        <select class="form-select" id="dataset_filter" name="filter">
+                            <option value="all">All Datasets</option>
+                            <option value="low_rating">Low Rating (< 3.0)</option>
+                            <option value="no_downloads">No Downloads</option>
+                            <option value="old_datasets">Datasets older than 90 days</option>
+                            <option value="specific_type">By Type</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3" id="dataset_type_select" style="display: none;">
+                        <label for="dataset_type" class="form-label">Dataset Type</label>
+                        <select class="form-select" id="dataset_type" name="dataset_type">
+                            <option value="tabular">Tabular</option>
+                            <option value="image">Image</option>
+                            <option value="text">Text</option>
+                            <option value="audio">Audio</option>
+                            <option value="video">Video</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirm_dataset_action" required>
+                            <label class="form-check-input-label" for="confirm_dataset_action">
+                                I understand this action will affect multiple datasets
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-info">
+                        <i class="fas fa-database me-2"></i>Execute Dataset Action
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- System Maintenance -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">System Maintenance</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-primary" onclick="clearCache()">
+                                <i class="fas fa-sync me-2"></i>Clear Cache
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-secondary" onclick="cleanupLogs()">
+                                <i class="fas fa-broom me-2"></i>Cleanup Old Logs
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-warning" onclick="optimizeDatabase()">
+                                <i class="fas fa-database me-2"></i>Optimize Database
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-danger" onclick="confirmSystemBackup()">
+                                <i class="fas fa-backup me-2"></i>System Backup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action History & Status -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Action Status</h6>
+            </div>
+            <div class="card-body">
+                <div id="action-status">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-info-circle fa-2x mb-2"></i>
+                        <p class="small">No active bulk actions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Recent Actions</h6>
+            </div>
+            <div class="card-body">
+                <div id="recent-actions">
+                    {% if recent_bulk_actions %}
+                        {% for action in recent_bulk_actions %}
+                            <div class="d-flex justify-content-between align-items-start mb-3 pb-2 border-bottom">
+                                <div>
+                                    <div class="fw-medium small">{{ action.action_type|title }} {{ action.action|title }}</div>
+                                    <div class="text-muted small">{{ action.affected_count }} items affected</div>
+                                    <div class="text-muted small">{{ action.created_at|timesince }} ago</div>
+                                </div>
+                                <span class="badge {% if action.status == 'completed' %}bg-success{% elif action.status == 'failed' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ action.status|title }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted small">No recent bulk actions found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmation-message">
+                Are you sure you want to proceed with this action?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-action-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Show/hide dataset type selection
+document.getElementById('dataset_filter').addEventListener('change', function() {
+    const typeSelect = document.getElementById('dataset_type_select');
+    if (this.value === 'specific_type') {
+        typeSelect.style.display = 'block';
+    } else {
+        typeSelect.style.display = 'none';
+    }
+});
+
+// System maintenance functions
+function clearCache() {
+    showConfirmation('Clear system cache? This may temporarily slow down the application.', function() {
+        updateActionStatus('Clearing cache...', 'warning');
+        // Simulate API call
+        setTimeout(() => {
+            updateActionStatus('Cache cleared successfully!', 'success');
+        }, 2000);
+    });
+}
+
+function cleanupLogs() {
+    showConfirmation('Clean up logs older than 30 days? This action cannot be undone.', function() {
+        updateActionStatus('Cleaning up old logs...', 'warning');
+        setTimeout(() => {
+            updateActionStatus('Log cleanup completed!', 'success');
+        }, 3000);
+    });
+}
+
+function optimizeDatabase() {
+    showConfirmation('Optimize database tables? This may take several minutes.', function() {
+        updateActionStatus('Optimizing database...', 'warning');
+        setTimeout(() => {
+            updateActionStatus('Database optimization completed!', 'success');
+        }, 5000);
+    });
+}
+
+function confirmSystemBackup() {
+    showConfirmation('Create a full system backup? This may take a while and use significant storage.', function() {
+        updateActionStatus('Creating system backup...', 'warning');
+        setTimeout(() => {
+            updateActionStatus('System backup completed!', 'success');
+        }, 10000);
+    });
+}
+
+function showConfirmation(message, callback) {
+    document.getElementById('confirmation-message').innerHTML = message;
+    document.getElementById('confirm-action-btn').onclick = function() {
+        callback();
+        bootstrap.Modal.getInstance(document.getElementById('confirmationModal')).hide();
+    };
+    new bootstrap.Modal(document.getElementById('confirmationModal')).show();
+}
+
+function updateActionStatus(message, type) {
+    const statusDiv = document.getElementById('action-status');
+    let iconClass = 'fas fa-info-circle';
+    let textClass = 'text-info';
+    
+    if (type === 'success') {
+        iconClass = 'fas fa-check-circle';
+        textClass = 'text-success';
+    } else if (type === 'warning') {
+        iconClass = 'fas fa-spinner fa-spin';
+        textClass = 'text-warning';
+    } else if (type === 'danger') {
+        iconClass = 'fas fa-exclamation-circle';
+        textClass = 'text-danger';
+    }
+    
+    statusDiv.innerHTML = `
+        <div class="text-center ${textClass}">
+            <i class="${iconClass} fa-2x mb-2"></i>
+            <p class="small">${message}</p>
+        </div>
+    `;
+    
+    // Clear status after success messages
+    if (type === 'success') {
+        setTimeout(() => {
+            statusDiv.innerHTML = `
+                <div class="text-center text-muted">
+                    <i class="fas fa-info-circle fa-2x mb-2"></i>
+                    <p class="small">No active bulk actions</p>
+                </div>
+            `;
+        }, 3000);
+    }
+}
+
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const actionSelect = form.querySelector('select[name="action"]');
+            if (actionSelect && actionSelect.value === '') {
+                e.preventDefault();
+                alert('Please select an action before proceeding.');
+                return false;
+            }
+            
+            // Show confirmation for dangerous actions
+            if (actionSelect && actionSelect.value === 'delete') {
+                e.preventDefault();
+                showConfirmation('⚠️ WARNING: This will permanently delete selected items. This action cannot be undone!', function() {
+                    form.submit();
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
