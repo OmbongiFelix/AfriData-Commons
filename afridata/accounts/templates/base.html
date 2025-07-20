@@ -103,9 +103,15 @@
                             <a href="{% url 'settings' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-cog mr-2"></i>Settings
                             </a>
+                            {% if user.is_superuser %}
+                            <a href="{% url 'admin_dashboard:dashboard_home' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chart-bar mr-2"></i>Admin Dashboard
+                            </a>
+                            {% else %}
                             <a href="{% url 'public_profile' user.id %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-chart-bar mr-2"></i>Public Profile
                             </a>
+                            {% endif %}
                             <div class="border-t my-1"></div>
                             <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-sign-out-alt mr-2"></i>Logout
