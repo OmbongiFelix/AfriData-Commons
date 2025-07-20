@@ -48,9 +48,9 @@ INSTALLED_APPS = [
     'home',
     'dataset',
     'accounts',
-    'user',
     'community',
     'api',
+    'admin_dashboard',
 
     # Third-party apps
     'rest_framework',
