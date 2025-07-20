@@ -1,0 +1,397 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Settings - Admin Dashboard{% endblock %}
+{% block page_title %}Dashboard Settings{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Settings</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- General Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">General Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'admin_dashboard:settings' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="settings_type" value="general">
+                    
+                    <div class="mb-3">
+                        <label for="site_name" class="form-label">Site Name</label>
+                        <input type="text" class="form-control" id="site_name" name="site_name" 
+                               value="{{ settings.site_name|default:'DataShare Platform' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="site_description" class="form-label">Site Description</label>
+                        <textarea class="form-control" id="site_description" name="site_description" rows="3">{{ settings.site_description|default:'A platform for sharing and discovering datasets' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="items_per_page" class="form-label">Items Per Page</label>
+                        <select class="form-select" id="items_per_page" name="items_per_page">
+                            <option value="10" {% if settings.items_per_page == 10 %}selected{% endif %}>10</option>
+                            <option value="25" {% if settings.items_per_page == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if settings.items_per_page == 50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if settings.items_per_page == 100 %}selected{% endif %}>100</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="maintenance_mode" name="maintenance_mode" 
+                                   {% if settings.maintenance_mode %}checked{% endif %}>
+                            <label class="form-check-label" for="maintenance_mode">
+                                Maintenance Mode
+                            </label>
+                            <div class="form-text">When enabled, only administrators can access the site.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="user_registration" name="user_registration" 
+                                   {% if settings.user_registration %}checked{% endif %}>
+                            <label class="form-check-label" for="user_registration">
+                                Allow User Registration
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Save General Settings</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Security Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Security Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'admin_dashboard:settings' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="settings_type" value="security">
+                    
+                    <div class="mb-3">
+                        <label for="max_login_attempts" class="form-label">Maximum Login Attempts</label>
+                        <input type="number" class="form-control" id="max_login_attempts" name="max_login_attempts" 
+                               value="{{ settings.max_login_attempts|default:5 }}" min="1" max="20">
+                        <div class="form-text">Number of failed login attempts before account lockout.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="lockout_duration" class="form-label">Lockout Duration (minutes)</label>
+                        <input type="number" class="form-control" id="lockout_duration" name="lockout_duration" 
+                               value="{{ settings.lockout_duration|default:30 }}" min="1" max="1440">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="session_timeout" class="form-label">Session Timeout (hours)</label>
+                        <input type="number" class="form-control" id="session_timeout" name="session_timeout" 
+                               value="{{ settings.session_timeout|default:24 }}" min="1" max="168">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="require_email_verification" name="require_email_verification" 
+                                   {% if settings.require_email_verification %}checked{% endif %}>
+                            <label class="form-check-label" for="require_email_verification">
+                                Require Email Verification
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="two_factor_auth" name="two_factor_auth" 
+                                   {% if settings.two_factor_auth %}checked{% endif %}>
+                            <label class="form-check-label" for="two_factor_auth">
+                                Enable Two-Factor Authentication
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-warning">Save Security Settings</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- API Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">API Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'admin_dashboard:settings' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="settings_type" value="api">
+                    
+                    <div class="mb-3">
+                        <label for="api_rate_limit" class="form-label">API Rate Limit (requests per hour)</label>
+                        <input type="number" class="form-control" id="api_rate_limit" name="api_rate_limit" 
+                               value="{{ settings.api_rate_limit|default:1000 }}" min="1">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="api_key_expiry" class="form-label">API Key Expiry (days)</label>
+                        <input type="number" class="form-control" id="api_key_expiry" name="api_key_expiry" 
+                               value="{{ settings.api_key_expiry|default:365 }}" min="1">
+                        <div class="form-text">Set to 0 for no expiry.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="api_enabled" name="api_enabled" 
+                                   {% if settings.api_enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="api_enabled">
+                                Enable API Access
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="api_require_auth" name="api_require_auth" 
+                                   {% if settings.api_require_auth %}checked{% endif %}>
+                            <label class="form-check-label" for="api_require_auth">
+                                Require Authentication for API
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-info">Save API Settings</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Email Settings -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Email Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'admin_dashboard:settings' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="settings_type" value="email">
+                    
+                    <div class="mb-3">
+                        <label for="smtp_host" class="form-label">SMTP Host</label>
+                        <input type="text" class="form-control" id="smtp_host" name="smtp_host" 
+                               value="{{ settings.smtp_host|default:'' }}">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="smtp_port" class="form-label">SMTP Port</label>
+                                <input type="number" class="form-control" id="smtp_port" name="smtp_port" 
+                                       value="{{ settings.smtp_port|default:587 }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smtp_use_tls" name="smtp_use_tls" 
+                                           {% if settings.smtp_use_tls %}checked{% endif %}>
+                                    <label class="form-check-label" for="smtp_use_tls">
+                                        Use TLS
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email_from" class="form-label">From Email Address</label>
+                        <input type="email" class="form-control" id="email_from" name="email_from" 
+                               value="{{ settings.email_from|default:'' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email_from_name" class="form-label">From Name</label>
+                        <input type="text" class="form-control" id="email_from_name" name="email_from_name" 
+                               value="{{ settings.email_from_name|default:'DataShare Platform' }}">
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">Save Email Settings</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="testEmailSettings()">
+                            Test Email
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Info & Actions -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Settings Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> Settings changes take effect immediately. Some changes may require a server restart.
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Caution:</strong> Incorrect security settings may lock you out of the system.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="exportSettings()">
+                        <i class="fas fa-download me-2"></i>Export Settings
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="importSettings()">
+                        <i class="fas fa-upload me-2"></i>Import Settings
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="resetToDefaults()">
+                        <i class="fas fa-undo me-2"></i>Reset to Defaults
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Recent Changes</h6>
+            </div>
+            <div class="card-body">
+                <div id="recent-changes">
+                    {% if recent_settings_changes %}
+                        {% for change in recent_settings_changes %}
+                            <div class="d-flex justify-content-between align-items-start mb-2 pb-2 border-bottom">
+                                <div>
+                                    <div class="fw-medium small">{{ change.setting_name }}</div>
+                                    <div class="text-muted small">by {{ change.changed_by.email }}</div>
+                                    <div class="text-muted small">{{ change.changed_at|timesince }} ago</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted small">No recent changes found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- File Input Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Import Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'admin_dashboard:settings' %}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="settings_type" value="import">
+                    <div class="mb-3">
+                        <label for="settings_file" class="form-label">Select Settings File</label>
+                        <input type="file" class="form-control" id="settings_file" name="settings_file" accept=".json" required>
+                        <div class="form-text">Upload a JSON file with settings configuration.</div>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        This will override current settings. Make sure to backup first.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Import Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function testEmailSettings() {
+    // Simulate email test
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing...';
+    btn.disabled = true;
+    
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        alert('Test email sent successfully! (This is a simulation)');
+    }, 2000);
+}
+
+function exportSettings() {
+    // Simulate settings export
+    const settings = {
+        site_name: document.getElementById('site_name').value,
+        items_per_page: document.getElementById('items_per_page').value,
+        maintenance_mode: document.getElementById('maintenance_mode').checked,
+        exported_at: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(settings, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = 'dashboard_settings.json';
+    link.click();
+}
+
+function importSettings() {
+    new bootstrap.Modal(document.getElementById('importModal')).show();
+}
+
+function resetToDefaults() {
+    if (confirm('Are you sure you want to reset all settings to default values? This action cannot be undone.')) {
+        // Simulate reset
+        alert('Settings have been reset to defaults. (This is a simulation)');
+        location.reload();
+    }
+}
+
+// Form auto-save indication
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function() {
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            btn.disabled = true;
+            
+            // Re-enable after form submission
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 1000);
+        });
+    });
+});
+</script>
+{% endblock %}

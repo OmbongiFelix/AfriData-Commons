@@ -1,0 +1,354 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}API Management - Admin Dashboard{% endblock %}
+{% block page_title %}API Management{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">API Management</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- API Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">{{ total_api_keys }}</h4>
+                <p class="text-muted mb-0">Total API Keys</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">{{ active_api_keys }}</h4>
+                <p class="text-muted mb-0">Active Keys</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info">{{ recent_usage.count }}</h4>
+                <p class="text-muted mb-0">Recent Requests</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning">{{ endpoint_stats.count }}</h4>
+                <p class="text-muted mb-0">Active Endpoints</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Usage Charts -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">API Usage Over Time (Last 7 Days)</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="usageChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Top Endpoints</h6>
+            </div>
+            <div class="card-body">
+                {% if endpoint_stats %}
+                    {% for endpoint in endpoint_stats|slice:":5" %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <strong>{{ endpoint.endpoint }}</strong>
+                            <br><small class="text-muted">Avg: {{ endpoint.avg_response_time|floatformat:2 }}ms</small>
+                        </div>
+                        <span class="badge bg-primary">{{ endpoint.count }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No endpoint data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent API Usage -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">Recent API Usage</h6>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="refreshUsage()">
+                        <i class="fas fa-refresh"></i> Refresh
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="exportUsage()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_usage %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>Endpoint</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                    <th>Response Time</th>
+                                    <th>IP Address</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for usage in recent_usage %}
+                                <tr>
+                                    <td>{{ usage.timestamp|date:"M d, H:i:s" }}</td>
+                                    <td>
+                                        <a href="{% url 'admin_dashboard:user_detail' usage.api_key.user.id %}" 
+                                           class="text-decoration-none">
+                                            {{ usage.api_key.user.username }}
+                                        </a>
+                                    </td>
+                                    <td><code class="small">{{ usage.endpoint }}</code></td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if usage.method == 'GET' %}bg-success
+                                            {% elif usage.method == 'POST' %}bg-primary
+                                            {% elif usage.method == 'PUT' %}bg-warning
+                                            {% elif usage.method == 'DELETE' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ usage.method }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if usage.status_code < 300 %}bg-success
+                                            {% elif usage.status_code < 400 %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ usage.status_code }}
+                                        </span>
+                                    </td>
+                                    <td>{{ usage.response_time|floatformat:2 }}ms</td>
+                                    <td><code class="small">{{ usage.ip_address }}</code></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="viewDetails({{ usage.id }})">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                        <h5>No API usage data</h5>
+                        <p class="text-muted">API usage will appear here once users start making requests</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Rate Limiting -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Rate Limiting Settings</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="#">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Requests per minute</label>
+                        <input type="number" class="form-control" name="rate_limit" value="100">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Burst limit</label>
+                        <input type="number" class="form-control" name="burst_limit" value="200">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="enable_rate_limiting" checked>
+                            <label class="form-check-label">Enable rate limiting</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">API Health Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>API Server Status</span>
+                        <span class="badge bg-success">Online</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Database Connection</span>
+                        <span class="badge bg-success">Connected</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Average Response Time</span>
+                        <span class="text-muted">125ms</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Uptime</span>
+                        <span class="text-muted">99.9%</span>
+                    </div>
+                </div>
+                <button class="btn btn-outline-primary w-100" onclick="checkHealth()">
+                    <i class="fas fa-heartbeat"></i> Run Health Check
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Documentation -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">API Documentation</h6>
+                <a href="#" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-external-link-alt"></i> View Full Docs
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Available Endpoints</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span><code>GET /api/datasets/</code></span>
+                                <span class="badge bg-success">Active</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span><code>POST /api/datasets/</code></span>
+                                <span class="badge bg-success">Active</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span><code>GET /api/users/</code></span>
+                                <span class="badge bg-success">Active</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span><code>GET /api/forums/</code></span>
+                                <span class="badge bg-warning">Beta</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Authentication</h6>
+                        <p class="text-muted small">
+                            All API requests require a valid API key to be included in the request headers.
+                        </p>
+                        <pre class="bg-light p-2 rounded"><code>Authorization: Bearer YOUR_API_KEY</code></pre>
+                        
+                        <h6 class="mt-3">Response Formats</h6>
+                        <ul class="small">
+                            <li>JSON (default)</li>
+                            <li>XML (with Accept header)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+// Usage Chart
+const ctx = document.getElementById('usageChart').getContext('2d');
+const usageData = {{ daily_usage|safe }};
+
+const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: usageData.map(item => item.day),
+        datasets: [{
+            label: 'API Requests',
+            data: usageData.map(item => item.count),
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+function refreshUsage() {
+    location.reload();
+}
+
+function exportUsage() {
+    window.location.href = '{% url "admin_dashboard:export_data" %}?type=api_usage';
+}
+
+function viewDetails(usageId) {
+    // Implement view details functionality
+    console.log('View usage details:', usageId);
+}
+
+function checkHealth() {
+    // Implement health check functionality
+    fetch('/admin/api/health/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'healthy') {
+                alert('API is healthy!');
+            } else {
+                alert('API health check failed: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error checking API health: ' + error.message);
+        });
+}
+</script>
+{% endblock %}

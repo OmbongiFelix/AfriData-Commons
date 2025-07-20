@@ -1,0 +1,168 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}System Logs - Admin Dashboard{% endblock %}
+{% block page_title %}System Logs{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">System Logs</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Filter Logs</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="action" class="form-label">Action</label>
+                <select class="form-select" id="action" name="action">
+                    <option value="all" {% if action_filter == 'all' %}selected{% endif %}>All Actions</option>
+                    {% for action in actions %}
+                        <option value="{{ action }}" {% if action_filter == action %}selected{% endif %}>
+                            {{ action|title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="model" class="form-label">Model</label>
+                <select class="form-select" id="model" name="model">
+                    <option value="all" {% if model_filter == 'all' %}selected{% endif %}>All Models</option>
+                    {% for model in models %}
+                        <option value="{{ model }}" {% if model_filter == model %}selected{% endif %}>
+                            {{ model }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="date" class="form-label">Date Range</label>
+                <select class="form-select" id="date" name="date">
+                    <option value="all" {% if date_filter == 'all' %}selected{% endif %}>All Time</option>
+                    <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                    <option value="week" {% if date_filter == 'week' %}selected{% endif %}>Last 7 Days</option>
+                    <option value="month" {% if date_filter == 'month' %}selected{% endif %}>Last 30 Days</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+                <a href="{% url 'admin_dashboard:system_logs' %}" class="btn btn-outline-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Logs Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">System Activity Logs</h5>
+        <span class="badge bg-info">{{ page_obj.paginator.count }} total logs</span>
+    </div>
+    <div class="card-body p-0">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Admin User</th>
+                            <th>Action</th>
+                            <th>Model</th>
+                            <th>Object</th>
+                            <th>Description</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in page_obj %}
+                            <tr>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ log.timestamp|date:"M d, Y H:i:s" }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="fw-medium">{{ log.admin_user.email }}</span>
+                                </td>
+                                <td>
+                                    {% if log.action == 'create' %}
+                                        <span class="badge bg-success">{{ log.action|title }}</span>
+                                    {% elif log.action == 'update' %}
+                                        <span class="badge bg-warning">{{ log.action|title }}</span>
+                                    {% elif log.action == 'delete' %}
+                                        <span class="badge bg-danger">{{ log.action|title }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ log.action|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <code class="text-muted">{{ log.model_name }}</code>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ log.object_repr }}">
+                                        {{ log.object_repr|default:"N/A" }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ log.description }}">
+                                        {{ log.description|default:"No description" }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted font-monospace">{{ log.ip_address|default:"Unknown" }}</small>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5>No logs found</h5>
+                <p class="text-muted">Try adjusting your filters to see more results.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+    <nav aria-label="Logs pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}page=1">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}

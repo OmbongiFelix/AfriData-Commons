@@ -1,0 +1,349 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Dashboard - Admin Panel{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Statistics Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="h5 mb-0 text-white">{{ total_users }}</div>
+                        <div class="small text-white-75">Total Users</div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="h5 mb-0 text-white">{{ total_datasets }}</div>
+                        <div class="small text-white-75">Total Datasets</div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-database fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="h5 mb-0 text-white">{{ total_api_keys }}</div>
+                        <div class="small text-white-75">Active API Keys</div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-key fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="h5 mb-0 text-white">{{ api_usage_today }}</div>
+                        <div class="small text-white-75">API Calls Today</div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-line fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- User Statistics -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar text-primary"></i> User Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="h4 text-success">{{ active_users }}</div>
+                        <div class="small text-muted">Active</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4 text-info">{{ verified_users }}</div>
+                        <div class="small text-muted">Verified</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4 text-warning">{{ recent_login_attempts }}</div>
+                        <div class="small text-muted">Logins (24h)</div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="userChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Community Statistics -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-comments text-success"></i> Community Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="h4 text-primary">{{ total_threads }}</div>
+                        <div class="small text-muted">Active Threads</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="h4 text-secondary">{{ total_posts }}</div>
+                        <div class="small text-muted">Total Posts</div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-primary" style="width: 75%"></div>
+                    </div>
+                    <small class="text-muted">Community engagement: 75%</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Users -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-user-plus text-success"></i> Recent Users
+                </h6>
+                <a href="{% url 'admin_dashboard:user_management' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for user in recent_users %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">{{ user.full_name|default:user.username }}</div>
+                            <small class="text-muted">{{ user.email }}</small>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">{{ user.created_at|date:"M d" }}</small>
+                            {% if user.is_verified %}
+                                <br><span class="badge bg-success">Verified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Datasets -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-database text-info"></i> Recent Datasets
+                </h6>
+                <a href="{% url 'admin_dashboard:dataset_management' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for dataset in recent_datasets %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="fw-bold">{{ dataset.title|truncatechars:30 }}</div>
+                                <small class="text-muted">by {{ dataset.author.username }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-secondary">{{ dataset.dataset_type|upper }}</span>
+                                <br><small class="text-muted">{{ dataset.created_at|date:"M d" }}</small>
+                            </div>
+                        </div>
+                        <div class="mt-1">
+                            <small class="text-warning">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= dataset.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                                ({{ dataset.rating }})
+                            </small>
+                            <small class="text-muted ms-2">{{ dataset.downloads }} downloads</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Status -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-server text-warning"></i> System Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small">Server Load</span>
+                        <span class="small text-success">Normal</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: 35%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small">Database</span>
+                        <span class="small text-success">Connected</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small">API Response Time</span>
+                        <span class="small text-info">120ms</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-info" style="width: 85%"></div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info py-2 mb-0">
+                    <small>
+                        <i class="fas fa-info-circle"></i>
+                        Last backup: {{ "now"|date:"M d, Y H:i" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock text-primary"></i> Recent Forum Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Thread</th>
+                                <th>Author</th>
+                                <th>Topic</th>
+                                <th>Created</th>
+                                <th>Views</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for thread in recent_threads %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">{{ thread.title|truncatechars:50 }}</div>
+                                    {% if thread.is_pinned %}
+                                        <span class="badge bg-warning">Pinned</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ thread.author.username }}</td>
+                                <td><span class="badge bg-secondary">{{ thread.topic.name }}</span></td>
+                                <td>{{ thread.created_at|timesince }} ago</td>
+                                <td>{{ thread.views }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// User registration chart
+const userCtx = document.getElementById('userChart').getContext('2d');
+new Chart(userCtx, {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+            label: 'User Registrations',
+            data: [12, 19, 3, 5, 2, 3],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    display: false
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Load analytics data
+fetch('{% url "admin_dashboard:analytics_api" %}?type=users')
+    .then(response => response.json())
+    .then(data => {
+        console.log('Analytics data loaded:', data);
+    })
+    .catch(error => console.error('Error loading analytics:', error));
+</script>
+{% endblock %}

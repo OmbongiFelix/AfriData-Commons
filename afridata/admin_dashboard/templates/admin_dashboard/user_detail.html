@@ -1,0 +1,477 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}{{ user_obj.full_name|default:user_obj.username }} - User Details{% endblock %}
+{% block page_title %}User Details{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:user_management' %}">Users</a></li>
+                <li class="breadcrumb-item active">{{ user_obj.full_name|default:user_obj.username }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- User Profile Card -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    {% if user_obj.profile_picture %}
+                        <img src="{{ user_obj.profile_picture.url }}" 
+                             class="rounded-circle mb-3" width="120" height="120">
+                    {% else %}
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" 
+                             style="width: 120px; height: 120px;">
+                            <span class="text-white fw-bold fs-1">
+                                {{ user_obj.full_name|default:user_obj.username|first|upper }}
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <h4 class="mb-1">{{ user_obj.full_name|default:user_obj.username }}</h4>
+                <p class="text-muted mb-3">@{{ user_obj.username }}</p>
+                
+                <div class="d-flex justify-content-center gap-2 mb-4">
+                    {% if user_obj.is_active %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                    {% if user_obj.is_verified %}
+                        <span class="badge bg-info">Verified</span>
+                    {% endif %}
+                    {% if user_obj.is_superuser %}
+                        <span class="badge bg-warning">Admin</span>
+                    {% endif %}
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal">
+                        <i class="fas fa-edit"></i> Edit User
+                    </button>
+                    <form method="post" action="{% url 'admin_dashboard:toggle_user_status' user_obj.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn {% if user_obj.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} w-100"
+                                onclick="return confirm('Are you sure?')">
+                            {% if user_obj.is_active %}
+                                <i class="fas fa-ban"></i> Deactivate User
+                            {% else %}
+                                <i class="fas fa-check"></i> Activate User
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Stats -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">User Statistics</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ user_datasets.count }}</h4>
+                            <p class="text-muted mb-0">Datasets</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ user_api_keys.count }}</h4>
+                        <p class="text-muted mb-0">API Keys</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-info">{{ user_threads.count }}</h4>
+                            <p class="text-muted mb-0">Threads</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-warning">{{ user_posts.count }}</h4>
+                        <p class="text-muted mb-0">Posts</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details and Activity -->
+    <div class="col-lg-8">
+        <!-- User Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">User Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>Email:</th>
+                                <td>{{ user_obj.email }}</td>
+                            </tr>
+                            <tr>
+                                <th>Username:</th>
+                                <td>{{ user_obj.username }}</td>
+                            </tr>
+                            <tr>
+                                <th>Full Name:</th>
+                                <td>{{ user_obj.full_name|default:"Not provided" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Date Joined:</th>
+                                <td>{{ user_obj.created_at|date:"F d, Y g:i A" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>Last Login:</th>
+                                <td>
+                                    {% if user_obj.last_login %}
+                                        {{ user_obj.last_login|date:"F d, Y g:i A" }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Account Status:</th>
+                                <td>
+                                    {% if user_obj.is_active %}
+                                        <span class="text-success">Active</span>
+                                    {% else %}
+                                        <span class="text-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Email Verified:</th>
+                                <td>
+                                    {% if user_obj.is_verified %}
+                                        <span class="text-success">Yes</span>
+                                    {% else %}
+                                        <span class="text-warning">No</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Admin Access:</th>
+                                <td>
+                                    {% if user_obj.is_superuser %}
+                                        <span class="text-warning">Yes</span>
+                                    {% else %}
+                                        <span class="text-muted">No</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs for User Activity -->
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#datasets" role="tab">
+                            Datasets ({{ user_datasets.count }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#forum" role="tab">
+                            Forum Activity
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#api" role="tab">
+                            API Keys ({{ user_api_keys.count }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#login" role="tab">
+                            Login History
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <!-- Datasets Tab -->
+                    <div class="tab-pane fade show active" id="datasets" role="tabpanel">
+                        {% if user_datasets %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Type</th>
+                                            <th>Rating</th>
+                                            <th>Downloads</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for dataset in user_datasets %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ dataset.title }}</strong>
+                                                {% if dataset.bio %}
+                                                    <br><small class="text-muted">{{ dataset.bio|truncatewords:10 }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ dataset.get_dataset_type_display }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-warning">
+                                                    <i class="fas fa-star"></i> {{ dataset.rating|floatformat:1 }}
+                                                </span>
+                                            </td>
+                                            <td>{{ dataset.downloads|default:0 }}</td>
+                                            <td>{{ dataset.created_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                <a href="#" class="btn btn-sm btn-outline-primary">View</a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-database fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No datasets found</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Forum Activity Tab -->
+                    <div class="tab-pane fade" id="forum" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="mb-3">Recent Threads ({{ user_threads.count }})</h6>
+                                {% if user_threads %}
+                                    <div class="list-group">
+                                        {% for thread in user_threads|slice:":5" %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">{{ thread.title }}</h6>
+                                                <small>{{ thread.created_at|timesince }} ago</small>
+                                            </div>
+                                            <p class="mb-1">{{ thread.content|truncatewords:15 }}</p>
+                                            <small class="text-muted">{{ thread.topic.name }}</small>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted">No threads created</p>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="mb-3">Recent Posts ({{ user_posts.count }})</h6>
+                                {% if user_posts %}
+                                    <div class="list-group">
+                                        {% for post in user_posts|slice:":5" %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">{{ post.thread.title }}</h6>
+                                                <small>{{ post.created_at|timesince }} ago</small>
+                                            </div>
+                                            <p class="mb-1">{{ post.content|truncatewords:15 }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted">No posts created</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API Keys Tab -->
+                    <div class="tab-pane fade" id="api" role="tabpanel">
+                        {% if user_api_keys %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Key</th>
+                                            <th>Status</th>
+                                            <th>Created</th>
+                                            <th>Last Used</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for api_key in user_api_keys %}
+                                        <tr>
+                                            <td>{{ api_key.name|default:"Unnamed" }}</td>
+                                            <td>
+                                                <code class="small">{{ api_key.key|slice:":8" }}...</code>
+                                            </td>
+                                            <td>
+                                                {% if api_key.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ api_key.created_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                {% if api_key.last_used %}
+                                                    {{ api_key.last_used|timesince }} ago
+                                                {% else %}
+                                                    Never
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-danger" 
+                                                        onclick="revokeApiKey({{ api_key.id }})">
+                                                    Revoke
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-key fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No API keys found</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Login History Tab -->
+                    <div class="tab-pane fade" id="login" role="tabpanel">
+                        {% if login_attempts %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>IP Address</th>
+                                            <th>Status</th>
+                                            <th>User Agent</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for attempt in login_attempts %}
+                                        <tr>
+                                            <td>{{ attempt.timestamp|date:"M d, Y g:i A" }}</td>
+                                            <td><code>{{ attempt.ip_address }}</code></td>
+                                            <td>
+                                                {% if attempt.success %}
+                                                    <span class="badge bg-success">Success</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Failed</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="small">{{ attempt.user_agent|truncatechars:50 }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-sign-in-alt fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No login attempts found</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'admin_dashboard:user_detail' user_obj.id %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" name="full_name" 
+                               value="{{ user_obj.full_name|default:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" 
+                               value="{{ user_obj.email }}" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_active" 
+                                       {% if user_obj.is_active %}checked{% endif %}>
+                                <label class="form-check-label">Active</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_verified" 
+                                       {% if user_obj.is_verified %}checked{% endif %}>
+                                <label class="form-check-label">Verified</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function revokeApiKey(keyId) {
+    if (confirm('Are you sure you want to revoke this API key?')) {
+        // Add AJAX call to revoke API key
+        fetch(`/admin/api/keys/${keyId}/revoke/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error revoking API key');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}
