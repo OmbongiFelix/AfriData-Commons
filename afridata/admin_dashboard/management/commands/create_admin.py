@@ -1,28 +1,33 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 import os
-import environ
 
 class Command(BaseCommand):
-    help = 'Creates a superuser if none exist'
+    help = 'Creates or updates a specific superuser regardless of others.'
 
     def handle(self, *args, **kwargs):
         User = get_user_model()
-        if not User.objects.filter(is_superuser=True).exists():
-            User.objects.create_superuser(
-                username=os.environ.get('DJANGO_SUPERUSER_USERNAME'),
-                email=os.environ.get('DJANGO_SUPERUSER_EMAIL'),
-                password=os.environ.get('DJANGO_SUPERUSER_PASSWORD')
-            )
-            self.stdout.write(self.style.SUCCESS('Superuser created.'))
-        else:
-            self.stdout.write('Superuser already exists.')
+        username = os.environ.get('DJANGO_SUPERUSER_USERNAME')
+        email = os.environ.get('DJANGO_SUPERUSER_EMAIL')
+        password = os.environ.get('DJANGO_SUPERUSER_PASSWORD')
 
+        if not all([username, email, password]):
+            self.stderr.write(self.style.ERROR("Missing superuser environment variables."))
+            return
 
-#Old Build command
-#pip install -r ../requirements.txt && python manage.py migrate && python manage.py collectstatic --no-input
+        user, created = User.objects.get_or_create(email=email, defaults={"username": username})
 
-#New Build Command
-#pip install -r ../requirements.txt && python manage.py migrate && python manage.py create_admin && python manage.py collectstatic --no-input
+        # Update username if it changed
+        if user.username != username:
+            user.username = username
 
+        # Ensure superuser and staff status
+        user.is_superuser = True
+        user.is_staff = True
 
+        # Update password safely
+        user.set_password(password)
+        user.save()
+
+        msg = "Superuser created." if created else "Superuser updated."
+        self.stdout.write(self.style.SUCCESS(msg))
