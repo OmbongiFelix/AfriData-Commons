@@ -19,5 +19,10 @@ class Command(BaseCommand):
             self.stdout.write('Superuser already exists.')
 
 
-#Build command
-#python manage.py migrate && python manage.py create_admin && gunicorn your_project.wsgi
+#Old Build command
+#pip install -r ../requirements.txt && python manage.py migrate && python manage.py collectstatic --no-input
+
+#New Build Command
+#pip install -r ../requirements.txt && python manage.py migrate && python manage.py create_admin && python manage.py collectstatic --no-input
+
+
