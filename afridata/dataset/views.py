@@ -7,8 +7,9 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Count, Sum
 from django.utils import timezone
-from datetime import timedelta
-from .models import Dataset, Comment
+from datetime import timedelta, date
+from .models import Dataset, Comment, TokenTransaction, Download, PremiumPurchase
+from accounts.models import CustomUser, UserProfile
 import pandas as pd
 import numpy as np
 import io
@@ -29,6 +30,37 @@ def dataset_detail(request, dataset_id):
     # Increment view count
     dataset.views += 1
     dataset.save(update_fields=['views'])
+    
+    # Check if user can download (for authenticated users)
+    can_download = False
+    insufficient_tokens = False
+    monthly_limit_exceeded = False
+    user_token_balance = 0
+    
+    if request.user.is_authenticated:
+        user_profile = request.user.profile
+        user_token_balance = user_profile.token_balance
+        
+        # Check if user has already downloaded this dataset
+        already_downloaded = Download.objects.filter(
+            user=request.user, 
+            dataset=dataset
+        ).exists()
+        
+        if already_downloaded:
+            can_download = True
+        else:
+            # Check monthly download limit
+            user_profile.reset_monthly_downloads_if_needed()
+            if not user_profile.can_download_this_month():
+                monthly_limit_exceeded = True
+            elif dataset.is_premium:
+                # Premium datasets don't require tokens but need separate purchase
+                can_download = True
+            elif user_profile.can_afford(dataset.token_cost):
+                can_download = True
+            else:
+                insufficient_tokens = True
    
     # Get preview data
     preview_data = []
@@ -108,6 +140,10 @@ def dataset_detail(request, dataset_id):
         'comments': comments,
         'related_datasets': related_datasets,
         'error_message': error_message,
+        'can_download': can_download,
+        'insufficient_tokens': insufficient_tokens,
+        'monthly_limit_exceeded': monthly_limit_exceeded,
+        'user_token_balance': user_token_balance,
     }
     
     return render(request, 'dataset/dataset_detail.html', context)
@@ -233,17 +269,76 @@ def upvote_comment(request, comment_id):
     return redirect('dataset_detail', dataset_id=comment.dataset.id)
 
 
+@login_required
 def download_dataset(request, dataset_id):
-    """Handle dataset download"""
+    """Handle dataset download with token system"""
     dataset = get_object_or_404(Dataset, id=dataset_id)
+    user_profile = request.user.profile
     
-    # Increment download count
+    # Check if user has already downloaded this dataset
+    existing_download = Download.objects.filter(user=request.user, dataset=dataset).first()
+    if existing_download:
+        # User already downloaded, allow re-download
+        return serve_file(dataset)
+    
+    # Check monthly download limits
+    user_profile.reset_monthly_downloads_if_needed()
+    if not user_profile.can_download_this_month():
+        messages.error(request, f'You have reached your monthly download limit of {user_profile.monthly_download_limit} files.')
+        return redirect('dataset_detail', dataset_id=dataset_id)
+    
+    # Handle premium datasets
+    if dataset.is_premium:
+        # Check if user has purchased this premium dataset
+        premium_purchase = PremiumPurchase.objects.filter(
+            user=request.user, 
+            dataset=dataset, 
+            payment_status='completed'
+        ).first()
+        
+        if not premium_purchase:
+            messages.error(request, 'This is a premium dataset. Please purchase it first.')
+            return redirect('dataset_detail', dataset_id=dataset_id)
+        
+        # Create download record
+        Download.objects.create(
+            user=request.user,
+            dataset=dataset,
+            tokens_spent=0,
+            is_premium_download=True,
+            premium_purchase=premium_purchase
+        )
+    else:
+        # Handle regular token-based downloads
+        if not user_profile.can_afford(dataset.token_cost):
+            messages.error(request, f'Insufficient tokens. You need {dataset.token_cost} tokens but have {user_profile.token_balance}.')
+            return redirect('dataset_detail', dataset_id=dataset_id)
+        
+        # Deduct tokens
+        if user_profile.spend_tokens(dataset.token_cost, f'Downloaded {dataset.title}'):
+            # Create download record
+            Download.objects.create(
+                user=request.user,
+                dataset=dataset,
+                tokens_spent=dataset.token_cost,
+                is_premium_download=False
+            )
+        else:
+            messages.error(request, 'Failed to process token payment.')
+            return redirect('dataset_detail', dataset_id=dataset_id)
+    
+    # Increment counters
     dataset.downloads += 1
     dataset.save(update_fields=['downloads'])
+    user_profile.increment_monthly_downloads()
     
-    # Return file response
+    messages.success(request, f'Successfully downloaded {dataset.title}!')
+    return serve_file(dataset)
+
+
+def serve_file(dataset):
+    """Helper function to serve the dataset file"""
     if dataset.file:
-        # Reset file pointer to beginning
         dataset.file.seek(0)
         response = HttpResponse(
             dataset.file.read(), 
@@ -251,32 +346,44 @@ def download_dataset(request, dataset_id):
         )
         response['Content-Disposition'] = f'attachment; filename="{dataset.file.name}"'
         return response
-    
-    messages.error(request, 'Dataset file not found.')
-    return redirect('dataset_detail', dataset_id=dataset_id)
+    else:
+        raise Http404("File not found")
 
 
 @login_required
 def upload_dataset(request):
-    """Handle dataset upload via regular form submission and AJAX"""
+    """Handle dataset upload via regular form submission and AJAX with token rewards"""
     if request.method == 'POST':
         form = DatasetUploadForm(request.POST, request.FILES)
         if form.is_valid():
             dataset = form.save(commit=False)
             dataset.author = request.user
+            
+            # Calculate token cost based on file size
+            dataset.token_cost = dataset.calculate_token_cost()
             dataset.save()
+            
+            # Award upload bonus tokens to the user
+            upload_bonus = dataset.get_upload_bonus_tokens()
+            request.user.profile.add_tokens(
+                amount=upload_bonus,
+                transaction_type='upload_bonus',
+                description=f'Upload bonus for "{dataset.title}"',
+                dataset=dataset
+            )
             
             # Check if it's an AJAX request
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': True,
-                    'message': 'Dataset uploaded successfully!',
+                    'message': f'Dataset uploaded successfully! You earned {upload_bonus} tokens.',
                     'dataset_id': dataset.pk,
+                    'tokens_earned': upload_bonus,
                     'redirect_url': reverse('dataset_detail', kwargs={'dataset_id': dataset.pk})
                 })
             else:
                 # Regular form submission - redirect as usual
-                messages.success(request, 'Dataset uploaded successfully!')
+                messages.success(request, f'Dataset uploaded successfully! You earned {upload_bonus} tokens.')
                 return redirect('dataset_detail', dataset_id=dataset.pk)
         else:
             # Form has errors
@@ -294,11 +401,18 @@ def upload_dataset(request):
    
     return render(request, 'dataset/upload.html', {'form': form})
 
-
-
+'''
 @login_required
 def home(request):
     """Render authenticated user's home page - Dynamic home page view with real data"""
+    
+    # Get user-specific data
+    user_profile = request.user.profile
+    user_downloads = Download.objects.filter(user=request.user).count()
+    user_uploads = Dataset.objects.filter(author=request.user).count()
+    
+    # Reset monthly downloads if needed
+    user_profile.reset_monthly_downloads_if_needed()
     
     # Get total statistics
     total_researchers = User.objects.count()
@@ -348,6 +462,11 @@ def home(request):
         'parquet': Dataset.objects.filter(dataset_type='parquet').count(),
     }
     
+    # Get recent transactions for the user
+    recent_transactions = TokenTransaction.objects.filter(
+        user=request.user
+    ).order_by('-created_at')[:5]
+    
     context = {
         'total_datasets': total_datasets,
         'total_downloads': total_downloads,
@@ -359,9 +478,16 @@ def home(request):
         'popular_terms': popular_terms,
         'featured_datasets': featured_datasets,
         'format_counts': format_counts,
+        # User-specific data
+        'user_token_balance': user_profile.token_balance,
+        'user_downloads': user_downloads,
+        'user_uploads': user_uploads,
+        'downloads_remaining': user_profile.monthly_download_limit - user_profile.downloads_this_month,
+        'recent_transactions': recent_transactions,
+        'is_premium': user_profile.is_premium_subscriber,
     }
 
-    return render(request, 'accounts/home.html', context)
+    return render(request, 'accounts/home.html', context)'''
 
 
 def dataset_list(request):
@@ -387,6 +513,18 @@ def dataset_list(request):
     if format_filter:
         datasets = datasets.filter(dataset_type=format_filter)
     
+    # Handle premium filter
+    premium_filter = request.GET.get('premium', '')
+    if premium_filter == 'true':
+        datasets = datasets.filter(is_premium=True)
+    elif premium_filter == 'false':
+        datasets = datasets.filter(is_premium=False)
+    
+    # Handle quality tier filter
+    quality_filter = request.GET.get('quality', '')
+    if quality_filter:
+        datasets = datasets.filter(quality_tier=quality_filter)
+    
     # Handle sorting
     sort_by = request.GET.get('sort', 'relevance')
     if sort_by == 'downloads':
@@ -395,6 +533,10 @@ def dataset_list(request):
         datasets = datasets.order_by('-created_at')
     elif sort_by == 'rating':
         datasets = datasets.order_by('-rating')
+    elif sort_by == 'tokens_asc':
+        datasets = datasets.order_by('token_cost')
+    elif sort_by == 'tokens_desc':
+        datasets = datasets.order_by('-token_cost')
     else:  # relevance (default)
         datasets = datasets.order_by('-views', '-downloads')
     
@@ -416,6 +558,12 @@ def dataset_list(request):
             'topics': dataset.get_topics_list(),
             'dataset_type': dataset.get_dataset_type_display(),
             'created_at': dataset.created_at,
+            'token_cost': dataset.token_cost,
+            'is_premium': dataset.is_premium,
+            'premium_price_usd': dataset.premium_price_usd,
+            'quality_tier': dataset.get_quality_tier_display(),
+            'file_size_mb': round(dataset.file_size_mb, 2),
+            'has_documentation': dataset.has_documentation,
         })
     
     context = {
@@ -425,5 +573,58 @@ def dataset_list(request):
         'current_category': category,
         'current_format': format_filter,
         'current_sort': sort_by,
+        'current_premium': premium_filter,
+        'current_quality': quality_filter,
     }
     return render(request, 'dataset/dataset_list.html', context)
+
+
+@login_required
+def user_dashboard(request):
+    """User dashboard showing personal statistics and activity"""
+    user_profile = request.user.profile
+    
+    # Get user's datasets
+    user_datasets = Dataset.objects.filter(author=request.user).order_by('-created_at')[:5]
+    
+    # Get user's downloads
+    user_downloads = Download.objects.filter(user=request.user).select_related('dataset').order_by('-created_at')[:5]
+    
+    # Get recent transactions
+    recent_transactions = TokenTransaction.objects.filter(user=request.user).order_by('-created_at')[:10]
+    
+    # Calculate statistics
+    total_uploads = Dataset.objects.filter(author=request.user).count()
+    total_downloads_received = Dataset.objects.filter(author=request.user).aggregate(Sum('downloads'))['downloads__sum'] or 0
+    total_views_received = Dataset.objects.filter(author=request.user).aggregate(Sum('views'))['views__sum'] or 0
+    
+    context = {
+        'user_profile': user_profile,
+        'user_datasets': user_datasets,
+        'user_downloads': user_downloads,
+        'recent_transactions': recent_transactions,
+        'total_uploads': total_uploads,
+        'total_downloads_received': total_downloads_received,
+        'total_views_received': total_views_received,
+        'downloads_remaining': user_profile.monthly_download_limit - user_profile.downloads_this_month,
+    }
+    
+    return render(request, 'accounts/dashboard.html', context)
+
+
+@login_required
+def token_history(request):
+    """View showing user's complete token transaction history"""
+    transactions = TokenTransaction.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(transactions, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'transactions': page_obj,
+        'user_profile': request.user.profile,
+    }
+    
+    return render(request, 'accounts/token_history.html', context)

@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - {{ user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .dataset-item, .download-item, .transaction-item {
+        border-bottom: 1px solid #eee;
+        padding: 1rem 0;
+    }
+    
+    .dataset-item:last-child, 
+    .download-item:last-child, 
+    .transaction-item:last-child {
+        border-bottom: none;
+    }
+    
+    .item-title {
+        font-weight: 600;
+        color: #333;
+        text-decoration: none;
+    }
+    
+    .item-title:hover {
+        color: #667eea;
+    }
+    
+    .item-meta {
+        font-size: 0.875rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        color: #666;
+    }
+    
+    .badge-success {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #28a745, #20c997);
+        transition: width 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Welcome back, {{ user.get_full_name|default:user.username }}!</h1>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">{{ total_uploads }}</span>
+                <div class="stat-label">Total Datasets</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">{{ total_downloads_received }}</span>
+                <div class="stat-label">Downloads Received</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">{{ total_views_received }}</span>
+                <div class="stat-label">Views Received</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">{{ downloads_remaining }}</span>
+                <div class="stat-label">Downloads Remaining</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Download Quota Progress -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <h5>Monthly Download Quota</h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>{{ user_profile.downloads_this_month }} / {{ user_profile.monthly_download_limit }} used</span>
+                    <span>{{ downloads_remaining }} remaining</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {% widthratio user_profile.downloads_this_month user_profile.monthly_download_limit 100 %}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Recent Datasets -->
+        <div class="col-lg-6">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Your Recent Datasets</h5>
+                    <a href="{% url 'dataset:my_datasets' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                
+                {% if user_datasets %}
+                    {% for dataset in user_datasets %}
+                        <div class="dataset-item">
+                            <a href="{% url 'dataset:detail' dataset.pk %}" class="item-title">{{ dataset.title }}</a>
+                            <div class="item-meta">
+                                <span class="badge">{{ dataset.downloads }} downloads</span>
+                                <span class="badge">{{ dataset.views }} views</span>
+                                <span class="ms-2">{{ dataset.created_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">You haven't uploaded any datasets yet. <a href="{% url 'dataset:upload' %}">Upload your first dataset</a></p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Recent Downloads -->
+        <div class="col-lg-6">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Your Recent Downloads</h5>
+                    <a href="{% url 'dataset:my_downloads' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                
+                {% if user_downloads %}
+                    {% for download in user_downloads %}
+                        <div class="download-item">
+                            <a href="{% url 'dataset:detail' download.dataset.pk %}" class="item-title">{{ download.dataset.title }}</a>
+                            <div class="item-meta">
+                                <span>by {{ download.dataset.author.username }}</span>
+                                <span class="ms-2">{{ download.created_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">You haven't downloaded any datasets yet. <a href="{% url 'dataset:list' %}">Browse datasets</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Transactions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Recent Token Transactions</h5>
+                    <a href="{% url 'accounts:transactions' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                
+                {% if recent_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Description</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge {% if transaction.transaction_type == 'credit' %}badge-success{% else %}badge-warning{% endif %}">
+                                                {{ transaction.get_transaction_type_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if transaction.transaction_type == 'credit' %}+{% else %}-{% endif %}{{ transaction.amount }} tokens
+                                        </td>
+                                        <td>{{ transaction.description|default:"—" }}</td>
+                                        <td>{{ transaction.created_at|date:"M d, Y g:i A" }}</td>
+                                        <td>
+                                            <span class="badge {% if transaction.status == 'completed' %}badge-success{% else %}badge-warning{% endif %}">
+                                                {{ transaction.get_status_display }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No token transactions yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <h5 class="mb-3">Quick Actions</h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{% url 'dataset:upload' %}" class="btn btn-primary btn-block mb-2">Upload Dataset</a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'dataset:list' %}" class="btn btn-outline-primary btn-block mb-2">Browse Datasets</a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary btn-block mb-2">Edit Profile</a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'accounts:settings' %}" class="btn btn-outline-secondary btn-block mb-2">Account Settings</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any dashboard-specific JavaScript here
+    
+    // Example: Auto-refresh stats every 30 seconds
+    // setInterval(function() {
+    //     // AJAX call to refresh stats
+    // }, 30000);
+});
+</script>
+{% endblock %}
