@@ -164,7 +164,9 @@
       <h2 class="text-lg font-semibold text-gray-700 mb-3">Data Visualization</h2>
       {% if graph_data %}
       <div class="mb-2 text-sm text-gray-600">
-        Showing visualization for: <span class="font-semibold">{{ graph_data.datasets|safe|first.label|default:"First numeric column" }}</span>
+        {% with first_dataset=graph_data.datasets|first %}
+          Showing visualization for: <span class="font-semibold">{{ first_dataset.label|default:"First numeric column" }}</span>
+        {% endwith %}
       </div>
       <canvas id="dataChart" height="120"></canvas>
       {% else %}
