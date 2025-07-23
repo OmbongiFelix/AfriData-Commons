@@ -53,6 +53,11 @@
         margin-bottom: 0.5rem;
     }
     
+    .form-label.required::after {
+        content: " *";
+        color: #ef4444;
+    }
+    
     .form-input {
         width: 100%;
         padding: 0.75rem;
@@ -66,6 +71,10 @@
         outline: none;
         border-color: #667eea;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-input.error {
+        border-color: #ef4444;
     }
     
     .form-textarea {
@@ -116,6 +125,12 @@
         gap: 1rem;
     }
     
+    .form-row-three {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+    }
+    
     .btn {
         padding: 0.75rem 2rem;
         font-weight: 500;
@@ -162,8 +177,38 @@
         margin-top: 0.25rem;
     }
     
+    .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    /* Messages styling */
+    .messages {
+        margin-bottom: 1rem;
+    }
+    
+    .message {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .message.success {
+        background-color: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+    
+    .message.error {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+    
     @media (max-width: 768px) {
-        .form-row {
+        .form-row,
+        .form-row-three {
             grid-template-columns: 1fr;
         }
         
@@ -202,6 +247,17 @@
             <p>Update your information and preferences</p>
         </div>
         
+        <!-- Display messages -->
+        {% if messages %}
+            <div class="messages" style="padding: 1rem 2rem 0;">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
         <form method="post" enctype="multipart/form-data" class="profile-form">
             {% csrf_token %}
             
@@ -210,13 +266,14 @@
                 <h2 class="section-title">Personal Information</h2>
                 
                 <div class="form-group">
-                    <label for="full_name" class="form-label">Full Name</label>
+                    <label for="full_name" class="form-label required">Full Name</label>
                     <input type="text" 
                            id="full_name" 
                            name="full_name" 
                            class="form-input" 
                            value="{{ user.full_name|default:'' }}"
-                           placeholder="Enter your full name">
+                           placeholder="Enter your full name"
+                           required>
                 </div>
                 
                 <div class="form-group">
@@ -228,7 +285,7 @@
                     <div class="help-text">A brief description about yourself (optional)</div>
                 </div>
                 
-                <div class="form-row">
+                <div class="form-row-three">
                     <div class="form-group">
                         <label for="phone_number" class="form-label">Phone Number</label>
                         <input type="tel" 
@@ -237,6 +294,16 @@
                                class="form-input" 
                                value="{{ user.phone_number|default:'' }}"
                                placeholder="+254 716 673 394">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date_of_birth" class="form-label">Date of Birth</label>
+                        <input type="date" 
+                               id="date_of_birth" 
+                               name="date_of_birth" 
+                               class="form-input" 
+                               value="{{ user.date_of_birth|date:'Y-m-d'|default:'' }}">
+                        <div class="help-text">Your date of birth (optional)</div>
                     </div>
                     
                     <div class="form-group">
@@ -368,7 +435,9 @@ document.getElementById('profile_picture').addEventListener('change', function(e
     const fileName = e.target.files[0]?.name;
     const label = document.querySelector('.file-input-label');
     if (fileName) {
-        label.innerHTML = `<strong>Selected:</strong> ${fileName}`;
+        label.innerHTML = `<strong>Selected:</strong> ${fileName}<div class="help-text">PNG, JPG, GIF up to 10MB</div>`;
+    } else {
+        label.innerHTML = `<strong>Choose a file</strong> or drag it here<div class="help-text">PNG, JPG, GIF up to 10MB</div>`;
     }
 });
 
@@ -377,21 +446,97 @@ document.querySelector('.profile-form').addEventListener('submit', function(e) {
     const requiredFields = ['full_name'];
     let isValid = true;
     
+    // Clear previous error states
+    document.querySelectorAll('.form-input').forEach(field => {
+        field.classList.remove('error');
+    });
+    
+    // Remove existing error messages
+    document.querySelectorAll('.error-message').forEach(msg => {
+        msg.remove();
+    });
+    
     requiredFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field && !field.value.trim()) {
-            field.style.borderColor = '#ef4444';
+            field.classList.add('error');
+            
+            // Add error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = 'This field is required.';
+            field.parentNode.appendChild(errorDiv);
+            
             isValid = false;
-        } else if (field) {
-            field.style.borderColor = '#e5e7eb';
         }
     });
     
+    // Validate URL fields
+    const urlFields = ['website', 'linkedin_url', 'github_url'];
+    urlFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field && field.value.trim()) {
+            try {
+                new URL(field.value);
+            } catch (e) {
+                field.classList.add('error');
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = 'Please enter a valid URL.';
+                field.parentNode.appendChild(errorDiv);
+                
+                isValid = false;
+            }
+        }
+    });
+    
+    // Validate phone number format (basic validation)
+    const phoneField = document.getElementById('phone_number');
+    if (phoneField && phoneField.value.trim()) {
+        const phonePattern = /^[\+]?[1-9][\d]{0,15}$/;
+        if (!phonePattern.test(phoneField.value.replace(/[\s\-\(\)]/g, ''))) {
+            phoneField.classList.add('error');
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = 'Please enter a valid phone number.';
+            phoneField.parentNode.appendChild(errorDiv);
+            
+            isValid = false;
+        }
+    }
+    
     if (!isValid) {
         e.preventDefault();
-        alert('Please fill in all required fields.');
+        
+        // Scroll to first error
+        const firstError = document.querySelector('.form-input.error');
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstError.focus();
+        }
     }
+});
+
+// Real-time validation for required fields
+document.getElementById('full_name').addEventListener('input', function() {
+    if (this.value.trim()) {
+        this.classList.remove('error');
+        const errorMsg = this.parentNode.querySelector('.error-message');
+        if (errorMsg) errorMsg.remove();
+    }
+});
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const messages = document.querySelectorAll('.message');
+    messages.forEach(message => {
+        setTimeout(() => {
+            message.style.opacity = '0';
+            setTimeout(() => message.remove(), 300);
+        }, 5000);
+    });
 });
 </script>
 {% endblock %}
-
