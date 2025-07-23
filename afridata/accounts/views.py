@@ -1,28 +1,34 @@
-# accounts/views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
-from django.views.decorators.http import require_http_methods
-from django.core.exceptions import ValidationError
-from django.contrib.auth.password_validation import validate_password
-from django.db import transaction
-from .models import CustomUser, UserProfile, LoginAttempt
-import re
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.urls import reverse
+import io
+import json
 import logging
-from django.utils.http import url_has_allowed_host_and_scheme
-from django.contrib.auth import get_user_model
-from django.db.models import Avg, Count, Sum
-from django.utils import timezone
-from datetime import timedelta
+import numpy as np
+import pandas as pd
+import re
 
-# Import the Dataset model
-from dataset.models import Dataset, Comment  # Adjust the import path if needed
+from datetime import date, timedelta
+
+from django.contrib import messages
+from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Avg, Count, Q, Sum
+from django.http import Http404, HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.http import require_http_methods, require_POST
+
+from accounts.models import CustomUser, LoginAttempt, TokenPurchase, UserProfile
+from dataset.forms import DatasetUploadForm
+from dataset.models import Comment, Dataset, Download, PremiumPurchase, Referral, TokenTransaction
+
+User = get_user_model()
+
 
 
 def terms(request):
@@ -205,6 +211,8 @@ def process_signup(request):
         username = request.POST.get('username', '').strip().lower()
         phone_number = request.POST.get('phone_number', '').strip()
         bio = request.POST.get('bio', '').strip()
+        date_of_birth = request.POST.get('date_of_birth', '')
+        referral_code = request.POST.get('referral_code', '').strip()
         
         logger.debug(f"Extracted data - Email: {email}, Full name: {full_name}, Username: {username}")
         
@@ -231,9 +239,8 @@ def process_signup(request):
         elif len(full_name) < 2:
             errors.append('Full name must be at least 2 characters long.')
             
-        # ISSUE 1: Username field is missing from your HTML form!
+        # Generate username from full_name or email if not provided
         if not username:
-            # Generate username from full_name or email if not provided
             if full_name:
                 username = full_name.lower().replace(' ', '_')
             else:
@@ -251,6 +258,14 @@ def process_signup(request):
             errors.append('Username already exists.')
         elif not re.match(r'^[a-zA-Z0-9_]+$', username):
             errors.append('Username can only contain letters, numbers, and underscores.')
+        
+        # Validate referral code if provided
+        referrer = None
+        if referral_code:
+            try:
+                referrer = CustomUser.objects.get(referral_code=referral_code)
+            except CustomUser.DoesNotExist:
+                errors.append('Invalid referral code.')
         
         # Validate password strength
         try:
@@ -277,14 +292,23 @@ def process_signup(request):
                 full_name=full_name,
                 phone_number=phone_number,
                 bio=bio,
-                last_login_ip=get_client_ip(request)
+                last_login_ip=get_client_ip(request),
+                referred_by=referrer
             )
+            
+            # Add date_of_birth if provided
+            if date_of_birth:
+                try:
+                    from datetime import datetime
+                    user.date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+                    user.save()
+                except ValueError:
+                    pass  # Invalid date format, skip
             
             logger.debug(f"User created with ID: {user.id}")
             
-            # Create user profile
-            profile = UserProfile.objects.create(user=user)
-            logger.debug(f"Profile created with ID: {profile.id}")
+            # The UserProfile will be created automatically by the post_save signal
+            # along with signup bonus and referral handling
             
             # Log successful signup attempt
             LoginAttempt.objects.create(
@@ -298,7 +322,7 @@ def process_signup(request):
             login(request, user)
             logger.debug("User logged in successfully")
             
-            messages.success(request, f'Welcome to our platform, {user.get_short_name()}! Your account has been created successfully.')
+            messages.success(request, f'Welcome to our platform, {user.get_short_name()}! Your account has been created successfully and you received 50 welcome tokens.')
             return redirect(next_url)
             
     except Exception as e:
@@ -318,21 +342,123 @@ def process_signup(request):
         return redirect(f"{reverse('login_signup')}?next={next_url}")
 
 
-@login_required       
-def home_page(request):
-    """Render authenticated user's home page"""
+
+
+User = get_user_model()
+
+@login_required
+def home(request):
+    """Comprehensive home page view with all necessary data"""
     user = request.user
     
-    # Get user's recent activity or stats
+    # Get or create user profile
+    try:
+        profile = user.profile
+    except UserProfile.DoesNotExist:
+        profile = UserProfile.objects.create(user=user)
+    
+    # Reset monthly downloads if needed
+    profile.reset_monthly_downloads_if_needed()
+    
+    # User-specific data
+    user_downloads = Download.objects.filter(user=user).count()
+    user_uploads = Dataset.objects.filter(author=user).count()
+    user_datasets = Dataset.objects.filter(author=user).order_by('-created_at')[:5]
+    referrals_count = User.objects.filter(referred_by=user).count()
+    
+    # Recent token transactions
+    recent_transactions = TokenTransaction.objects.filter(
+        user=user
+    ).order_by('-created_at')[:5]
+    
+    # Platform statistics
+    total_researchers = User.objects.count()
+    total_datasets = Dataset.objects.count()
+    total_downloads = Dataset.objects.aggregate(Sum('downloads'))['downloads__sum'] or 0
+    total_views = Dataset.objects.aggregate(Sum('views'))['views__sum'] or 0
+    
+    # Trending datasets (most downloaded in the last week)
+    trending_datasets = Dataset.objects.select_related('author').annotate(
+        recent_growth=Count('id')
+    ).order_by('-downloads', '-views')[:3]
+    
+    # Get top categories with counts
+    all_datasets = Dataset.objects.all()
+    category_counts = {}
+    
+    for dataset in all_datasets:
+        topics = dataset.get_topics_list()
+        for topic in topics:
+            topic_lower = topic.lower().strip()
+            if topic_lower in category_counts:
+                category_counts[topic_lower] += 1
+            else:
+                category_counts[topic_lower] = 1
+    
+    # Sort categories by count and get top categories
+    top_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)[:4]
+    
+    # Popular search terms (based on topics)
+    popular_terms = [category[0].title() for category in top_categories[:6]] if top_categories else []
+    
+    # Featured datasets
+    featured_datasets = Dataset.objects.select_related('author').order_by('-rating', '-downloads')[:4]
+    
+    # File format counts
+    format_counts = {
+        'csv': Dataset.objects.filter(dataset_type='csv').count(),
+        'excel': Dataset.objects.filter(dataset_type='excel').count(),
+        'pdf': Dataset.objects.filter(dataset_type='pdf').count(),
+        'txt': Dataset.objects.filter(dataset_type='txt').count(),
+        'json': Dataset.objects.filter(dataset_type='json').count(),
+        'yaml': Dataset.objects.filter(dataset_type='yaml').count(),
+        'xml': Dataset.objects.filter(dataset_type='xml').count(),
+        'zip': Dataset.objects.filter(dataset_type='zip').count(),
+        'parquet': Dataset.objects.filter(dataset_type='parquet').count(),
+    }
+    
     context = {
+        # User profile data
         'user': user,
+        'profile': profile,
         'full_name': user.get_full_name(),
         'member_since': user.created_at,
         'profile_complete': bool(user.full_name and user.email),
         'page_title': f'Welcome, {user.get_short_name()}',
+        
+        # Token data
+        'token_balance': profile.token_balance,
+        'total_tokens_earned': profile.total_tokens_earned,
+        'total_tokens_spent': profile.total_tokens_spent,
+        'recent_transactions': recent_transactions,
+        
+        # User datasets and activity
+        'user_datasets': user_datasets,
+        'user_downloads': user_downloads,
+        'user_uploads': user_uploads,
+        'downloads_remaining': profile.monthly_download_limit - profile.downloads_this_month,
+        
+        # Referral data
+        'referrals_count': referrals_count,
+        'referral_code': user.referral_code,
+        'is_premium': profile.is_premium_subscriber,
+        
+        # Platform statistics
+        'total_datasets': total_datasets,
+        'total_downloads': total_downloads,
+        'total_views': total_views,
+        'total_countries': 54,  # Static for now
+        'total_researchers': total_researchers,
+        
+        # Content data
+        'trending_datasets': trending_datasets,
+        'top_categories': top_categories,
+        'popular_terms': popular_terms,
+        'featured_datasets': featured_datasets,
+        'format_counts': format_counts,
     }
     
-    return render(request, 'accounts/home.html', context)
+    return render(request, 'home.html', context)
 
 
 @login_required
@@ -361,14 +487,26 @@ def check_username_exists(request):
         username = request.GET.get('username', '').strip().lower()
         exists = CustomUser.objects.filter(username=username).exists()
         return JsonResponse({'exists': exists})
-    return JsonResponse({'error': 'Invalid request'})   
+    return JsonResponse({'error': 'Invalid request'})
+
+
+# Check if referral code is valid (AJAX endpoint)
+def check_referral_code(request):
+    """Check if referral code is valid"""
+    if request.method == 'GET':
+        referral_code = request.GET.get('referral_code', '').strip()
+        if referral_code:
+            exists = CustomUser.objects.filter(referral_code=referral_code).exists()
+            return JsonResponse({'valid': exists})
+        return JsonResponse({'valid': False})
+    return JsonResponse({'error': 'Invalid request'})
 
 
 User = get_user_model()
 
 @login_required
 def profile_view(request):
-    """Displays user profile with dynamic data"""
+    """Displays user profile with dynamic data including token information"""
     user = request.user
     
     # Get or create user profile
@@ -376,6 +514,9 @@ def profile_view(request):
         profile = user.profile
     except UserProfile.DoesNotExist:
         profile = UserProfile.objects.create(user=user)
+    
+    # Reset monthly downloads if needed
+    profile.reset_monthly_downloads_if_needed()
     
     # Get user's datasets
     user_datasets = Dataset.objects.filter(author=user).order_by('-created_at')
@@ -389,23 +530,42 @@ def profile_view(request):
     user_stats = {
         'datasets_uploaded': user_datasets.count(),
         'total_downloads': total_downloads,
-        'profile_views': total_views,  # Using dataset views as proxy for profile views
-        'stars_collected': int(average_rating * user_datasets.count()),  # Calculate total stars
+        'profile_views': total_views,
+        'stars_collected': int(average_rating * user_datasets.count()),
         'total_reviews': total_comments,
         'average_rating': round(average_rating, 1),
     }
+    
+    # Get recent token transactions
+    recent_transactions = TokenTransaction.objects.filter(
+        user=user
+    ).order_by('-created_at')[:10]
+    
+    # Get referral information
+    referrals = CustomUser.objects.filter(referred_by=user).order_by('-created_at')
+    referrals_count = referrals.count()
+    
+    # Get token purchases
+    recent_purchases = TokenPurchase.objects.filter(
+        user=user,
+        payment_status='completed'
+    ).order_by('-created_at')[:5]
     
     context = {
         'user': user,
         'profile': profile,
         'user_stats': user_stats,
         'user_datasets': user_datasets,
+        'recent_transactions': recent_transactions,
+        'referrals': referrals,
+        'referrals_count': referrals_count,
+        'recent_purchases': recent_purchases,
         'page_title': f"{user.get_full_name()}'s Profile" if user.get_full_name() else f"{user.username}'s Profile"
     }
     
     return render(request, 'accounts/profile.html', context)
 
-# Optional: Add edit profile view
+
 @login_required
 def edit_profile_view(request):
     """Edit user profile"""
@@ -418,29 +578,45 @@ def edit_profile_view(request):
     
     if request.method == 'POST':
         # Handle form submission
-        # Update user fields
-        user.full_name = request.POST.get('full_name', user.full_name)
-        user.bio = request.POST.get('bio', user.bio)
-        user.phone_number = request.POST.get('phone_number', user.phone_number)
-        
-        # Handle profile picture upload
-        if 'profile_picture' in request.FILES:
-            user.profile_picture = request.FILES['profile_picture']
-        
-        user.save()
-        
-        # Update profile fields
-        profile.location = request.POST.get('location', profile.location)
-        profile.organization = request.POST.get('organization', profile.organization)
-        profile.job_title = request.POST.get('job_title', profile.job_title)
-        profile.website = request.POST.get('website', profile.website)
-        profile.linkedin_url = request.POST.get('linkedin_url', profile.linkedin_url)
-        profile.github_url = request.POST.get('github_url', profile.github_url)
-        profile.twitter_handle = request.POST.get('twitter_handle', profile.twitter_handle)
-        
-        profile.save()
-        
-        return redirect('profile')
+        try:
+            with transaction.atomic():
+                # Update user fields
+                user.full_name = request.POST.get('full_name', user.full_name)
+                user.bio = request.POST.get('bio', user.bio)
+                user.phone_number = request.POST.get('phone_number', user.phone_number)
+                
+                # Handle date of birth
+                date_of_birth = request.POST.get('date_of_birth')
+                if date_of_birth:
+                    from datetime import datetime
+                    try:
+                        user.date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+                    except ValueError:
+                        messages.error(request, 'Invalid date format.')
+                        return redirect('edit_profile')
+                
+                # Handle profile picture upload
+                if 'profile_picture' in request.FILES:
+                    user.profile_picture = request.FILES['profile_picture']
+                
+                user.save()
+                
+                # Update profile fields
+                profile.location = request.POST.get('location', profile.location)
+                profile.organization = request.POST.get('organization', profile.organization)
+                profile.job_title = request.POST.get('job_title', profile.job_title)
+                profile.website = request.POST.get('website', profile.website)
+                profile.linkedin_url = request.POST.get('linkedin_url', profile.linkedin_url)
+                profile.github_url = request.POST.get('github_url', profile.github_url)
+                profile.twitter_handle = request.POST.get('twitter_handle', profile.twitter_handle)
+                
+                profile.save()
+                
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('profile')
+                
+        except Exception as e:
+            messages.error(request, f'Error updating profile: {str(e)}')
     
     context = {
         'user': user,
@@ -450,14 +626,14 @@ def edit_profile_view(request):
     
     return render(request, 'accounts/edit_profile.html', context)
 
-# Optional: Public profile view for other users
+
 def public_profile_view(request, user_id):
     """View other user's public profile"""
     try:
-        profile_user = User.objects.get(id=user_id)
+        profile_user = get_object_or_404(CustomUser, id=user_id)
         profile = profile_user.profile
-    except (User.DoesNotExist, UserProfile.DoesNotExist):
-        return redirect('home')
+    except UserProfile.DoesNotExist:
+        profile = UserProfile.objects.create(user=profile_user)
     
     # Get user's datasets
     user_datasets = Dataset.objects.filter(author=profile_user).order_by('-created_at')
@@ -477,9 +653,6 @@ def public_profile_view(request, user_id):
         'average_rating': round(average_rating, 1),
     }
     
-    # Track profile view (optional)
-    # You might want to implement a ProfileView model to track this
-    
     context = {
         'user': profile_user,
         'profile': profile,
@@ -490,4 +663,71 @@ def public_profile_view(request, user_id):
     }
     
     return render(request, 'accounts/public_profile.html', context)
+
+
+@login_required
+def token_dashboard(request):
+    """Display user's token dashboard"""
+    user = request.user
+    profile = user.profile
+    
+    # Get token transactions
+    transactions = TokenTransaction.objects.filter(
+        user=user
+    ).order_by('-created_at')
+    
+    # Get token purchases
+    purchases = TokenPurchase.objects.filter(
+        user=user
+    ).order_by('-created_at')
+    
+    # Get referral earnings
+    referral_earnings = TokenTransaction.objects.filter(
+        user=user,
+        transaction_type='referral_bonus'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    context = {
+        'profile': profile,
+        'transactions': transactions,
+        'purchases': purchases,
+        'referral_earnings': referral_earnings,
+        'page_title': 'Token Dashboard'
+    }
+    
+    return render(request, 'accounts/token_dashboard.html', context)
+
+
+@login_required 
+def referrals_view(request):
+    """Display user's referral information"""
+    user = request.user
+    
+    # Get referred users
+    referred_users = CustomUser.objects.filter(referred_by=user).order_by('-created_at')
+    
+    # Get referral bonuses earned
+    referral_bonuses = TokenTransaction.objects.filter(
+        user=user,
+        transaction_type='referral_bonus'
+    ).order_by('-created_at')
+    
+    total_referral_earnings = referral_bonuses.aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+    
+    context = {
+        'referred_users': referred_users,
+        'referral_bonuses': referral_bonuses,
+        'total_referral_earnings': total_referral_earnings,
+        'referral_code': user.referral_code,
+        'referrals_count': referred_users.count(),
+        'page_title': 'Referrals'
+    }
+    
+    return render(request, 'accounts/referrals.html', context)
+
+@login_required
+def token_purchase(request):
+    return render(request, 'accounts/token_purchase.html')
 

@@ -1,5 +1,3 @@
-{% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,9 +6,110 @@
   <title>AfriData - Login / Sign Up</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'accounts/css/login.css' %}">
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .input-focus {
+      transition: all 0.3s ease;
+    }
+    .input-focus:focus {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    .btn-hover {
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    .btn-hover::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    .btn-hover:hover::before {
+      left: 100%;
+    }
+    .tab-active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+    .floating-label {
+      transition: all 0.3s ease;
+    }
+    .input-group:focus-within .floating-label {
+      transform: translateY(-20px) scale(0.8);
+      color: #667eea;
+    }
+    .input-group input:not(:placeholder-shown) + .floating-label {
+      transform: translateY(-20px) scale(0.8);
+      color: #667eea;
+    }
+    .slide-in {
+      animation: slideIn 0.5s ease-out;
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    .pulse-ring {
+      animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+    }
+    @keyframes pulse-ring {
+      0% {
+        transform: scale(0.8);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(2.4);
+        opacity: 0;
+      }
+    }
+    .strength-meter {
+      height: 4px;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    .error-message {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 4px solid #ef4444;
+      animation: shake 0.5s ease-in-out;
+    }
+    .success-message {
+      background: rgba(34, 197, 94, 0.1);
+      border-left: 4px solid #22c55e;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+  </style>
 </head>
 <body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+  <!-- Django Messages Display -->
+  <div id="messages-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
   <div class="glass-effect shadow-2xl rounded-2xl w-full max-w-md p-8 relative z-10">
     <!-- Logo/Header -->
     <div class="text-center mb-8">
@@ -34,16 +133,11 @@
     </div>
 
     <!-- Login Form -->
-    <form id="loginForm" method="POST" action="{% url 'authenticate_login' %}" class="slide-in">
+    <form id="loginForm" method="POST" action="/accounts/login/" class="slide-in">
       {% csrf_token %}
-
-      <!-- IMPORTANT: Preserve next parameter from both GET and POST -->
-      {% if request.GET.next %}
-        <input type="hidden" name="next" value="{{ request.GET.next }}">
-      {% endif %}
-      {% if request.POST.next %}
-        <input type="hidden" name="next" value="{{ request.POST.next }}">
-      {% endif %}
+      
+      <!-- Preserve next parameter -->
+      <input type="hidden" name="next" id="loginNext" value="">
 
       <div class="input-group relative mb-6">
         <input type="email" name="email" id="loginEmail" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-blue-500 focus:outline-none peer" required />
@@ -67,7 +161,7 @@
           <input type="checkbox" name="remember_me" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
           <span class="ml-2 text-sm text-gray-600">Remember me</span>
         </label>
-        <a href="#" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">Forgot password?</a>
+        <a href="/accounts/password-reset/" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">Forgot password?</a>
       </div>
 
       <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold btn-hover">
@@ -76,11 +170,10 @@
     </form>
 
     <!-- Sign Up Form -->
-    <form id="signupForm" method="POST" action="{% url 'process_signup' %}" class="hidden">
+    <form id="signupForm" method="POST" action="/accounts/signup/" class="hidden">
       {% csrf_token %}
-      {% if request.GET.next %}
-        <input type="hidden" name="next" value="{{ request.GET.next }}">
-      {% endif %}
+      <!-- Preserve next parameter -->
+      <input type="hidden" name="next" id="signupNext" value="">
       
       <div class="input-group relative mb-6">
         <input type="text" name="full_name" id="signupName" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" required />
@@ -89,11 +182,11 @@
         </label>
       </div>
 
-      <!-- ADDED: Username field -->
+      <!-- Username field -->
       <div class="input-group relative mb-6">
-        <input type="text" name="username" id="signupUsername" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" required />
+        <input type="text" name="username" id="signupUsername" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" />
         <label for="signupUsername" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
-          <i class="fas fa-at mr-2"></i>Username
+          <i class="fas fa-at mr-2"></i>Username (optional)
         </label>
         <div class="absolute right-3 top-3" id="usernameAvailability">
           <i class="fas fa-spinner fa-spin text-gray-400 hidden" id="usernameLoading"></i>
@@ -112,6 +205,14 @@
           <i class="fas fa-times text-red-500 hidden" id="emailTaken"></i>
           <i class="fas fa-check text-green-500 hidden" id="emailAvailable"></i>
         </div>
+      </div>
+
+      <!-- Optional Phone Number -->
+      <div class="input-group relative mb-6">
+        <input type="tel" name="phone_number" id="signupPhone" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" />
+        <label for="signupPhone" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
+          <i class="fas fa-phone mr-2"></i>Phone Number (optional)
+        </label>
       </div>
 
       <div class="input-group relative mb-4">
@@ -146,23 +247,67 @@
         </div>
       </div>
 
+      <!-- Optional Bio -->
+      <div class="input-group relative mb-6">
+        <textarea name="bio" id="signupBio" placeholder=" " rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer resize-none"></textarea>
+        <label for="signupBio" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
+          <i class="fas fa-info-circle mr-2"></i>Bio (optional)
+        </label>
+      </div>
+
+      <!-- Optional Date of Birth -->
+      <div class="input-group relative mb-6">
+        <input type="date" name="date_of_birth" id="signupDOB" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" />
+        <label for="signupDOB" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
+          <i class="fas fa-calendar mr-2"></i>Date of Birth (optional)
+        </label>
+      </div>
+
+      <!-- Optional Referral Code -->
+      <div class="input-group relative mb-6">
+        <input type="text" name="referral_code" id="signupReferral" placeholder=" " class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus focus:border-green-500 focus:outline-none peer" />
+        <label for="signupReferral" class="floating-label absolute left-4 top-3 text-gray-500 pointer-events-none">
+          <i class="fas fa-gift mr-2"></i>Referral Code (optional)
+        </label>
+      </div>
+
       <div class="mb-6">
         <label class="flex items-start">
           <input type="checkbox" name="terms" class="mt-1 rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200" required>
           <span class="ml-2 text-sm text-gray-600">
-            I agree to the <a href="{% url 'terms' %}" class="text-green-600 hover:text-green-800">Terms of Service</a> and 
-            <a href="{% url 'privacy_policy' %}" class="text-green-600 hover:text-green-800">Privacy Policy</a>
+            I agree to the <a href="/legal/terms/" class="text-green-600 hover:text-green-800">Terms of Service</a> and 
+            <a href="/legal/privacy/" class="text-green-600 hover:text-green-800">Privacy Policy</a>
           </span>
         </label>
       </div>
 
-      <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 rounded-xl font-semibold btn-hover">
+      <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 rounded-xl font-semibold btn-hover" id="signupSubmit">
         <i class="fas fa-user-plus mr-2"></i>Create Account
       </button>
     </form>
   </div>
 
   <script>
+    // Initialize page based on URL parameters
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const mode = urlParams.get('mode');
+      const next = urlParams.get('next') || '/';
+      
+      // Set next parameter for both forms
+      document.getElementById('loginNext').value = next;
+      document.getElementById('signupNext').value = next;
+      
+      // Display Django messages if any (simulate Django messages)
+      displayMessages();
+      
+      if (mode === 'signup') {
+        switchToSignup();
+      } else {
+        switchToLogin();
+      }
+    });
+
     // Tab switching functionality
     const loginTab = document.getElementById('loginTab');
     const signupTab = document.getElementById('signupTab');
@@ -171,36 +316,36 @@
 
     function switchToLogin() {
       loginTab.classList.add('tab-active');
+      loginTab.classList.remove('text-gray-600');
       signupTab.classList.remove('tab-active');
       signupTab.classList.add('text-gray-600');
       loginForm.classList.remove('hidden');
       loginForm.classList.add('slide-in');
       signupForm.classList.add('hidden');
+      
+      // Update URL without refreshing
+      const url = new URL(window.location);
+      url.searchParams.set('mode', 'login');
+      window.history.replaceState({}, '', url);
     }
 
     function switchToSignup() {
       signupTab.classList.add('tab-active');
+      signupTab.classList.remove('text-gray-600');
       loginTab.classList.remove('tab-active');
       loginTab.classList.add('text-gray-600');
       signupForm.classList.remove('hidden');
       signupForm.classList.add('slide-in');
       loginForm.classList.add('hidden');
+      
+      // Update URL without refreshing
+      const url = new URL(window.location);
+      url.searchParams.set('mode', 'signup');
+      window.history.replaceState({}, '', url);
     }
 
     loginTab.addEventListener('click', switchToLogin);
     signupTab.addEventListener('click', switchToSignup);
-
-    // Trigger signup tab based on URL
-    window.addEventListener('DOMContentLoaded', () => {
-      const params = new URLSearchParams(window.location.search);
-      const mode = params.get('mode');
-  
-      if (mode === 'signup') {
-        switchToSignup();
-      } else if (mode === 'login') {
-        switchToLogin();
-      }
-    });
 
     // Password visibility toggle
     function togglePassword(inputId) {
@@ -218,6 +363,25 @@
       }
     }
 
+    // Mock API endpoints for demo (replace with actual Django URLs)
+    function checkEmailAvailability(email) {
+      return new Promise((resolve) => {
+        // Simulate API call
+        setTimeout(() => {
+          resolve({ exists: email === 'test@example.com' });
+        }, 500);
+      });
+    }
+
+    function checkUsernameAvailability(username) {
+      return new Promise((resolve) => {
+        // Simulate API call
+        setTimeout(() => {
+          resolve({ exists: username === 'testuser' });
+        }, 500);
+      });
+    }
+
     // Real-time email availability check
     let emailTimeout;
     document.getElementById('signupEmail').addEventListener('input', function() {
@@ -231,7 +395,7 @@
       emailTaken.classList.add('hidden');
       emailAvailable.classList.add('hidden');
       
-      if (email.length < 3) return;
+      if (email.length < 3 || !email.includes('@')) return;
       
       // Show loading
       emailLoading.classList.remove('hidden');
@@ -239,8 +403,7 @@
       // Debounce the request
       clearTimeout(emailTimeout);
       emailTimeout = setTimeout(() => {
-        fetch(`/api/check-email/?email=${encodeURIComponent(email)}`)
-          .then(response => response.json())
+        checkEmailAvailability(email)
           .then(data => {
             emailLoading.classList.add('hidden');
             if (data.exists) {
@@ -276,8 +439,7 @@
       // Debounce the request
       clearTimeout(usernameTimeout);
       usernameTimeout = setTimeout(() => {
-        fetch(`/api/check-username/?username=${encodeURIComponent(username)}`)
-          .then(response => response.json())
+        checkUsernameAvailability(username)
           .then(data => {
             usernameLoading.classList.add('hidden');
             if (data.exists) {
@@ -333,6 +495,7 @@
 
     signupPassword.addEventListener('input', (e) => {
       checkPasswordStrength(e.target.value);
+      checkPasswordMatch(); // Also check match when password changes
     });
 
     // Password confirmation checker
@@ -360,18 +523,68 @@
     }
 
     confirmPassword.addEventListener('input', checkPasswordMatch);
-    signupPassword.addEventListener('input', checkPasswordMatch);
 
+    // Form submission validation
     signupForm.addEventListener('submit', (e) => {
       const password = signupPassword.value;
       const confirm = confirmPassword.value;
+      const submitBtn = document.getElementById('signupSubmit');
       
       if (password !== confirm) {
         e.preventDefault();
-        alert('Passwords do not match!');
+        showMessage('Passwords do not match!', 'error');
         return;
       }
+
+      // Show loading state
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Account...';
+      submitBtn.disabled = true;
     });
+
+    // Login form submission
+    loginForm.addEventListener('submit', (e) => {
+      const submitBtn = loginForm.querySelector('button[type="submit"]');
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Signing In...';
+      submitBtn.disabled = true;
+    });
+
+    // Message display function
+    function showMessage(message, type = 'info') {
+      const container = document.getElementById('messages-container');
+      const messageDiv = document.createElement('div');
+      
+      const bgColor = type === 'error' ? 'error-message' : 
+                     type === 'success' ? 'success-message' : 'bg-blue-50';
+      const iconClass = type === 'error' ? 'fa-exclamation-circle text-red-500' :
+                       type === 'success' ? 'fa-check-circle text-green-500' : 'fa-info-circle text-blue-500';
+      
+      messageDiv.className = `${bgColor} p-4 rounded-lg shadow-lg max-w-sm`;
+      messageDiv.innerHTML = `
+        <div class="flex items-center">
+          <i class="fas ${iconClass} mr-3"></i>
+          <span class="text-sm font-medium text-gray-800">${message}</span>
+          <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `;
+      
+      container.appendChild(messageDiv);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        if (messageDiv.parentElement) {
+          messageDiv.remove();
+        }
+      }, 5000);
+    }
+
+    // Display messages (simulate Django messages)
+    function displayMessages() {
+      // This would normally be populated by Django template
+      // For demo purposes, you can uncomment to test:
+      // showMessage('Welcome! Please sign in to continue.', 'info');
+    }
   </script>
 </body>
 </html>

@@ -1,0 +1,435 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Token History - {{ user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .token-history-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 0;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        margin: 0;
+    }
+    
+    .balance-card {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .balance-amount {
+        font-size: 2.5rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .balance-label {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+    }
+    
+    .transaction-row {
+        border-bottom: 1px solid #eee;
+        transition: background-color 0.2s ease;
+    }
+    
+    .transaction-row:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .transaction-row:last-child {
+        border-bottom: none;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.6rem;
+        border-radius: 4px;
+    }
+    
+    .badge-credit {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .badge-debit {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .badge-completed {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+    
+    .badge-pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    
+    .badge-failed {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .amount-credit {
+        color: #28a745;
+        font-weight: 600;
+    }
+    
+    .amount-debit {
+        color: #dc3545;
+        font-weight: 600;
+    }
+    
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .pagination {
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .pagination .page-link {
+        border-radius: 6px;
+        margin: 0 2px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+    }
+    
+    @media (max-width: 768px) {
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+        
+        .balance-amount {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-1">Token History</h1>
+                    <p class="text-muted mb-0">Track all your token transactions and balance changes</p>
+                </div>
+                <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Current Balance Card -->
+    <div class="row">
+        <div class="col-lg-4 col-md-6 mx-auto">
+            <div class="balance-card">
+                <span class="balance-amount">{{ user_profile.tokens|default:0 }}</span>
+                <div class="balance-label">Current Token Balance</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filter Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="filter-section">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="transaction_type" class="form-label">Transaction Type</label>
+                        <select name="transaction_type" id="transaction_type" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="credit">Credit</option>
+                            <option value="debit">Debit</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="completed">Completed</option>
+                            <option value="pending">Pending</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date_from" class="form-label">From Date</label>
+                        <input type="date" name="date_from" id="date_from" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date_to" class="form-label">To Date</label>
+                        <input type="date" name="date_to" id="date_to" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <a href="{% url 'accounts:token_history' %}" class="btn btn-outline-secondary ms-2">Clear Filters</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Transactions Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="token-history-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Transaction History
+                        {% if transactions %}
+                            <span class="badge bg-light text-dark ms-2">{{ transactions.paginator.count }} total</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                
+                {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Balance After</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                    <tr class="transaction-row">
+                                        <td>
+                                            <div>{{ transaction.created_at|date:"M d, Y" }}</div>
+                                            <small class="text-muted">{{ transaction.created_at|date:"g:i A" }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-{% if transaction.transaction_type == 'credit' %}credit{% else %}debit{% endif %}">
+                                                {% if transaction.transaction_type == 'credit' %}
+                                                    <i class="fas fa-plus me-1"></i>Credit
+                                                {% else %}
+                                                    <i class="fas fa-minus me-1"></i>Debit
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="amount-{% if transaction.transaction_type == 'credit' %}credit{% else %}debit{% endif %}">
+                                                {% if transaction.transaction_type == 'credit' %}+{% else %}-{% endif %}{{ transaction.amount }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if transaction.description %}
+                                                {{ transaction.description }}
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-{{ transaction.status }}">
+                                                {% if transaction.status == 'completed' %}
+                                                    <i class="fas fa-check me-1"></i>
+                                                {% elif transaction.status == 'pending' %}
+                                                    <i class="fas fa-clock me-1"></i>
+                                                {% elif transaction.status == 'failed' %}
+                                                    <i class="fas fa-times me-1"></i>
+                                                {% endif %}
+                                                {{ transaction.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if transaction.balance_after %}
+                                                <strong>{{ transaction.balance_after }}</strong>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if transactions.has_other_pages %}
+                        <div class="px-3 pb-3">
+                            <nav aria-label="Transaction history pagination">
+                                <ul class="pagination">
+                                    {% if transactions.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1">
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ transactions.previous_page_number }}">
+                                                <i class="fas fa-angle-left"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for num in transactions.paginator.page_range %}
+                                        {% if transactions.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > transactions.number|add:'-3' and num < transactions.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if transactions.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ transactions.next_page_number }}">
+                                                <i class="fas fa-angle-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ transactions.paginator.num_pages }}">
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            
+                            <div class="text-center mt-3">
+                                <small class="text-muted">
+                                    Showing {{ transactions.start_index }} - {{ transactions.end_index }} of {{ transactions.paginator.count }} transactions
+                                </small>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-receipt"></i>
+                        <h4>No Transaction History</h4>
+                        <p class="text-muted">You don't have any token transactions yet.</p>
+                        <a href="{% url 'dataset:upload' %}" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Upload Your First Dataset
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Summary Statistics -->
+    {% if transactions %}
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">Total Credits</h5>
+                        <p class="card-text display-6">+{{ total_credits|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-danger">Total Debits</h5>
+                        <p class="card-text display-6">-{{ total_debits|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">Net Change</h5>
+                        <p class="card-text display-6">{{ net_change|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Preserve filter values after form submission
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Set form values from URL parameters
+    const transactionType = document.getElementById('transaction_type');
+    const status = document.getElementById('status');
+    const dateFrom = document.getElementById('date_from');
+    const dateTo = document.getElementById('date_to');
+    
+    if (transactionType && urlParams.get('transaction_type')) {
+        transactionType.value = urlParams.get('transaction_type');
+    }
+    
+    if (status && urlParams.get('status')) {
+        status.value = urlParams.get('status');
+    }
+    
+    if (dateFrom && urlParams.get('date_from')) {
+        dateFrom.value = urlParams.get('date_from');
+    }
+    
+    if (dateTo && urlParams.get('date_to')) {
+        dateTo.value = urlParams.get('date_to');
+    }
+    
+    // Add smooth scrolling for pagination clicks
+    document.querySelectorAll('.pagination a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            // Let the default action happen, but add smooth scroll
+            setTimeout(() => {
+                document.querySelector('.token-history-card').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
+        });
+    });
+});
+</script>
+{% endblock %}

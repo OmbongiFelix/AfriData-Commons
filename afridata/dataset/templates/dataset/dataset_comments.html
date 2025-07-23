@@ -77,9 +77,12 @@
         <h2 class="text-lg font-semibold text-gray-700">
           All Comments
           {% if comments %}
-          <span class="text-sm font-normal text-gray-500">({{ comments|length }} comments)</span>
+          <span class="text-sm font-normal text-gray-500">({{ comments.paginator.count }} comment{{ comments.paginator.count|pluralize }})</span>
           {% endif %}
         </h2>
+        {% if comments %}
+        <p class="text-xs text-gray-500 mt-1">Sorted by upvotes, then by newest</p>
+        {% endif %}
       </div>
 
       {% if comments %}
@@ -115,7 +118,7 @@
                   {% if user.is_authenticated %}
                   <form method="post" action="{% url 'upvote_comment' comment.id %}" class="inline">
                     {% csrf_token %}
-                    <button type="submit" class="text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1">
+                    <button type="submit" class="text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1" title="Upvote this comment">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
                       </svg>

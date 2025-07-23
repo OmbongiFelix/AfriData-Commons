@@ -29,15 +29,44 @@
             0%, 100% { opacity: 1; }
             50% { opacity: .5; }
         }
+        .token-reward {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { box-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+            to { box-shadow: 0 0 20px rgba(251, 191, 36, 0.8); }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen py-8">
         <div class="max-w-2xl mx-auto px-4">
             <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center mb-6">
-                    <i class="fas fa-cloud-upload-alt text-blue-600 text-2xl mr-3"></i>
-                    <h1 class="text-2xl font-bold text-gray-800">Upload New Dataset</h1>
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-cloud-upload-alt text-blue-600 text-2xl mr-3"></i>
+                        <h1 class="text-2xl font-bold text-gray-800">Upload New Dataset</h1>
+                    </div>
+                    <div class="flex items-center text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full text-sm">
+                        <i class="fas fa-coins mr-2"></i>
+                        <span>Earn tokens for uploads!</span>
+                    </div>
+                </div>
+                
+                <!-- Token Reward Info -->
+                <div class="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle text-yellow-600 mr-3"></i>
+                        <div>
+                            <p class="text-sm text-yellow-800">
+                                <strong>Upload Bonus:</strong> Earn tokens based on your dataset size and quality!
+                            </p>
+                            <p class="text-xs text-yellow-700 mt-1">
+                                Larger, well-documented datasets earn more tokens.
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Progress Bar -->
@@ -58,59 +87,57 @@
                         <i class="fas fa-exclamation-circle mr-2"></i>
                         <span id="error-text"></span>
                     </div>
+                    <div id="token-reward-message" class="hidden p-4 rounded-md token-reward text-white">
+                        <i class="fas fa-coins mr-2"></i>
+                        <span id="token-reward-text"></span>
+                    </div>
                 </div>
 
+                <!-- Django Messages (for non-AJAX fallback) -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="p-4 rounded-md mb-4 {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% endif %}">
+                            {% if message.tags == 'success' %}
+                                <i class="fas fa-check-circle mr-2"></i>
+                            {% elif message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                            {% endif %}
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
                 <form id="upload-form" method="post" enctype="multipart/form-data" class="space-y-6">
-                    <!-- CSRF Token (Django will populate this) -->
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                    {% csrf_token %}
                     
                     <div>
-                        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="id_title" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-heading mr-2"></i>Dataset Title *
                         </label>
-                        <input type="text" 
-                               id="title" 
-                               name="title" 
-                               required 
-                               maxlength="255"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                               placeholder="Enter a descriptive title for your dataset">
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.title.errors.0 }}</div>
+                        {% endif %}
                         <div id="title-error" class="text-red-600 text-sm mt-1 hidden"></div>
                     </div>
 
                     <div>
-                        <label for="dataset_type" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="id_dataset_type" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-file-alt mr-2"></i>Dataset Type *
                         </label>
-                        <select id="dataset_type" 
-                                name="dataset_type" 
-                                required 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Select dataset type</option>
-                            <option value="csv">CSV</option>
-                            <option value="excel">Excel</option>
-                            <option value="pdf">PDF</option>
-                            <option value="txt">Text</option>
-                            <option value="json">JSON</option>
-                            <option value="xml">XML</option>
-                            <option value="zip">ZIP Archive</option>
-                            <option value="yaml">YAML</option>
-                            <option value="parquet">Parquet</option>
-                        </select>
+                        {{ form.dataset_type }}
+                        {% if form.dataset_type.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.dataset_type.errors.0 }}</div>
+                        {% endif %}
                         <div id="dataset_type-error" class="text-red-600 text-sm mt-1 hidden"></div>
                     </div>
 
                     <div>
-                        <label for="file" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="id_file" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-upload mr-2"></i>Dataset File *
                         </label>
                         <div class="file-upload-area rounded-md p-6 text-center cursor-pointer" id="file-upload-area">
-                            <input type="file" 
-                                   id="file" 
-                                   name="file" 
-                                   required 
-                                   accept=".csv,.xlsx,.xls,.pdf,.txt,.json,.xml,.zip,.yaml,.yml,.parquet" 
-                                   class="hidden">
+                            {{ form.file }}
                             <div id="file-upload-content">
                                 <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
                                 <p class="text-gray-600 mb-2">
@@ -127,37 +154,35 @@
                                 </button>
                             </div>
                         </div>
+                        {% if form.file.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.file.errors.0 }}</div>
+                        {% endif %}
                         <div id="file-error" class="text-red-600 text-sm mt-1 hidden"></div>
                     </div>
 
                     <div>
-                        <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="id_bio" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-align-left mr-2"></i>Description *
                         </label>
-                        <textarea id="bio" 
-                                  name="bio" 
-                                  required 
-                                  rows="4" 
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical" 
-                                  placeholder="Describe your dataset, its contents, and potential use cases..."></textarea>
+                        {{ form.bio }}
+                        {% if form.bio.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.bio.errors.0 }}</div>
+                        {% endif %}
                         <div id="bio-error" class="text-red-600 text-sm mt-1 hidden"></div>
                     </div>
 
                     <div>
-                        <label for="topics" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="id_topics" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-tags mr-2"></i>Topics *
                         </label>
-                        <input type="text" 
-                               id="topics" 
-                               name="topics" 
-                               required 
-                               maxlength="500"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                               placeholder="machine learning, data science, statistics, finance">
+                        {{ form.topics }}
                         <p class="text-sm text-gray-500 mt-1">
                             <i class="fas fa-info-circle mr-1"></i>
                             Separate topics with commas (e.g., machine learning, data science, statistics)
                         </p>
+                        {% if form.topics.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.topics.errors.0 }}</div>
+                        {% endif %}
                         <div id="topics-error" class="text-red-600 text-sm mt-1 hidden"></div>
                     </div>
 
@@ -181,7 +206,7 @@
 
     <script>
         // File upload handling
-        const fileInput = document.getElementById('file');
+        const fileInput = document.getElementById('id_file');
         const fileUploadArea = document.getElementById('file-upload-area');
         const fileUploadContent = document.getElementById('file-upload-content');
         const fileSelected = document.getElementById('file-selected');
@@ -198,8 +223,10 @@
         const messageContainer = document.getElementById('message-container');
         const successMessage = document.getElementById('success-message');
         const errorMessage = document.getElementById('error-message');
+        const tokenRewardMessage = document.getElementById('token-reward-message');
         const successText = document.getElementById('success-text');
         const errorText = document.getElementById('error-text');
+        const tokenRewardText = document.getElementById('token-reward-text');
 
         // File size formatter
         function formatFileSize(bytes) {
@@ -211,15 +238,26 @@
         }
 
         // Show message
-        function showMessage(type, message) {
+        function showMessage(type, message, tokensEarned = null) {
             messageContainer.classList.remove('hidden');
+            // Hide all messages first
+            successMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            tokenRewardMessage.classList.add('hidden');
+            
             if (type === 'success') {
                 successMessage.classList.remove('hidden');
-                errorMessage.classList.add('hidden');
                 successText.textContent = message;
+                
+                // Show token reward message if tokens were earned
+                if (tokensEarned && tokensEarned > 0) {
+                    setTimeout(() => {
+                        tokenRewardMessage.classList.remove('hidden');
+                        tokenRewardText.textContent = `🎉 You earned ${tokensEarned} tokens for this upload!`;
+                    }, 1000);
+                }
             } else {
                 errorMessage.classList.remove('hidden');
-                successMessage.classList.add('hidden');
                 errorText.textContent = message;
             }
         }
@@ -229,10 +267,10 @@
             messageContainer.classList.add('hidden');
             successMessage.classList.add('hidden');
             errorMessage.classList.add('hidden');
+            tokenRewardMessage.classList.add('hidden');
         }
 
         // Validate file
-        // Simplified validation - only check file extension and size
         function validateFile(file) {
             const maxSize = 10 * 1024 * 1024; // 10MB
             const allowedExtensions = ['.csv', '.xlsx', '.xls', '.pdf', '.txt', '.json', '.xml', '.zip', '.yaml', '.yml', '.parquet'];
@@ -241,7 +279,6 @@
                 return 'File size must be less than 10MB';
             }
     
-            // Check file extension
             const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
             if (!allowedExtensions.includes(fileExtension)) {
                 return 'Please upload a valid file type: ' + allowedExtensions.join(', ');
@@ -284,7 +321,7 @@
             fileSelected.classList.remove('hidden');
             
             // Auto-detect dataset type
-            const datasetTypeSelect = document.getElementById('dataset_type');
+            const datasetTypeSelect = document.getElementById('id_dataset_type');
             const detectedType = getDatasetTypeFromFile(file.name);
             if (detectedType) {
                 datasetTypeSelect.value = detectedType;
@@ -309,7 +346,7 @@
             fileInput.value = '';
             fileUploadContent.classList.remove('hidden');
             fileSelected.classList.add('hidden');
-            document.getElementById('dataset_type').value = '';
+            document.getElementById('id_dataset_type').value = '';
         });
 
         // Drag and drop
@@ -329,7 +366,9 @@
             
             const files = e.dataTransfer.files;
             if (files.length > 0) {
-                fileInput.files = files;
+                const dt = new DataTransfer();
+                dt.items.add(files[0]);
+                fileInput.files = dt.files;
                 handleFileSelect(files[0]);
             }
         });
@@ -347,7 +386,7 @@
             for (const [field, messages] of Object.entries(errors)) {
                 const errorEl = document.getElementById(`${field}-error`);
                 if (errorEl) {
-                    errorEl.textContent = messages[0];
+                    errorEl.textContent = Array.isArray(messages) ? messages[0] : messages;
                     errorEl.classList.remove('hidden');
                 }
             }
@@ -378,28 +417,25 @@
             // Create FormData
             const formData = new FormData(form);
             
-            // Submit via fetch
-            fetch(form.action || window.location.href, {
+            // Submit via fetch (AJAX)
+            fetch(window.location.href, {
                 method: 'POST',
                 body: formData,
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => {
+            .then(response => response.json())
+            .then(data => {
                 clearInterval(progressInterval);
                 progressFill.style.width = '100%';
                 progressText.textContent = 'Processing...';
                 
-                // Parse JSON response
-                return response.json();
-            })
-            .then(data => {
                 if (data.success) {
-                    showMessage('success', data.message);
+                    showMessage('success', data.message, data.tokens_earned);
                     setTimeout(() => {
                         window.location.href = data.redirect_url;
-                    }, 1500);
+                    }, 2500);
                 } else {
                     // Handle form errors
                     if (data.errors) {
@@ -412,6 +448,12 @@
                 clearInterval(progressInterval);
                 console.error('Upload error:', error);
                 showMessage('error', 'An error occurred during upload. Please try again.');
+                
+                // Fallback to regular form submission
+                setTimeout(() => {
+                    form.removeEventListener('submit', arguments.callee);
+                    form.submit();
+                }, 2000);
             })
             .finally(() => {
                 // Reset form state
@@ -435,7 +477,8 @@
         // Form validation on blur
         document.querySelectorAll('input[required], textarea[required], select[required]').forEach(field => {
             field.addEventListener('blur', function() {
-                const errorEl = document.getElementById(`${this.name}-error`);
+                const fieldName = this.name || this.id.replace('id_', '');
+                const errorEl = document.getElementById(`${fieldName}-error`);
                 if (errorEl) {
                     if (!this.value.trim()) {
                         errorEl.textContent = 'This field is required';
@@ -446,6 +489,9 @@
                 }
             });
         });
+
+        // Initialize file upload area styling
+        fileInput.style.display = 'none';
     </script>
 </body>
 </html>

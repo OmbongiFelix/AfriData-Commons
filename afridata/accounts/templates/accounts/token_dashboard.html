@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>{{ page_title }}</h1>
+        </div>
+    </div>
+
+    <!-- Token Balance Card -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Token Balance</h5>
+                    <h2 class="text-primary">{{ profile.token_balance|default:0 }}</h2>
+                    <small class="text-muted">Available Tokens</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Referral Earnings</h5>
+                    <h2 class="text-success">{{ referral_earnings }}</h2>
+                    <small class="text-muted">Tokens Earned</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Transactions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Transactions</h5>
+                </div>
+                <div class="card-body">
+                    {% if transactions %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in transactions %}
+                                    <tr>
+                                        <td>{{ transaction.created_at|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            <span class="badge {% if transaction.transaction_type == 'referral_bonus' %}badge-success{% elif transaction.transaction_type == 'purchase' %}badge-primary{% elif transaction.transaction_type == 'usage' %}badge-warning{% else %}badge-secondary{% endif %}">
+                                                {{ transaction.transaction_type|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if transaction.amount > 0 %}
+                                                <span class="text-success">+{{ transaction.amount }}</span>
+                                            {% else %}
+                                                <span class="text-danger">{{ transaction.amount }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ transaction.description|default:"-" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No transactions found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Purchases -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Purchase History</h5>
+                </div>
+                <div class="card-body">
+                    {% if purchases %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Price</th>
+                                        <th>Status</th>
+                                        <th>Payment Method</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for purchase in purchases %}
+                                    <tr>
+                                        <td>{{ purchase.created_at|date:"M d, Y H:i" }}</td>
+                                        <td>{{ purchase.token_amount|default:"-" }}</td>
+                                        <td>${{ purchase.price|default:"-" }}</td>
+                                        <td>
+                                            <span class="badge {% if purchase.status == 'completed' %}badge-success{% elif purchase.status == 'pending' %}badge-warning{% elif purchase.status == 'failed' %}badge-danger{% else %}badge-secondary{% endif %}">
+                                                {{ purchase.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ purchase.payment_method|default:"-" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No purchases found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Dashboard - DataVault</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .balance-icon { background: linear-gradient(135deg, #4ade80, #22c55e); }
+        .earned-icon { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .spent-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .referral-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1a202c;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #2d3748;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .purchase-packages {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .package-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            text-align: center;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .package-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .package-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .package-card:hover::before {
+            transform: translateX(0);
+        }
+
+        .package-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .package-tokens {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .package-price {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .buy-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            z-index: 1;
+        }
+
+        .buy-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .transaction-table th,
+        .transaction-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .transaction-table th {
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .transaction-table td {
+            color: #2d3748;
+        }
+
+        .transaction-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .type-download { background: #fee2e2; color: #dc2626; }
+        .type-purchase { background: #dbeafe; color: #2563eb; }
+        .type-referral { background: #dcfce7; color: #16a34a; }
+        .type-signup { background: #fef3c7; color: #d97706; }
+
+        .amount-positive { color: #16a34a; font-weight: 600; }
+        .amount-negative { color: #dc2626; font-weight: 600; }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .purchase-packages {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .transaction-table {
+                font-size: 0.9rem;
+            }
+            
+            .transaction-table th,
+            .transaction-table td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <a href="{% url 'profile' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Profile
+        </a>
+
+        <div class="header">
+            <h1>
+                <i class="fas fa-coins"></i>
+                Token Dashboard
+            </h1>
+            <p>Manage your tokens, view transactions, and purchase more credits</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon balance-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="stat-value">{{ profile.token_balance }}</div>
+                <div class="stat-label">Current Balance</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon earned-icon">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+                <div class="stat-value">{{ profile.total_tokens_earned }}</div>
+                <div class="stat-label">Total Earned</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon spent-icon">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+                <div class="stat-value">{{ profile.total_tokens_spent }}</div>
+                <div class="stat-label">Total Spent</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon referral-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-value">{{ referral_earnings }}</div>
+                <div class="stat-label">Referral Earnings</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-shopping-cart"></i>
+                Purchase Tokens
+            </h2>
+            <div class="purchase-packages">
+                <div class="package-card">
+                    <div class="package-name">Basic Package</div>
+                    <div class="package-tokens">100</div>
+                    <div class="package-price">$10.00</div>
+                    <a href="#" class="buy-btn">Purchase Now</a>
+                </div>
+                <div class="package-card">
+                    <div class="package-name">Standard Package</div>
+                    <div class="package-tokens">500</div>
+                    <div class="package-price">$40.00</div>
+                    <a href="#" class="buy-btn">Purchase Now</a>
+                </div>
+                <div class="package-card">
+                    <div class="package-name">Premium Package</div>
+                    <div class="package-tokens">1,200</div>
+                    <div class="package-price">$80.00</div>
+                    <a href="#" class="buy-btn">Purchase Now</a>
+                </div>
+                <div class="package-card">
+                    <div class="package-name">Mega Package</div>
+                    <div class="package-tokens">3,000</div>
+                    <div class="package-price">$150.00</div>
+                    <a href="#" class="buy-btn">Purchase Now</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i>
+                Recent Transactions
+            </h2>
+            {% if transactions %}
+                <table class="transaction-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.created_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <span class="transaction-type type-{{ transaction.transaction_type }}">
+                                    {% if transaction.transaction_type == 'download_cost' %}
+                                        <i class="fas fa-download"></i> Download
+                                    {% elif transaction.transaction_type == 'purchase' %}
+                                        <i class="fas fa-credit-card"></i> Purchase
+                                    {% elif transaction.transaction_type == 'referral_bonus' %}
+                                        <i class="fas fa-gift"></i> Referral
+                                    {% elif transaction.transaction_type == 'signup_bonus' %}
+                                        <i class="fas fa-star"></i> Welcome
+                                    {% else %}
+                                        <i class="fas fa-circle"></i> {{ transaction.transaction_type|title }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>{{ transaction.description }}</td>
+                            <td>
+                                <span class="{% if transaction.amount >= 0 %}amount-positive{% else %}amount-negative{% endif %}">
+                                    {% if transaction.amount >= 0 %}+{% endif %}{{ transaction.amount }} tokens
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="no-data">
+                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                    <p>No transactions yet. Start downloading datasets or refer friends to earn tokens!</p>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if purchases %}
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-receipt"></i>
+                Purchase History
+            </h2>
+            <table class="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Package</th>
+                        <th>Tokens</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for purchase in purchases %}
+                    <tr>
+                        <td>{{ purchase.created_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ purchase.get_package_display }}</td>
+                        <td>{{ purchase.tokens_purchased }} tokens</td>
+                        <td>${{ purchase.usd_amount }}</td>
+                        <td>
+                            <span class="transaction-type type-{{ purchase.payment_status }}">
+                                {% if purchase.payment_status == 'completed' %}
+                                    <i class="fas fa-check"></i> Completed
+                                {% elif purchase.payment_status == 'pending' %}
+                                    <i class="fas fa-clock"></i> Pending
+                                {% elif purchase.payment_status == 'failed' %}
+                                    <i class="fas fa-times"></i> Failed
+                                {% else %}
+                                    {{ purchase.payment_status|title }}
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

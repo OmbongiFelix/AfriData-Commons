@@ -280,6 +280,97 @@
         margin-top: 1rem;
     }
     
+    /* Dataset Card Styles */
+    .dataset-card {
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1.5rem 2rem;
+        transition: background-color 0.2s ease;
+    }
+    
+    .dataset-card:hover {
+        background-color: #f9fafb;
+    }
+    
+    .dataset-card:last-child {
+        border-bottom: none;
+    }
+    
+    .dataset-header {
+        display: flex;
+        justify-content: between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+    
+    .dataset-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #374151;
+        text-decoration: none;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .dataset-title:hover {
+        color: #667eea;
+    }
+    
+    .dataset-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+    }
+    
+    .dataset-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .dataset-description {
+        color: #6b7280;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+    
+    .dataset-tags {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .dataset-tag {
+        background: #f3f4f6;
+        color: #6b7280;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        text-decoration: none;
+    }
+    
+    .dataset-tag:hover {
+        background: #e5e7eb;
+    }
+    
+    .dataset-stats {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .dataset-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
     @media (max-width: 768px) {
         .profile-container {
             margin: 1rem;
@@ -316,6 +407,16 @@
         
         .profile-actions {
             justify-content: center;
+        }
+        
+        .dataset-card {
+            padding: 1rem;
+        }
+        
+        .dataset-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
         }
     }
     
@@ -410,18 +511,82 @@
     <div class="content-grid">
         <!-- Main Content -->
         <div class="main-content">
-            {% if user_stats.datasets_uploaded > 0 %}
-                <div style="padding: 2rem;">
-                    <h2 class="section-title">📊 Recent Activity</h2>
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📈</div>
-                        <p>User activity and datasets will be displayed here once the dataset functionality is implemented.</p>
-                    </div>
+            {% if user_datasets %}
+                <div style="padding-top: 2rem;">
+                    <h2 class="section-title" style="margin: 0 2rem 1.5rem 2rem;">📊 Datasets ({{ user_datasets.count }})</h2>
+                    
+                    {% for dataset in user_datasets %}
+                        <div class="dataset-card">
+                            <div class="dataset-header">
+                                <div style="flex: 1;">
+                                    <a href="{% url 'dataset_detail' dataset.id %}" class="dataset-title">
+                                        {{ dataset.title }}
+                                    </a>
+                                    
+                                    <div class="dataset-meta">
+                                        <div class="dataset-meta-item">
+                                            <span>📅</span>
+                                            <span>{{ dataset.created_at|date:"M d, Y" }}</span>
+                                        </div>
+                                        <div class="dataset-meta-item">
+                                            <span>📁</span>
+                                            <span>{{ dataset.category|default:"Uncategorized" }}</span>
+                                        </div>
+                                        {% if dataset.file_size %}
+                                            <div class="dataset-meta-item">
+                                                <span>💾</span>
+                                                <span>{{ dataset.file_size|filesizeformat }}</span>
+                                            </div>
+                                        {% endif %}
+                                        {% if dataset.license %}
+                                            <div class="dataset-meta-item">
+                                                <span>📄</span>
+                                                <span>{{ dataset.license }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if dataset.description %}
+                                <div class="dataset-description">
+                                    {{ dataset.description|truncatewords:30|linebreaks }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if dataset.tags.all %}
+                                <div class="dataset-tags">
+                                    {% for tag in dataset.tags.all %}
+                                        <a href="{% url 'search_datasets' %}?tags={{ tag.name }}" class="dataset-tag">
+                                            #{{ tag.name }}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="dataset-stats">
+                                <div class="dataset-stat">
+                                    <span>👁️</span>
+                                    <span>{{ dataset.views|default:0 }} views</span>
+                                </div>
+                                <div class="dataset-stat">
+                                    <span>⬇️</span>
+                                    <span>{{ dataset.downloads|default:0 }} downloads</span>
+                                </div>
+                                {% if dataset.rating > 0 %}
+                                    <div class="dataset-stat">
+                                        <span>⭐</span>
+                                        <span>{{ dataset.rating|floatformat:1 }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             {% else %}
                 <div class="empty-state">
-                    <div class="empty-state-icon">📋</div>
-                    <h3>No Activity Yet</h3>
+                    <div class="empty-state-icon">📊</div>
+                    <h3>No Datasets Yet</h3>
                     <p>{{ user.get_full_name|default:user.username }} hasn't uploaded any datasets yet.</p>
                 </div>
             {% endif %}
@@ -564,7 +729,3 @@
     </div>
 </div>
 {% endblock %}
-
-
-
-
