@@ -726,3 +726,8 @@ def referrals_view(request):
     }
     
     return render(request, 'accounts/referrals.html', context)
+
+@login_required
+def token_purchase(request):
+    return render(request, 'accounts/token_purchase.html')
+
