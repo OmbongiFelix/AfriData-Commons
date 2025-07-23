@@ -1,21 +1,22 @@
-# forms.py
+# dataset/forms.py
 from django import forms
 from .models import Dataset
 
+# Define choices at module level so they can be accessed everywhere
+DATASET_TYPE_CHOICES = [
+    ('', 'Select dataset type'),
+    ('csv', 'CSV'),
+    ('excel', 'Excel'),
+    ('pdf', 'PDF'),
+    ('txt', 'Text'),
+    ('json', 'JSON'),
+    ('xml', 'XML'),
+    ('zip', 'ZIP Archive'),
+    ('yaml', 'YAML'),
+    ('parquet', 'Parquet'),
+]
+
 class DatasetUploadForm(forms.ModelForm):
-    DATASET_TYPE_CHOICES = [
-        ('', 'Select dataset type'),
-        ('csv', 'CSV'),
-        ('excel', 'Excel'),
-        ('pdf', 'PDF'),
-        ('txt', 'Text'),
-        ('json', 'JSON'),
-        ('xml', 'XML'),
-        ('zip', 'ZIP Archive'),
-        ('yaml', 'YAML'),
-        ('parquet', 'Parquet'),
-    ]
-    
     class Meta:
         model = Dataset
         fields = ['title', 'file', 'dataset_type', 'bio', 'topics']
