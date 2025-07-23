@@ -134,8 +134,7 @@
 
     <!-- Login Form -->
     <form id="loginForm" method="POST" action="/accounts/login/" class="slide-in">
-      <!-- CSRF Token (Django template tag) -->
-      <input type="hidden" name="csrfmiddlewaretoken" value="dummy-csrf-token">
+      {% csrf_token %}
       
       <!-- Preserve next parameter -->
       <input type="hidden" name="next" id="loginNext" value="">
@@ -172,8 +171,8 @@
 
     <!-- Sign Up Form -->
     <form id="signupForm" method="POST" action="/accounts/signup/" class="hidden">
-      <!-- CSRF Token (Django template tag) -->
-      <input type="hidden" name="csrfmiddlewaretoken" value="dummy-csrf-token">
+      {% csrf_token %}
+      <!-- Preserve next parameter -->
       <input type="hidden" name="next" id="signupNext" value="">
       
       <div class="input-group relative mb-6">
