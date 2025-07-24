@@ -507,6 +507,7 @@ User = get_user_model()
 @login_required
 def profile_view(request):
     """Displays user profile with dynamic data including token information"""
+    """Displays user profile with dynamic data including token information"""
     user = request.user
     
     # Get or create user profile

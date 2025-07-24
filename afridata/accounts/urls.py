@@ -3,7 +3,8 @@ from django.urls import path
 from . import views
 from home.views import default_home
 from mpesa.views import token_purchase, stk
-#from dataset.views import home
+from mpesa.views import token_purchase, stk
+
 
 urlpatterns = [
     # Existing URLs
@@ -28,9 +29,6 @@ urlpatterns = [
     # Token and Referral URLs (MISSING)
     path('purchase/', token_purchase, name='token_purchase'),
     path('stk/', stk, name='stk'),
-    path('tokens/', views.token_dashboard, name='token_dashboard'),
-    path('referrals/', views.referrals_view, name='referrals'),
-
     # API URLs
     path('api/check-email/', views.check_email_exists, name='check_email_exists'),
     path('api/check-username/', views.check_username_exists, name='check_username_exists'),
