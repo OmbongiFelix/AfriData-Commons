@@ -1,0 +1,216 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M-Pesa Access Token - DataHub</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="{% static 'mpesa/css/token.css' %}" rel="stylesheet">
+</head>
+<body class="gradient-bg">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card token-card">
+                    <div class="card-body p-5 position-relative">
+                        <!-- Status Badge -->
+                        <div class="status-badge status-active">
+                            <i class="fas fa-check-circle"></i> Active
+                        </div>
+
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <div class="mb-3">
+                                <i class="fas fa-key fa-3x text-primary"></i>
+                            </div>
+                            <h2 class="fw-bold text-dark">M-Pesa Access Token</h2>
+                            <p class="text-muted">Safaricom Daraja API Authentication Token</p>
+                        </div>
+
+                        <!-- Token Stats -->
+                        <div class="token-stats text-center">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <h3 class="mb-1">
+                                        <i class="fas fa-clock"></i>
+                                    </h3>
+                                    <h5 class="mb-0">Valid for 1 Hour</h5>
+                                    <small class="opacity-75">Expires automatically</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <h3 class="mb-1">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </h3>
+                                    <h5 class="mb-0">Secure</h5>
+                                    <small class="opacity-75">OAuth 2.0 Protected</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <h3 class="mb-1">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </h3>
+                                    <h5 class="mb-0">Auto-Generated</h5>
+                                    <small class="opacity-75">Real-time token</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Token Display -->
+                        <div class="token-display mb-4" id="tokenDisplay">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-key"></i> Access Token
+                                </h6>
+                                <small class="opacity-75">Generated: {{ timestamp|default:"Now" }}</small>
+                            </div>
+                            <div class="token-value" id="tokenValue">
+                                {{ token|default:"Loading..." }}
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <button class="btn copy-btn w-100" onclick="copyToken()">
+                                    <i class="fas fa-copy"></i> Copy Token
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn refresh-btn w-100" onclick="refreshToken()">
+                                    <i class="fas fa-sync-alt"></i> Refresh Token
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Usage Information -->
+                        <div class="info-card">
+                            <h5 class="fw-bold mb-3">
+                                <i class="fas fa-info-circle"></i> Usage Information
+                            </h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <strong>Token Type:</strong> Bearer Token
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Expires In:</strong> 3600 seconds (1 hour)
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <strong>API Base URL:</strong>
+                                <div class="code-block mt-2">
+                                    https://sandbox.safaricom.co.ke/
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <strong>Authorization Header:</strong>
+                                <div class="code-block mt-2">
+                                    Authorization: Bearer {{ token|default:"YOUR_TOKEN_HERE" }}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <strong>Example cURL Request:</strong>
+                                <div class="code-block mt-2">
+curl -X POST https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest \
+  -H "Authorization: Bearer {{ token|default:"YOUR_TOKEN_HERE" }}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "BusinessShortCode": "174379",
+    "Password": "YOUR_PASSWORD",
+    "Timestamp": "20231201120000",
+    "TransactionType": "CustomerPayBillOnline",
+    "Amount": "1",
+    "PartyA": "254712345678",
+    "PartyB": "174379",
+    "PhoneNumber": "254712345678",
+    "CallBackURL": "https://your-callback-url.com",
+    "AccountReference": "Test123",
+    "TransactionDesc": "Test Payment"
+  }'
+                </div>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Important:</strong> This is a sandbox token for testing purposes only. 
+                                Do not use in production without proper security measures.
+                            </div>
+                        </div>
+
+                        <!-- API Endpoints -->
+                        <div class="info-card">
+                            <h5 class="fw-bold mb-3">
+                                <i class="fas fa-list"></i> Available API Endpoints
+                            </h5>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Endpoint</th>
+                                            <th>Method</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>/mpesa/stkpush/v1/processrequest</code></td>
+                                            <td><span class="badge bg-success">POST</span></td>
+                                            <td>STK Push Payment</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>/mpesa/stkpushquery/v1/query</code></td>
+                                            <td><span class="badge bg-primary">GET</span></td>
+                                            <td>Query STK Push Status</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>/mpesa/c2b/v1/registerurl</code></td>
+                                            <td><span class="badge bg-success">POST</span></td>
+                                            <td>Register C2B URLs</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>/mpesa/c2b/v1/simulate</code></td>
+                                            <td><span class="badge bg-success">POST</span></td>
+                                            <td>Simulate C2B Payment</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="text-center mt-4">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt"></i>
+                                Token generated securely using Safaricom Daraja API
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="copyToast" class="toast" role="alert">
+            <div class="toast-header bg-success text-white">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong class="me-auto">Success</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                Token copied to clipboard successfully!
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'mpesa/javascript/token.js' %}"></script>
+</body>
+</html> 
