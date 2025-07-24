@@ -739,6 +739,7 @@ def token_purchase(request):
     return render(request, 'accounts/token_purchase.html')
 
 
+
 def token(request):
     consumer_key = 'FvFAsAmUt3KiVfuvAx0H2A8Lzg3VOS5IhyQ35ZgIBwdYVTW7'
     # 8CDXKCA9OqHYQ18CcUGk90roZ88YdIG3Rpy9khsld8lFFlxx
@@ -781,7 +782,6 @@ def stk(request):
         }
         response = requests.post(api_url, json=request, headers=headers)
         return HttpResponse("Success")
-
 
 
 

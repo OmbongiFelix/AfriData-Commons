@@ -29,6 +29,7 @@ urlpatterns = [
     path('tokens/', views.token_dashboard, name='token_dashboard'),
     path('referrals/', views.referrals_view, name='referrals'),
 
+
     path('pay/', views.pay, name='pay'),
     path('stk/', views.stk, name='stk'),
     path('token/', views.token, name='token'),
