@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'community',
     'api',
     'admin_dashboard',
+    'mpesa',
 
     # Third-party apps
     'rest_framework',
