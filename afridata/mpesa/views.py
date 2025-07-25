@@ -93,28 +93,19 @@ def stk(request):
         
         # Validate inputs
         if not phone or not amount or not package_type:
-            return JsonResponse({
-                'success': False,
-                'message': 'Missing required fields'
-            }, status=400)
+            return JsonResponse({'success': False, 'message': 'Missing required fields'}, status=400)
         
         # Validate package
         if package_type not in TOKEN_PACKAGES:
-            return JsonResponse({
-                'success': False,
-                'message': 'Invalid package selected'
-            }, status=400)
+            return JsonResponse({'success': False, 'message': 'Invalid package selected'}, status=400)
         
         package_info = TOKEN_PACKAGES[package_type]
         
         # Validate amount matches package
         if int(amount) != package_info['kes_amount']:
-            return JsonResponse({
-                'success': False,
-                'message': 'Amount does not match selected package'
-            }, status=400)
+            return JsonResponse({'success': False, 'message': 'Amount does not match selected package'}, status=400)
         
-        # Format phone number (ensure it starts with 254)
+        # Format phone number
         if phone.startswith('0'):
             phone = '254' + phone[1:]
         elif phone.startswith('+254'):
@@ -122,12 +113,8 @@ def stk(request):
         elif not phone.startswith('254'):
             phone = '254' + phone
         
-        # Validate phone number format
         if not phone.isdigit() or len(phone) != 12:
-            return JsonResponse({
-                'success': False,
-                'message': 'Invalid phone number format. Use format: 0712345678'
-            }, status=400)
+            return JsonResponse({'success': False, 'message': 'Invalid phone number format. Use format: 0712345678'}, status=400)
         
         # Create pending purchase record
         with transaction.atomic():
@@ -146,9 +133,8 @@ def stk(request):
         
         # Prepare STK Push request
         api_url = config['stk_push_url']
-        headers = {"Authorization": f"Bearer {access_token}"}
+        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
         
-        # Generate unique account reference
         account_reference = f"TOKENS-{token_purchase.id}"
         
         payload = {
@@ -160,117 +146,111 @@ def stk(request):
             "PartyA": phone,
             "PartyB": password_data['shortcode'],
             "PhoneNumber": phone,
-            "CallBackURL": request.build_absolute_uri(reverse('mpesa:callback')),
+            "CallBackURL": "https://748f2b6a94e5.ngrok-free.app/mpesa/callback/",
             "AccountReference": account_reference,
             "TransactionDesc": f"{package_info['tokens']} tokens purchase"
         }
-        
-        logger.info(f"STK Push request for user {request.user.username}: {payload}")
-        
-        # Make STK Push request
+
+        logger.debug("STK Payload: %s", json.dumps(payload))
+        logger.debug("Headers: %s", headers)
+
         response = requests.post(api_url, json=payload, headers=headers, timeout=30)
-        response.raise_for_status()
-        
-        response_data = response.json()
+
+        try:
+            response_data = response.json()
+        except ValueError:
+            logger.error("Invalid JSON from Safaricom: %s", response.text)
+            return JsonResponse({'success': False, 'message': 'Invalid response from M-Pesa'}, status=500)
+
         logger.info(f"STK Push response: {response_data}")
-        
-        # Check if request was successful
-        if response_data.get('ResponseCode') == '0':
-            # Update purchase record with checkout request ID
-            token_purchase.stripe_payment_intent_id = response_data.get('CheckoutRequestID')
-            token_purchase.save(update_fields=['stripe_payment_intent_id'])
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'STK push sent successfully. Please check your phone.',
-                'checkout_request_id': response_data.get('CheckoutRequestID'),
-                'merchant_request_id': response_data.get('MerchantRequestID')
-            })
-        else:
-            # Mark purchase as failed
+
+        # Handle failed STK push
+        if response.status_code != 200 or response_data.get('ResponseCode') != '0':
             token_purchase.payment_status = 'failed'
             token_purchase.save(update_fields=['payment_status'])
-            
             return JsonResponse({
                 'success': False,
-                'message': response_data.get('ResponseDescription', 'STK push failed')
+                'message': response_data.get('errorMessage') or response_data.get('ResponseDescription') or 'STK push failed',
+                'details': response_data
             }, status=400)
-            
+
+        # STK push successful
+        token_purchase.stripe_payment_intent_id = response_data.get('CheckoutRequestID')
+        token_purchase.save(update_fields=['stripe_payment_intent_id'])
+
+        return JsonResponse({
+            'success': True,
+            'message': 'STK push sent successfully. Please check your phone.',
+            'checkout_request_id': response_data.get('CheckoutRequestID'),
+            'merchant_request_id': response_data.get('MerchantRequestID')
+        })
+
     except requests.exceptions.RequestException as e:
         logger.error(f"STK Push request error: {e}")
-        return JsonResponse({
-            'success': False,
-            'message': 'Network error. Please try again.'
-        }, status=500)
+        return JsonResponse({'success': False, 'message': 'Network error. Please try again.'}, status=500)
         
     except Exception as e:
         logger.error(f"STK Push error: {e}")
-        return JsonResponse({
-            'success': False,
-            'message': 'An error occurred. Please try again.'
-        }, status=500)
+        return JsonResponse({'success': False, 'message': 'An error occurred. Please try again.'}, status=500)
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def mpesa_callback(request):
-    """Handle M-Pesa payment callback"""
+    """Handle M-Pesa payment callback from Safaricom"""
     try:
-        # Log the callback
+        # Decode JSON payload
         callback_data = json.loads(request.body.decode('utf-8'))
-        logger.info(f"M-Pesa callback received: {callback_data}")
+        logger.info(f"M-Pesa callback received: {json.dumps(callback_data, indent=2)}")
         
-        # Extract relevant data
         stk_callback = callback_data.get('Body', {}).get('stkCallback', {})
         result_code = stk_callback.get('ResultCode')
         checkout_request_id = stk_callback.get('CheckoutRequestID')
-        
+
         if not checkout_request_id:
-            logger.error("No CheckoutRequestID in callback")
-            return HttpResponse("OK")
-        
-        # Find the corresponding purchase
+            logger.error("Callback missing CheckoutRequestID")
+            return HttpResponse(status=200)
+
+        # Find pending purchase
         try:
             token_purchase = TokenPurchase.objects.get(
                 stripe_payment_intent_id=checkout_request_id,
                 payment_status='pending'
             )
         except TokenPurchase.DoesNotExist:
-            logger.error(f"No pending purchase found for CheckoutRequestID: {checkout_request_id}")
-            return HttpResponse("OK")
-        
-        if result_code == 0:  # Success
-            # Payment successful
+            logger.warning(f"No matching purchase found for CheckoutRequestID: {checkout_request_id}")
+            return HttpResponse(status=200)
+
+        if result_code == 0:
+            # Successful payment
             with transaction.atomic():
-                # Update purchase status
                 token_purchase.payment_status = 'completed'
-                token_purchase.completed_at = datetime.now(timezone.utc)
-                token_purchase.save()
-                
-                # Add tokens to user's account
+                token_purchase.completed_at = timezone.now()
+                token_purchase.save(update_fields=['payment_status', 'completed_at'])
+
+                # Add tokens to user profile
                 user_profile = token_purchase.user.profile
                 user_profile.add_tokens(
                     amount=token_purchase.tokens_purchased,
                     transaction_type='purchase',
                     description=f'Purchased {token_purchase.package} package via M-Pesa'
                 )
-                
-                logger.info(f"Successfully processed payment for user {token_purchase.user.username}")
-                
+
+                logger.info(f"Tokens added for {token_purchase.user.username} ({token_purchase.tokens_purchased})")
         else:
-            # Payment failed
+            # Failed payment
             token_purchase.payment_status = 'failed'
             token_purchase.save(update_fields=['payment_status'])
-            logger.info(f"Payment failed for user {token_purchase.user.username}, ResultCode: {result_code}")
-        
-        return HttpResponse("OK")
-        
+            logger.info(f"Payment failed for user {token_purchase.user.username} | ResultCode: {result_code}")
+
+        return HttpResponse(status=200)
+
     except json.JSONDecodeError as e:
         logger.error(f"Invalid JSON in callback: {e}")
         return HttpResponse("Invalid JSON", status=400)
-        
+
     except Exception as e:
-        logger.error(f"Callback processing error: {e}")
-        return HttpResponse("Error processing callback", status=500)
+        logger.exception(f"Unhandled error processing callback: {e}")
+        return HttpResponse("Server Error", status=500)
 
 @login_required
 def payment_status(request, purchase_id):
