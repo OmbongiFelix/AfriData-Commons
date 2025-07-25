@@ -1,0 +1,381 @@
+.standards-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .standards-hero {
+        text-align: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem;
+        border-radius: 16px;
+        margin-bottom: 3rem;
+    }
+    
+    .standards-hero h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .standards-hero p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .standards-nav {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 3rem;
+    }
+    
+    .nav-pill {
+        padding: 0.75rem 1.5rem;
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 25px;
+        text-decoration: none;
+        color: #4a5568;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-pill:hover, .nav-pill.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+        text-decoration: none;
+    }
+    
+    .standard-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        border-left: 5px solid #667eea;
+    }
+    
+    .standard-card h3 {
+        color: #2d3748;
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .standard-card h3 i {
+        margin-right: 0.75rem;
+        color: #667eea;
+        font-size: 1.5rem;
+    }
+    
+    .standard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .standard-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .standard-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .standard-item h4 {
+        color: #2d3748;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .standard-item h4 i {
+        margin-right: 0.5rem;
+        color: #667eea;
+    }
+    
+    .code-block {
+        background: #1a202c;
+        color: #e2e8f0;
+        padding: 1.5rem;
+        border-radius: 8px;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.9rem;
+        overflow-x: auto;
+        margin: 1rem 0;
+    }
+    
+    .code-block .comment {
+        color: #68d391;
+    }
+    
+    .code-block .key {
+        color: #63b3ed;
+    }
+    
+    .code-block .string {
+        color: #fbb6ce;
+    }
+    
+    .code-block .number {
+        color: #f6ad55;
+    }
+    
+    .requirement-badge {
+        display: inline-block;
+        background: #667eea;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .requirement-badge.optional {
+        background: #68d391;
+    }
+    
+    .requirement-badge.recommended {
+        background: #f6ad55;
+    }
+    
+    .checklist {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .checklist li {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+    
+    .checklist li i {
+        color: #48bb78;
+        margin-right: 0.75rem;
+        margin-top: 0.25rem;
+    }
+    
+    .alert-info {
+        background: #e6fffa;
+        border: 1px solid #81e6d9;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .alert-info i {
+        color: #319795;
+        margin-right: 0.75rem;
+        margin-top: 0.25rem;
+    }
+    
+    .alert-warning {
+        background: #fffbeb;
+        border: 1px solid #f6cc6d;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .alert-warning i {
+        color: #d69e2e;
+        margin-right: 0.75rem;
+        margin-top: 0.25rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        text-decoration: none;
+        color: white;
+    }
+    
+    .btn-primary i {
+        margin-right: 0.5rem;
+    }
+    
+    .format-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .format-table th {
+        background: #667eea;
+        color: white;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+    }
+    
+    .format-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .format-table tr:nth-child(even) {
+        background: #f8fafc;
+    }
+    
+    .format-table tr:hover {
+        background: #edf2f7;
+    }
+    
+    .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+    
+    .status-supported {
+        background: #48bb78;
+    }
+    
+    .status-partial {
+        background: #ed8936;
+    }
+    
+    .status-unsupported {
+        background: #f56565;
+    }
+    
+    .quality-metric {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .quality-score {
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .score-bar {
+        width: 100px;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-left: 1rem;
+    }
+    
+    .score-fill {
+        height: 100%;
+        background: #48bb78;
+        transition: width 0.3s ease;
+    }
+    
+    .ethics-principle {
+        border-left: 4px solid #667eea;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8fafc;
+        border-radius: 0 8px 8px 0;
+    }
+    
+    .ethics-principle h5 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .submission-step {
+        display: flex;
+        align-items: flex-start;
+        margin: 1.5rem 0;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .step-number {
+        background: #667eea;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .step-content h5 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .documentation-example {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .documentation-example h5 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .documentation-example h5 i {
+        margin-right: 0.5rem;
+        color: #667eea;
+    }
+
