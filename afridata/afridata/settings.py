@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'community',
     'api',
     'admin_dashboard',
+    'mpesa',
 
     # Third-party apps
     'rest_framework',
@@ -118,6 +119,7 @@ else:
                 },
         }
     }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

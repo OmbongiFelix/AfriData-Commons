@@ -10,6 +10,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('dataset/', include('dataset.urls')),
     path('community/', include('community.urls')),
+    path('mpesa/', include('mpesa.urls')),
 
     #url to schema diagram
     path("schema/", Schema.as_view()),

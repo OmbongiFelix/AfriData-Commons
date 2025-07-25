@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M-Pesa Payment - DataHub</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'mpesa/css/pay.css' %}" rel="stylesheet">
+</head>
+<body class="gradient-bg">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card payment-card">
+                    <div class="card-body p-5">
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <div class="mb-3">
+                                <i class="fas fa-mobile-alt fa-3x text-success"></i>
+                            </div>
+                            <h2 class="fw-bold text-dark">M-Pesa Payment</h2>
+                            <p class="text-muted">Pay securely with your mobile money</p>
+                        </div>
+
+                        <!-- Payment Form -->
+                        <form method="post" action="{% url 'stk' %}" id="paymentForm">
+                            {% csrf_token %}
+                            
+                            <div class="mb-4">
+                                <label for="phone" class="form-label fw-bold">
+                                    <i class="fas fa-phone"></i> Phone Number
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-success text-white">+254</span>
+                                    <input type="tel" class="form-control" id="phone" name="phone" 
+                                           placeholder="712345678" pattern="[0-9]{9}" required>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Enter your Safaricom number without the country code
+                                </small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="amount" class="form-label fw-bold">
+                                    <i class="fas fa-money-bill-wave"></i> Amount (KES)
+                                </label>
+                                <input type="number" class="form-control" id="amount" name="amount" 
+                                       placeholder="Enter amount" min="1" required>
+                                <small class="form-text text-muted">
+                                    Minimum amount is KES 1
+                                </small>
+                            </div>
+
+                            <div class="d-grid mb-4">
+                                <button type="submit" class="btn pay-btn btn-lg">
+                                    <i class="fas fa-mobile-alt"></i> Pay with M-Pesa
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Payment Steps -->
+                        <div class="steps">
+                            <h5 class="fw-bold mb-3">
+                                <i class="fas fa-list-ol"></i> How it works
+                            </h5>
+                            
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <div>
+                                    <strong>Enter Details</strong><br>
+                                    <small class="text-muted">Enter your phone number and amount</small>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <div>
+                                    <strong>STK Push</strong><br>
+                                    <small class="text-muted">You'll receive a payment prompt on your phone</small>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <div>
+                                    <strong>Enter PIN</strong><br>
+                                    <small class="text-muted">Enter your M-Pesa PIN to complete payment</small>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">4</div>
+                                <div>
+                                    <strong>Confirmation</strong><br>
+                                    <small class="text-muted">Receive confirmation SMS and tokens added</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Badge -->
+                        <div class="security-badge">
+                            <div class="row align-items-center">
+                                <div class="col-4">
+                                    <i class="fas fa-shield-alt fa-2x text-success"></i>
+                                </div>
+                                <div class="col-8 text-start">
+                                    <strong>Secure Payment</strong><br>
+                                    <small class="text-muted">
+                                        Protected by Safaricom M-Pesa security protocols
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Help Section -->
+                        <div class="mt-4 text-center">
+                            <small class="text-muted">
+                                Having trouble? <a href="#" class="text-success">Contact Support</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <div class="spinner-border text-success mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h6>Processing Payment...</h6>
+                    <small class="text-muted">Please wait while we process your request</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body text-center p-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                    <h3>Payment Request Sent!</h3>
+                    <p class="text-muted">
+                        Check your phone for the M-Pesa payment prompt and enter your PIN to complete the transaction.
+                    </p>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                        <i class="fas fa-check"></i> Got it
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body text-center p-5">
+                    <i class="fas fa-exclamation-circle fa-4x text-danger mb-3"></i>
+                    <h3>Payment Failed</h3>
+                    <p class="text-muted" id="errorMessage">
+                        There was an error processing your payment. Please try again.
+                    </p>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'mpesa/javascript/pay.js' %}"></script>
+</body>
+</html>

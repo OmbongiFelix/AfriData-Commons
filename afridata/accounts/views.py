@@ -507,6 +507,7 @@ User = get_user_model()
 @login_required
 def profile_view(request):
     """Displays user profile with dynamic data including token information"""
+    """Displays user profile with dynamic data including token information"""
     user = request.user
     
     # Get or create user profile
@@ -726,8 +727,3 @@ def referrals_view(request):
     }
     
     return render(request, 'accounts/referrals.html', context)
-
-@login_required
-def token_purchase(request):
-    return render(request, 'accounts/token_purchase.html')
-
