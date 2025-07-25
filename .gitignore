@@ -46,9 +46,10 @@ coverage/
 .mypy_cache/
 
 # === Static/media/output ===
-static/
-staticfiles/
-media/
+/static/
+/staticfiles/
+/media/
+
 
 # === Documentation artifacts ===
 *.dot

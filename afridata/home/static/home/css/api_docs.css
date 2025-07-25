@@ -1,0 +1,71 @@
+.gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+.glass-effect {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+.code-block {
+        background: #1a1a1a;
+        border-radius: 8px;
+        padding: 1rem;
+        overflow-x: auto;
+    }
+
+.animate-pulse-slow {
+        animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+.notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1001;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        color: white;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+    }
+
+.notification.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+.notification.success {
+        background-color: #10b981;
+    }
+
+.notification.error {
+        background-color: #ef4444;
+    }
+
+.nav-link.active {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+    }
+
+.lang-btn.active {
+        background-color: #2563eb;
+        color: white;
+    }
+
+.example-block {
+        transition: opacity 0.3s ease;
+    }
+
+.example-block.hidden {
+        display: none;
+    }
+
+
+
+
+
+
+    
