@@ -212,7 +212,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="mpesaForm">
+                <form id="mpesaForm" method="POST" data-stk-url="{% url 'stk' %}">
                         {% csrf_token %}
                         <div class="text-center mb-4">
                             <div class="token-icon mx-auto mb-3">
