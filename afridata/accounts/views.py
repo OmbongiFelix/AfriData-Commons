@@ -344,7 +344,7 @@ def process_signup(request):
 
 
 
-User = get_user_model()
+
 
 @login_required
 def home(request):
@@ -458,7 +458,7 @@ def home(request):
         'format_counts': format_counts,
     }
     
-    return render(request, 'home.html', context)
+    return render(request, 'accounts/home.html', context)
 
 
 @login_required
