@@ -22,7 +22,6 @@ class CustomUser(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_login_ip = models.GenericIPAddressField(blank=True, null=True)
-    #referral_code = models.CharField(max_length=10, null=True, blank=True)  # Remove unique=True for now
     referral_code = models.CharField(max_length=10, unique=True, blank=True, null=True, help_text="Unique referral code for the user")
     referred_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
     # Override email as the username field
