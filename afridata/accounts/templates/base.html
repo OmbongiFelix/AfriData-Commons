@@ -31,7 +31,11 @@
                 <a href="{% url 'home' %}" class="block py-2 text-gray-700 hover:text-blue-600">Home</a>
                 {% endif %}
                 <a href="{% url 'dataset_list' %}" class="block py-2 text-gray-700 hover:text-blue-600">Datasets</a>
+                {% if user.is_authenticated  and user.username %}
+                <a href="{% url 'community:user_profile' user.username %}" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
+                {% else %}
                 <a href="{% url 'community:community' %}" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
+                {% endif %}
                 {% if user.is_authenticated %}
                 <a href="{% url 'home:api_docs' %}" class="block py-2 text-gray-700 hover:text-blue-600">API</a>
                 {% endif %}
@@ -79,7 +83,11 @@
                     <a href="{% url 'home:default_home' %}" class="{% if request.resolver_match.url_name == 'default_home' %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">Home</a>
                     {% endif %}
                     <a href="{% url 'dataset_list' %}" class="{% if 'dataset' in request.resolver_match.url_name %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">Datasets</a>
-                    <a href="{% url 'community:community' %}" class="{% if request.resolver_match.url_name == 'community' %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">Community</a>
+                    {% if user.is_authenticated  and user.username %}
+                    <a href="{% url 'community:user_profile' user.username %}" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
+                    {% else %}
+                    <a href="{% url 'community:community' %}" class="block py-2 text-gray-700 hover:text-blue-600">Community</a>
+                    {% endif %}
                     {% if user.is_authenticated %}
                     <a href="{% url 'home:api_docs' %}" class="{% if 'api' in request.resolver_match.url_name %}text-yellow-300{% endif %} hover:text-yellow-300 transition-colors">API</a>
                     {% endif %}

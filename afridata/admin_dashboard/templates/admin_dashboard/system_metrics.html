@@ -1,0 +1,437 @@
+{% extends "admin_dashboard/base.html" %}
+{% load static %}
+
+{% block title %}System Metrics Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metrics-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    .dashboard-header {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+    }
+    
+    .metric-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(15px);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .metric-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .category-header {
+        color: #333;
+        font-weight: 700;
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .category-icon {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+    }
+    
+    .metric-item {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-left: 4px solid #667eea;
+        transition: all 0.2s ease;
+    }
+    
+    .metric-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    
+    .metric-name {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.95rem;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #667eea;
+        margin: 0.5rem 0;
+    }
+    
+    .metric-timestamp {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .stat-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .stat-card:hover::after {
+        left: 100%;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        color: #495057;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+    
+    .refresh-btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .refresh-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .category-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .category-tab {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.5rem 1.5rem;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .category-tab:hover,
+    .category-tab.active {
+        background: rgba(255, 255, 255, 0.9);
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+        .metrics-dashboard {
+            padding: 1rem 0;
+        }
+        
+        .dashboard-header {
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .metric-card {
+            padding: 1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="metrics-dashboard">
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h1 class="h2 mb-2">🔧 System Metrics Dashboard</h1>
+                    <p class="mb-0 opacity-75">Real-time monitoring and performance insights</p>
+                </div>
+                <button class="refresh-btn" onclick="location.reload()">
+                    ↻ Refresh Data
+                </button>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ metrics_by_category|length }}</div>
+                <div class="stat-label">Active Categories</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ metric_stats|length }}</div>
+                <div class="stat-label">Total Metrics</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">
+                    {% for stat in metric_stats %}
+                        {% if forloop.first %}{{ stat.count }}{% endif %}
+                    {% empty %}0{% endfor %}
+                </div>
+                <div class="stat-label">Most Active Metric</div>
+            </div>
+        </div>
+        
+        <!-- Category Filter Tabs -->
+        {% if metrics_by_category %}
+        <div class="dashboard-header mt-4">
+            <div class="category-tabs">
+                <div class="category-tab active" onclick="showAllCategories()">All Categories</div>
+                {% for category, metrics in metrics_by_category.items %}
+                    <div class="category-tab" onclick="showCategory('{{ category|slugify }}')">
+                        {{ category }} ({{ metrics|length }})
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Metrics by Category -->
+        {% if metrics_by_category %}
+            {% for category, metrics in metrics_by_category.items %}
+            <div class="metric-card category-section" id="category-{{ category|slugify }}">
+                <div class="category-header">
+                    <div class="category-icon">
+                        {% if 'cpu' in category|lower %}💻
+                        {% elif 'memory' in category|lower %}🧠
+                        {% elif 'disk' in category|lower %}💾
+                        {% elif 'network' in category|lower %}🌐
+                        {% elif 'database' in category|lower %}🗄️
+                        {% else %}📊{% endif %}
+                    </div>
+                    {{ category|title }}
+                    <span class="badge bg-primary ms-2">{{ metrics|length }} metrics</span>
+                </div>
+                
+                <div class="row">
+                    {% for metric in metrics %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="metric-item">
+                            <div class="metric-name">{{ metric.metric_name }}</div>
+                            <div class="metric-value">
+                                {{ metric.metric_value }}
+                                {% if metric.unit %}{{ metric.unit }}{% endif %}
+                            </div>
+                            <div class="metric-timestamp">
+                                📅 {{ metric.timestamp|date:"M d, Y H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="metric-card">
+                <div class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <h3>No Metrics Available</h3>
+                    <p>No system metrics have been recorded yet. Check back later or verify your monitoring setup.</p>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Top Performing Metrics -->
+        {% if metric_stats %}
+        <div class="metric-card mt-4">
+            <div class="category-header">
+                <div class="category-icon">🏆</div>
+                Top Performing Metrics
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Metric Name</th>
+                            <th>Data Points</th>
+                            <th>Average Value</th>
+                            <th>Latest Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in metric_stats %}
+                        <tr>
+                            <td>
+                                <strong>{{ stat.metric_name }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ stat.count }}</span>
+                            </td>
+                            <td>{{ stat.avg_value|floatformat:2 }}</td>
+                            <td>
+                                <span class="text-primary fw-bold">{{ stat.latest_value }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Category filtering functionality
+    function showAllCategories() {
+        document.querySelectorAll('.category-section').forEach(section => {
+            section.style.display = 'block';
+        });
+        
+        // Update active tab
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector('.category-tab').classList.add('active');
+    }
+    
+    function showCategory(categorySlug) {
+        // Hide all sections
+        document.querySelectorAll('.category-section').forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Show selected category
+        const targetSection = document.getElementById('category-' + categorySlug);
+        if (targetSection) {
+            targetSection.style.display = 'block';
+        }
+        
+        // Update active tab
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        event.target.classList.add('active');
+    }
+    
+    // Auto-refresh functionality (optional)
+    let autoRefresh = false;
+    let refreshInterval;
+    
+    function toggleAutoRefresh() {
+        if (autoRefresh) {
+            clearInterval(refreshInterval);
+            autoRefresh = false;
+        } else {
+            refreshInterval = setInterval(() => {
+                location.reload();
+            }, 30000); // Refresh every 30 seconds
+            autoRefresh = true;
+        }
+    }
+    
+    // Add smooth scrolling animation on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.metric-card, .stat-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

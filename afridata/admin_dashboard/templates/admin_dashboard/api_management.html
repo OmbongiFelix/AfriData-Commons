@@ -87,6 +87,111 @@
     </div>
 </div>
 
+<!-- Error Statistics -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">API Error Statistics (Last 7 Days)</h6>
+            </div>
+            <div class="card-body">
+                {% if error_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Status Code</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for error in error_stats %}
+                                <tr>
+                                    <td>
+                                        <span class="badge 
+                                            {% if error.status_code >= 500 %}bg-danger
+                                            {% elif error.status_code >= 400 %}bg-warning
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ error.status_code }}
+                                        </span>
+                                    </td>
+                                    <td>{{ error.count }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar 
+                                                {% if error.status_code >= 500 %}bg-danger
+                                                {% elif error.status_code >= 400 %}bg-warning
+                                                {% else %}bg-secondary{% endif %}" 
+                                                style="width: {{ error.count|percentage:total_errors }}%">
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <h6>No Errors Detected</h6>
+                        <p class="text-muted small">All API requests completed successfully</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">API Health Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>API Server Status</span>
+                        <span class="badge bg-success">Online</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Database Connection</span>
+                        <span class="badge bg-success">Connected</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Average Response Time</span>
+                        <span class="text-muted">
+                            {% if endpoint_stats %}
+                                {{ endpoint_stats.0.avg_response_time|floatformat:2 }}ms
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Error Rate (7 days)</span>
+                        <span class="text-muted">
+                            {% if error_stats %}
+                                {% widthratio error_stats.0.count recent_usage.count 100 %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <button class="btn btn-outline-primary w-100" onclick="checkHealth()">
+                    <i class="fas fa-heartbeat"></i> Run Health Check
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Recent API Usage -->
 <div class="row mb-4">
     <div class="col-12">
@@ -120,7 +225,7 @@
                             </thead>
                             <tbody>
                                 {% for usage in recent_usage %}
-                                <tr>
+                                <tr {% if usage.status_code >= 400 %}class="table-warning"{% endif %}>
                                     <td>{{ usage.timestamp|date:"M d, H:i:s" }}</td>
                                     <td>
                                         <a href="{% url 'admin_dashboard:user_detail' usage.api_key.user.id %}" 
@@ -147,7 +252,11 @@
                                             {{ usage.status_code }}
                                         </span>
                                     </td>
-                                    <td>{{ usage.response_time|floatformat:2 }}ms</td>
+                                    <td>
+                                        <span {% if usage.response_time > 1000 %}class="text-danger"{% elif usage.response_time > 500 %}class="text-warning"{% endif %}>
+                                            {{ usage.response_time|floatformat:2 }}ms
+                                        </span>
+                                    </td>
                                     <td><code class="small">{{ usage.ip_address }}</code></td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary" 
@@ -160,6 +269,15 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Pagination would go here if needed -->
+                    <nav aria-label="API usage pagination">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item">
+                                <a class="page-link" href="#" onclick="loadMore()">Load More</a>
+                            </li>
+                        </ul>
+                    </nav>
                 {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
@@ -180,20 +298,28 @@
                 <h6 class="card-title mb-0">Rate Limiting Settings</h6>
             </div>
             <div class="card-body">
-                <form method="post" action="#">
+                <form method="post" action="{% url 'admin_dashboard:update_rate_limits' %}">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label class="form-label">Requests per minute</label>
-                        <input type="number" class="form-control" name="rate_limit" value="100">
+                        <input type="number" class="form-control" name="rate_limit" value="100" min="1" max="10000">
+                        <small class="form-text text-muted">Maximum requests per minute per API key</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Burst limit</label>
-                        <input type="number" class="form-control" name="burst_limit" value="200">
+                        <input type="number" class="form-control" name="burst_limit" value="200" min="1" max="20000">
+                        <small class="form-text text-muted">Maximum burst requests allowed</small>
                     </div>
                     <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="enable_rate_limiting" checked>
                             <label class="form-check-label">Enable rate limiting</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="log_rate_limit_violations">
+                            <label class="form-check-label">Log rate limit violations</label>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary">Update Settings</button>
@@ -204,35 +330,46 @@
     <div class="col-lg-6">
         <div class="card">
             <div class="card-header">
-                <h6 class="card-title mb-0">API Health Status</h6>
+                <h6 class="card-title mb-0">API Endpoints Management</h6>
             </div>
             <div class="card-body">
                 <div class="mb-3">
-                    <div class="d-flex justify-content-between">
-                        <span>API Server Status</span>
-                        <span class="badge bg-success">Online</span>
+                    <label class="form-label">Enable/Disable Endpoints</label>
+                </div>
+                <div class="mb-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="endpoint1" checked>
+                        <label class="form-check-label" for="endpoint1">
+                            <code>/api/datasets/</code>
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="endpoint2" checked>
+                        <label class="form-check-label" for="endpoint2">
+                            <code>/api/users/</code>
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="endpoint3">
+                        <label class="form-check-label" for="endpoint3">
+                            <code>/api/forums/</code> <span class="badge bg-warning text-dark">Beta</span>
+                        </label>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <div class="d-flex justify-content-between">
-                        <span>Database Connection</span>
-                        <span class="badge bg-success">Connected</span>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="endpoint4" checked>
+                        <label class="form-check-label" for="endpoint4">
+                            <code>/api/analytics/</code>
+                        </label>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between">
-                        <span>Average Response Time</span>
-                        <span class="text-muted">125ms</span>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between">
-                        <span>Uptime</span>
-                        <span class="text-muted">99.9%</span>
-                    </div>
-                </div>
-                <button class="btn btn-outline-primary w-100" onclick="checkHealth()">
-                    <i class="fas fa-heartbeat"></i> Run Health Check
+                <button type="button" class="btn btn-outline-primary w-100" onclick="updateEndpoints()">
+                    <i class="fas fa-save"></i> Save Endpoint Settings
                 </button>
             </div>
         </div>
@@ -245,29 +382,46 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h6 class="card-title mb-0">API Documentation</h6>
-                <a href="#" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-external-link-alt"></i> View Full Docs
-                </a>
+                <div>
+                    <a href="#" class="btn btn-outline-success btn-sm me-2" onclick="generateSwagger()">
+                        <i class="fas fa-file-code"></i> Generate Swagger
+                    </a>
+                    <a href="#" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-external-link-alt"></i> View Full Docs
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
                         <h6>Available Endpoints</h6>
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between">
-                                <span><code>GET /api/datasets/</code></span>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <code>GET /api/datasets/</code>
+                                    <br><small class="text-muted">Retrieve dataset information</small>
+                                </div>
                                 <span class="badge bg-success">Active</span>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <span><code>POST /api/datasets/</code></span>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <code>POST /api/datasets/</code>
+                                    <br><small class="text-muted">Create new dataset</small>
+                                </div>
                                 <span class="badge bg-success">Active</span>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <span><code>GET /api/users/</code></span>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <code>GET /api/users/</code>
+                                    <br><small class="text-muted">User management</small>
+                                </div>
                                 <span class="badge bg-success">Active</span>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <span><code>GET /api/forums/</code></span>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <code>GET /api/forums/</code>
+                                    <br><small class="text-muted">Forum discussions</small>
+                                </div>
                                 <span class="badge bg-warning">Beta</span>
                             </li>
                         </ul>
@@ -284,6 +438,12 @@
                             <li>JSON (default)</li>
                             <li>XML (with Accept header)</li>
                         </ul>
+
+                        <h6 class="mt-3">Rate Limits</h6>
+                        <p class="text-muted small">
+                            Current rate limit: <strong>100 requests/minute</strong><br>
+                            Burst limit: <strong>200 requests</strong>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -308,7 +468,8 @@ const chart = new Chart(ctx, {
             data: usageData.map(item => item.count),
             borderColor: 'rgb(75, 192, 192)',
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            tension: 0.1
+            tension: 0.1,
+            fill: true
         }]
     },
     options: {
@@ -316,7 +477,19 @@ const chart = new Chart(ctx, {
         maintainAspectRatio: false,
         scales: {
             y: {
-                beginAtZero: true
+                beginAtZero: true,
+                ticks: {
+                    precision: 0
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: true
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false
             }
         }
     }
@@ -331,12 +504,23 @@ function exportUsage() {
 }
 
 function viewDetails(usageId) {
-    // Implement view details functionality
-    console.log('View usage details:', usageId);
+    // Implementation for viewing detailed usage information
+    fetch(`/admin/api/usage/${usageId}/details/`)
+        .then(response => response.json())
+        .then(data => {
+            // Show modal or navigate to detail page
+            showUsageModal(data);
+        })
+        .catch(error => {
+            console.error('Error fetching usage details:', error);
+        });
 }
 
 function checkHealth() {
-    // Implement health check functionality
+    const button = event.target;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+    
     fetch('/admin/api/health/')
         .then(response => response.json())
         .then(data => {
@@ -348,7 +532,70 @@ function checkHealth() {
         })
         .catch(error => {
             alert('Error checking API health: ' + error.message);
+        })
+        .finally(() => {
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-heartbeat"></i> Run Health Check';
         });
 }
+
+function loadMore() {
+    // Implementation for loading more usage records
+    const nextUrl = '{% url "admin_dashboard:api_management" %}?page=2';
+    // Add AJAX implementation here
+}
+
+function updateEndpoints() {
+    // Collect endpoint settings
+    const endpoints = {};
+    document.querySelectorAll('[id^="endpoint"]').forEach(checkbox => {
+        endpoints[checkbox.id] = checkbox.checked;
+    });
+    
+    fetch('/admin/api/endpoints/update/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(endpoints)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Endpoint settings updated successfully!');
+        } else {
+            alert('Error updating settings: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating endpoint settings');
+    });
+}
+
+function generateSwagger() {
+    window.open('/admin/api/swagger/', '_blank');
+}
+
+function showUsageModal(data) {
+    // Implementation for showing usage details in a modal
+    // This would require a modal in the template
+    console.log('Usage details:', data);
+}
+
+// Auto-refresh every 30 seconds
+setInterval(() => {
+    // Update only the statistics without full page reload
+    fetch('/admin/api/stats/')
+        .then(response => response.json())
+        .then(data => {
+            // Update statistics cards
+            document.querySelector('.text-primary').textContent = data.total_api_keys;
+            document.querySelector('.text-success').textContent = data.active_api_keys;
+            document.querySelector('.text-info').textContent = data.recent_usage_count;
+        })
+        .catch(error => console.log('Auto-refresh failed:', error));
+}, 30000);
 </script>
 {% endblock %}

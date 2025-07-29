@@ -1,0 +1,436 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Admin Reports{% endblock %}
+
+{% block extra_css %}
+<style>
+    .report-filters {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .report-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .report-header {
+        padding: 20px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .report-title {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    
+    .report-meta {
+        padding: 15px 20px;
+        background: #f8f9fa;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .report-actions {
+        padding: 15px 20px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .report-type-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .report-type-user { background: #e3f2fd; color: #1976d2; }
+    .report-type-financial { background: #f3e5f5; color: #7b1fa2; }
+    .report-type-activity { background: #e8f5e8; color: #388e3c; }
+    .report-type-system { background: #fff3e0; color: #f57c00; }
+    .report-type-security { background: #ffebee; color: #d32f2f; }
+    
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 0.875rem;
+        border-radius: 4px;
+    }
+    
+    .btn-outline-primary {
+        color: #007bff;
+        border-color: #007bff;
+        background: transparent;
+    }
+    
+    .btn-outline-primary:hover {
+        background: #007bff;
+        color: white;
+    }
+    
+    .btn-outline-success {
+        color: #28a745;
+        border-color: #28a745;
+        background: transparent;
+    }
+    
+    .btn-outline-success:hover {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-outline-danger {
+        color: #dc3545;
+        border-color: #dc3545;
+        background: transparent;
+    }
+    
+    .btn-outline-danger:hover {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .pagination-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .pagination {
+        display: flex;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+    }
+    
+    .pagination li {
+        margin: 0;
+    }
+    
+    .pagination a, .pagination span {
+        display: block;
+        padding: 10px 15px;
+        text-decoration: none;
+        color: #007bff;
+        background: white;
+        border-right: 1px solid #dee2e6;
+        transition: all 0.2s ease;
+    }
+    
+    .pagination li:last-child a,
+    .pagination li:last-child span {
+        border-right: none;
+    }
+    
+    .pagination a:hover {
+        background: #e9ecef;
+        color: #0056b3;
+    }
+    
+    .pagination .current {
+        background: #007bff;
+        color: white;
+    }
+    
+    .pagination .disabled {
+        color: #6c757d;
+        background: #f8f9fa;
+        cursor: not-allowed;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        color: #dee2e6;
+    }
+    
+    @media (max-width: 768px) {
+        .report-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .report-actions {
+            flex-direction: column;
+        }
+        
+        .report-actions .btn {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">Admin Reports</h1>
+                    <p class="text-muted mb-0">Manage and view system reports</p>
+                </div>
+                <div>
+                    <a href="{% url 'admin_dashboard:generate_report' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Generate New Report
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="report-filters">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="type" class="form-label">Report Type</label>
+                        <select name="type" id="type" class="form-select" onchange="this.form.submit()">
+                            <option value="all" {% if report_type == 'all' %}selected{% endif %}>All Reports</option>
+                            {% for value, label in report_types %}
+                                <option value="{{ value }}" {% if report_type == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date_range" class="form-label">Date Range</label>
+                        <select name="date_range" id="date_range" class="form-select">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="quarter">This Quarter</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-filter me-2"></i>Apply Filters
+                        </button>
+                        <a href="{% url 'admin_dashboard:reports' %}" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-times me-2"></i>Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Reports List -->
+            {% if page_obj %}
+                <div class="row">
+                    {% for report in page_obj %}
+                        <div class="col-12">
+                            <div class="report-card">
+                                <div class="report-header">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <h3 class="report-title">{{ report.title|default:"Untitled Report" }}</h3>
+                                        <span class="report-type-badge report-type-{{ report.report_type }}">
+                                            {{ report.get_report_type_display }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if report.file_path %}
+                                            <i class="fas fa-file-alt text-success" title="File available"></i>
+                                        {% endif %}
+                                        {% if report.status == 'completed' %}
+                                            <i class="fas fa-check-circle text-success" title="Completed"></i>
+                                        {% elif report.status == 'processing' %}
+                                            <i class="fas fa-spinner fa-spin text-warning" title="Processing"></i>
+                                        {% elif report.status == 'failed' %}
+                                            <i class="fas fa-exclamation-circle text-danger" title="Failed"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="report-meta">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <strong>Generated by:</strong><br>
+                                            {{ report.generated_by.get_full_name|default:report.generated_by.username }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Created:</strong><br>
+                                            {{ report.generated_at|date:"M d, Y H:i" }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Status:</strong><br>
+                                            <span class="badge bg-{% if report.status == 'completed' %}success{% elif report.status == 'processing' %}warning{% else %}danger{% endif %}">
+                                                {{ report.get_status_display|default:report.status|capfirst }}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>File Size:</strong><br>
+                                            {% if report.file_size %}
+                                                {{ report.file_size|filesizeformat }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    {% if report.description %}
+                                        <div class="mt-3">
+                                            <strong>Description:</strong><br>
+                                            {{ report.description }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="report-actions">
+                                    {% if report.status == 'completed' and report.file_path %}
+                                        <a href="{% url 'admin_dashboard:download_report' report.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download me-1"></i>Download
+                                        </a>
+                                        <a href="{% url 'admin_dashboard:view_report' report.id %}" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </a>
+                                    {% endif %}
+                                    
+                                    <a href="{% url 'admin_dashboard:report_detail' report.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-info-circle me-1"></i>Details
+                                    </a>
+                                    
+                                    {% if user.is_superuser %}
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete({{ report.id }}, '{{ report.title|default:"this report" }}')">
+                                            <i class="fas fa-trash me-1"></i>Delete
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                    <div class="pagination-wrapper">
+                        <ul class="pagination">
+                            {% if page_obj.has_previous %}
+                                <li>
+                                    <a href="?page=1{% if report_type != 'all' %}&type={{ report_type }}{% endif %}">&laquo; First</a>
+                                </li>
+                                <li>
+                                    <a href="?page={{ page_obj.previous_page_number }}{% if report_type != 'all' %}&type={{ report_type }}{% endif %}">&lsaquo; Previous</a>
+                                </li>
+                            {% else %}
+                                <li><span class="disabled">&laquo; First</span></li>
+                                <li><span class="disabled">&lsaquo; Previous</span></li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li><span class="current">{{ num }}</span></li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li>
+                                        <a href="?page={{ num }}{% if report_type != 'all' %}&type={{ report_type }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li>
+                                    <a href="?page={{ page_obj.next_page_number }}{% if report_type != 'all' %}&type={{ report_type }}{% endif %}">Next &rsaquo;</a>
+                                </li>
+                                <li>
+                                    <a href="?page={{ page_obj.paginator.num_pages }}{% if report_type != 'all' %}&type={{ report_type }}{% endif %}">Last &raquo;</a>
+                                </li>
+                            {% else %}
+                                <li><span class="disabled">Next &rsaquo;</span></li>
+                                <li><span class="disabled">Last &raquo;</span></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>No Reports Found</h3>
+                    <p>{% if report_type != 'all' %}No {{ report_type }} reports found.{% else %}No reports have been generated yet.{% endif %}</p>
+                    <a href="{% url 'admin_dashboard:generate_report' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Generate Your First Report
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="reportTitle"></strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Report</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(reportId, reportTitle) {
+        document.getElementById('reportTitle').textContent = reportTitle;
+        document.getElementById('deleteForm').action = "{% url 'admin_dashboard:delete_report' 0 %}".replace('0', reportId);
+        
+        var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+    }
+
+    // Auto-submit form when filters change
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateRangeSelect = document.getElementById('date_range');
+        if (dateRangeSelect) {
+            dateRangeSelect.addEventListener('change', function() {
+                this.form.submit();
+            });
+        }
+    });
+</script>
+{% endblock %}

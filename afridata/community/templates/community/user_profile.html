@@ -9,7 +9,7 @@
         <div class="col-12">
             <!-- Breadcrumb -->
             <nav aria-label="breadcrumb" class="mb-4">
-                <ol class="breadcrumb">
+                <ol class="breadcrumb custom-breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'community:community' %}">Community</a></li>
                     <li class="breadcrumb-item active" aria-current="page">{{ profile_user.username }}</li>
                 </ol>
@@ -19,44 +19,45 @@
                 <!-- User Profile Sidebar -->
                 <div class="col-lg-4 mb-4">
                     <!-- User Info Card -->
-                    <div class="card">
+                    <div class="card profile-card shadow-sm">
                         <div class="card-body text-center">
                             <!-- Avatar -->
-                            <div class="mb-3">
+                            <div class="mb-3 position-relative">
                                 {% if profile_user.profile.avatar %}
                                     <img src="{{ profile_user.profile.avatar.url }}" 
                                          alt="{{ profile_user.username }}" 
-                                         class="rounded-circle" 
-                                         width="100" height="100"
+                                         class="profile-avatar rounded-circle shadow" 
+                                         width="120" height="120"
                                          style="object-fit: cover;">
                                 {% else %}
-                                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center"
-                                         style="width: 100px; height: 100px; font-size: 2rem;">
+                                    <div class="profile-avatar-placeholder rounded-circle text-white d-inline-flex align-items-center justify-content-center shadow"
+                                         style="width: 120px; height: 120px; font-size: 2.5rem; background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);">
                                         {{ profile_user.username|first|upper }}
                                     </div>
                                 {% endif %}
+                                <div class="profile-status-indicator"></div>
                             </div>
 
                             <!-- Username -->
-                            <h4 class="mb-2">{{ profile_user.username }}</h4>
+                            <h4 class="mb-2 profile-username">{{ profile_user.username }}</h4>
                             
                             <!-- Full Name -->
                             {% if profile_user.first_name or profile_user.last_name %}
-                                <p class="text-muted mb-3">
+                                <p class="text-muted mb-3 profile-fullname">
                                     {{ profile_user.first_name }} {{ profile_user.last_name }}
                                 </p>
                             {% endif %}
 
                             <!-- Member Since -->
-                            <p class="text-muted small mb-3">
+                            <p class="text-muted small mb-3 member-since">
                                 <i class="fas fa-calendar-alt me-2"></i>
                                 Member since {{ profile_user.date_joined|date:"F Y" }}
                             </p>
 
                             <!-- Bio -->
                             {% if profile_user.profile.bio %}
-                                <div class="mb-3">
-                                    <hr>
+                                <div class="mb-3 profile-bio">
+                                    <hr class="bio-divider">
                                     <p class="text-muted">{{ profile_user.profile.bio }}</p>
                                 </div>
                             {% endif %}
@@ -64,7 +65,7 @@
                             <!-- Contact Info -->
                             {% if profile_user.email and profile_user.profile.show_email %}
                                 <div class="mb-2">
-                                    <a href="mailto:{{ profile_user.email }}" class="btn btn-outline-primary btn-sm">
+                                    <a href="mailto:{{ profile_user.email }}" class="btn btn-outline-primary btn-sm email-btn">
                                         <i class="fas fa-envelope me-2"></i>Send Email
                                     </a>
                                 </div>
@@ -73,8 +74,8 @@
                     </div>
 
                     <!-- Activity Statistics -->
-                    <div class="card mt-4">
-                        <div class="card-header">
+                    <div class="card mt-4 stats-card shadow-sm">
+                        <div class="card-header stats-header">
                             <h6 class="card-title mb-0">
                                 <i class="fas fa-chart-bar me-2"></i>Activity Statistics
                             </h6>
@@ -82,18 +83,20 @@
                         <div class="card-body">
                             <div class="row text-center">
                                 <div class="col-6 mb-3">
-                                    <div class="border-end">
-                                        <h4 class="text-primary mb-1">{{ activity.thread_count }}</h4>
-                                        <small class="text-muted">Threads</small>
+                                    <div class="stat-item border-end">
+                                        <h4 class="stat-number text-primary mb-1">{{ activity.thread_count }}</h4>
+                                        <small class="stat-label text-muted">Threads</small>
                                     </div>
                                 </div>
                                 <div class="col-6 mb-3">
-                                    <h4 class="text-success mb-1">{{ activity.post_count }}</h4>
-                                    <small class="text-muted">Posts</small>
+                                    <div class="stat-item">
+                                        <h4 class="stat-number text-success mb-1">{{ activity.post_count }}</h4>
+                                        <small class="stat-label text-muted">Posts</small>
+                                    </div>
                                 </div>
                                 <div class="col-12">
-                                    <hr class="my-2">
-                                    <div class="text-muted small">
+                                    <hr class="stats-divider my-2">
+                                    <div class="last-activity text-muted small">
                                         <i class="fas fa-clock me-1"></i>
                                         Last seen {{ activity.last_activity|timesince }} ago
                                     </div>
@@ -102,9 +105,9 @@
                         </div>
                     </div>
 
-                    <!-- Badges/Achievements (if you want to add this feature) -->
-                    <div class="card mt-4">
-                        <div class="card-header">
+                    <!-- Badges/Achievements -->
+                    <div class="card mt-4 achievements-card shadow-sm">
+                        <div class="card-header achievements-header">
                             <h6 class="card-title mb-0">
                                 <i class="fas fa-award me-2"></i>Achievements
                             </h6>
@@ -112,22 +115,22 @@
                         <div class="card-body">
                             <div class="d-flex flex-wrap gap-2">
                                 {% if activity.thread_count >= 10 %}
-                                    <span class="badge bg-primary" title="Created 10+ threads">
+                                    <span class="badge achievement-badge bg-primary" title="Created 10+ threads">
                                         <i class="fas fa-star me-1"></i>Thread Starter
                                     </span>
                                 {% endif %}
                                 {% if activity.post_count >= 50 %}
-                                    <span class="badge bg-success" title="Made 50+ posts">
+                                    <span class="badge achievement-badge bg-success" title="Made 50+ posts">
                                         <i class="fas fa-comments me-1"></i>Active Member
                                     </span>
                                 {% endif %}
                                 {% if activity.thread_count >= 1 and activity.post_count >= 1 %}
-                                    <span class="badge bg-info" title="Contributed threads and posts">
+                                    <span class="badge achievement-badge bg-info" title="Contributed threads and posts">
                                         <i class="fas fa-user-friends me-1"></i>Community Member
                                     </span>
                                 {% endif %}
                                 {% if not activity.thread_count and not activity.post_count %}
-                                    <span class="text-muted small">No achievements yet</span>
+                                    <span class="text-muted small no-achievements">No achievements yet</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -137,9 +140,9 @@
                 <!-- User Activity Content -->
                 <div class="col-lg-8">
                     <!-- Activity Tabs -->
-                    <div class="card">
-                        <div class="card-header">
-                            <ul class="nav nav-tabs card-header-tabs" id="activity-tabs" role="tablist">
+                    <div class="card activity-card shadow-sm">
+                        <div class="card-header activity-header p-0">
+                            <ul class="nav nav-tabs custom-tabs" id="activity-tabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" 
                                             id="recent-threads-tab" 
@@ -147,7 +150,7 @@
                                             data-bs-target="#recent-threads" 
                                             type="button" 
                                             role="tab">
-                                        <i class="fas fa-list me-2"></i>Recent Threads ({{ recent_threads|length }})
+                                        <i class="fas fa-list me-2"></i>Recent Threads <span class="tab-count">({{ recent_threads|length }})</span>
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
@@ -157,7 +160,7 @@
                                             data-bs-target="#recent-posts" 
                                             type="button" 
                                             role="tab">
-                                        <i class="fas fa-comments me-2"></i>Recent Posts ({{ recent_posts|length }})
+                                        <i class="fas fa-comments me-2"></i>Recent Posts <span class="tab-count">({{ recent_posts|length }})</span>
                                     </button>
                                 </li>
                             </ul>
@@ -170,49 +173,52 @@
                                      role="tabpanel" 
                                      aria-labelledby="recent-threads-tab">
                                     {% if recent_threads %}
-                                        <div class="list-group list-group-flush">
+                                        <div class="activity-list">
                                             {% for thread in recent_threads %}
-                                                <div class="list-group-item border-0 px-0">
+                                                <div class="activity-item thread-item">
                                                     <div class="d-flex w-100 justify-content-between align-items-start">
                                                         <div class="flex-grow-1">
-                                                            <h6 class="mb-2">
+                                                            <h6 class="activity-title mb-2">
                                                                 <a href="{% url 'community:thread_detail' thread.pk %}" 
-                                                                   class="text-decoration-none">
+                                                                   class="thread-link text-decoration-none">
                                                                     {{ thread.title }}
                                                                 </a>
                                                                 {% if thread.is_pinned %}
-                                                                    <span class="badge bg-warning text-dark ms-2">Pinned</span>
+                                                                    <span class="badge thread-badge bg-warning text-dark ms-2">Pinned</span>
                                                                 {% endif %}
                                                                 {% if thread.is_locked %}
-                                                                    <span class="badge bg-secondary ms-2">Locked</span>
+                                                                    <span class="badge thread-badge bg-secondary ms-2">Locked</span>
                                                                 {% endif %}
                                                             </h6>
-                                                            <div class="text-muted small mb-2">
+                                                            <div class="activity-meta text-muted small mb-2">
                                                                 <i class="fas fa-folder me-1"></i>
                                                                 <a href="{% url 'community:topic_detail' thread.topic.pk %}" 
-                                                                   class="text-muted text-decoration-none">
+                                                                   class="topic-link text-muted text-decoration-none">
                                                                     {{ thread.topic.name }}
                                                                 </a>
                                                                 <span class="mx-2">•</span>
                                                                 <i class="fas fa-calendar me-1"></i>
                                                                 {{ thread.created_at|date:"M d, Y" }}
                                                             </div>
-                                                            <p class="mb-0 text-muted small">
+                                                            <p class="activity-content mb-0 text-muted small">
                                                                 {{ thread.content|truncatewords:20 }}
                                                             </p>
                                                         </div>
-                                                        <div class="text-end ms-3">
-                                                            <small class="text-muted">
-                                                                {{ thread.view_count }} views
-                                                            </small>
+                                                        <div class="activity-stats text-end ms-3">
+                                                            <div class="view-count">
+                                                                <i class="fas fa-eye me-1"></i>
+                                                                <small class="text-muted">{{ thread.view_count }}</small>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             {% endfor %}
                                         </div>
                                     {% else %}
-                                        <div class="text-center py-5">
-                                            <i class="fas fa-list fa-3x text-muted mb-3"></i>
+                                        <div class="empty-state text-center py-5">
+                                            <div class="empty-icon mb-3">
+                                                <i class="fas fa-list fa-3x text-muted"></i>
+                                            </div>
                                             <h6 class="text-muted">No threads created yet</h6>
                                             <p class="text-muted small">
                                                 {{ profile_user.username }} hasn't created any threads yet.
@@ -227,33 +233,33 @@
                                      role="tabpanel" 
                                      aria-labelledby="recent-posts-tab">
                                     {% if recent_posts %}
-                                        <div class="list-group list-group-flush">
+                                        <div class="activity-list">
                                             {% for post in recent_posts %}
-                                                <div class="list-group-item border-0 px-0">
+                                                <div class="activity-item post-item">
                                                     <div class="d-flex w-100 justify-content-between align-items-start">
                                                         <div class="flex-grow-1">
-                                                            <h6 class="mb-2">
+                                                            <h6 class="activity-title mb-2">
                                                                 <a href="{% url 'community:thread_detail' post.thread.pk %}" 
-                                                                   class="text-decoration-none">
+                                                                   class="post-link text-decoration-none">
                                                                     Re: {{ post.thread.title }}
                                                                 </a>
                                                             </h6>
-                                                            <div class="text-muted small mb-2">
+                                                            <div class="activity-meta text-muted small mb-2">
                                                                 <i class="fas fa-folder me-1"></i>
                                                                 <a href="{% url 'community:topic_detail' post.thread.topic.pk %}" 
-                                                                   class="text-muted text-decoration-none">
+                                                                   class="topic-link text-muted text-decoration-none">
                                                                     {{ post.thread.topic.name }}
                                                                 </a>
                                                                 <span class="mx-2">•</span>
                                                                 <i class="fas fa-calendar me-1"></i>
                                                                 {{ post.created_at|date:"M d, Y" }}
                                                             </div>
-                                                            <p class="mb-0 text-muted small">
+                                                            <p class="activity-content mb-0 text-muted small">
                                                                 {{ post.content|truncatewords:20 }}
                                                             </p>
                                                         </div>
-                                                        <div class="text-end ms-3">
-                                                            <small class="text-muted">
+                                                        <div class="activity-stats text-end ms-3">
+                                                            <small class="text-muted time-ago">
                                                                 {{ post.created_at|timesince }} ago
                                                             </small>
                                                         </div>
@@ -262,8 +268,10 @@
                                             {% endfor %}
                                         </div>
                                     {% else %}
-                                        <div class="text-center py-5">
-                                            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                                        <div class="empty-state text-center py-5">
+                                            <div class="empty-icon mb-3">
+                                                <i class="fas fa-comments fa-3x text-muted"></i>
+                                            </div>
                                             <h6 class="text-muted">No posts yet</h6>
                                             <p class="text-muted small">
                                                 {{ profile_user.username }} hasn't made any posts yet.
@@ -277,14 +285,14 @@
 
                     <!-- Call to Action for Own Profile -->
                     {% if user == profile_user %}
-                        <div class="card mt-4 border-primary">
+                        <div class="card mt-4 cta-card border-primary shadow-sm">
                             <div class="card-body text-center">
-                                <h6 class="text-primary mb-3">Ready to engage with the community?</h6>
+                                <h6 class="text-primary mb-3 cta-title">Ready to engage with the community?</h6>
                                 <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
-                                    <a href="{% url 'community:community' %}" class="btn btn-primary">
+                                    <a href="{% url 'community:create_thread' %}" class="btn btn-primary cta-btn">
                                         <i class="fas fa-plus me-2"></i>Create New Thread
                                     </a>
-                                    <a href="{% url 'community:search' %}" class="btn btn-outline-primary">
+                                    <a href="{% url 'community:search' %}" class="btn btn-outline-primary cta-btn">
                                         <i class="fas fa-search me-2"></i>Browse Discussions
                                     </a>
                                 </div>
@@ -298,62 +306,3 @@
 </div>
 {% endblock %}
 
-{% block extra_css %}
-<style>
-.nav-tabs .nav-link {
-    border: none;
-    color: #6c757d;
-}
-
-.nav-tabs .nav-link.active {
-    background-color: transparent;
-    border-bottom: 2px solid #0d6efd;
-    color: #0d6efd;
-}
-
-.list-group-item:last-child {
-    border-bottom: none;
-}
-
-.badge {
-    font-size: 0.7em;
-}
-
-@media (max-width: 768px) {
-    .nav-tabs {
-        font-size: 0.9rem;
-    }
-    
-    .nav-tabs .nav-link {
-        padding: 0.5rem;
-    }
-}
-</style>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Bootstrap tabs
-    var triggerTabList = [].slice.call(document.querySelectorAll('#activity-tabs button'));
-    triggerTabList.forEach(function (triggerEl) {
-        var tabTrigger = new bootstrap.Tab(triggerEl);
-        
-        triggerEl.addEventListener('click', function (event) {
-            event.preventDefault();
-            tabTrigger.show();
-        });
-    });
-    
-    // Smooth scroll to tabs when clicking
-    document.querySelectorAll('#activity-tabs button').forEach(function(tab) {
-        tab.addEventListener('shown.bs.tab', function() {
-            const tabContent = document.querySelector('.tab-content');
-            if (tabContent) {
-                tabContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
-    });
-});
-</script>
-{% endblock %}
