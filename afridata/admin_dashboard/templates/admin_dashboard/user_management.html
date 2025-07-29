@@ -30,7 +30,7 @@
                 <!-- Search and Filter Form -->
                 <form method="get" class="mb-4">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="input-group">
                                 <span class="input-group-text">
                                     <i class="fas fa-search"></i>
@@ -46,11 +46,23 @@
                                 <option value="inactive" {% if filter_type == 'inactive' %}selected{% endif %}>Inactive Only</option>
                                 <option value="verified" {% if filter_type == 'verified' %}selected{% endif %}>Verified Only</option>
                                 <option value="unverified" {% if filter_type == 'unverified' %}selected{% endif %}>Unverified Only</option>
+                                <option value="moderated" {% if filter_type == 'moderated' %}selected{% endif %}>Moderated</option>
+                                <option value="premium" {% if filter_type == 'premium' %}selected{% endif %}>Premium</option>
                             </select>
                         </div>
                         <div class="col-md-3">
+                            <select name="sort" class="form-select">
+                                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Newest First</option>
+                                <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Oldest First</option>
+                                <option value="email" {% if sort_by == 'email' %}selected{% endif %}>Email A-Z</option>
+                                <option value="-email" {% if sort_by == '-email' %}selected{% endif %}>Email Z-A</option>
+                                <option value="full_name" {% if sort_by == 'full_name' %}selected{% endif %}>Name A-Z</option>
+                                <option value="-full_name" {% if sort_by == '-full_name' %}selected{% endif %}>Name Z-A</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
                             <button type="submit" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-filter"></i> Filter
+                                <i class="fas fa-filter"></i> Apply
                             </button>
                         </div>
                     </div>
@@ -67,6 +79,7 @@
                                 <th>User</th>
                                 <th>Email</th>
                                 <th>Status</th>
+                                <th>Stats</th>
                                 <th>Joined</th>
                                 <th>Last Login</th>
                                 <th>Actions</th>
@@ -113,6 +126,27 @@
                                         {% endif %}
                                         {% if user.is_superuser %}
                                             <span class="badge bg-warning">Admin</span>
+                                        {% endif %}
+                                        {% if user.userprofile.is_premium %}
+                                            <span class="badge bg-primary">Premium</span>
+                                        {% endif %}
+                                        {% if user.moderation_count > 0 %}
+                                            <span class="badge bg-danger">Moderated</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column gap-1">
+                                        <small class="text-muted">
+                                            <i class="fas fa-database"></i> {{ user.dataset_count }} datasets
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="fas fa-key"></i> {{ user.api_key_count }} API keys
+                                        </small>
+                                        {% if user.moderation_count > 0 %}
+                                            <small class="text-danger">
+                                                <i class="fas fa-exclamation-triangle"></i> {{ user.moderation_count }} actions
+                                            </small>
                                         {% endif %}
                                     </div>
                                 </td>
@@ -172,7 +206,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="7" class="text-center py-4">
+                                <td colspan="8" class="text-center py-4">
                                     <div class="text-muted">
                                         <i class="fas fa-users fa-3x mb-3"></i>
                                         <h5>No users found</h5>
@@ -191,10 +225,10 @@
                     <ul class="pagination justify-content-center">
                         {% if page_obj.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}">First</a>
+                                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">First</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}">Previous</a>
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Previous</a>
                             </li>
                         {% endif %}
 
@@ -204,10 +238,10 @@
 
                         {% if page_obj.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}">Next</a>
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Next</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}">Last</a>
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Last</a>
                             </li>
                         {% endif %}
                     </ul>

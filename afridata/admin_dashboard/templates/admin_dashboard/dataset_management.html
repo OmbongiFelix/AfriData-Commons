@@ -15,17 +15,43 @@
     </div>
 </div>
 
+<!-- Moderation Statistics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="row g-3">
+            {% for stat in moderation_stats %}
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-capitalize">{{ stat.status }}</h5>
+                            <h3 class="text-primary">{{ stat.count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Total Datasets</h5>
+                        <h3 class="text-info">{{ total_datasets }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Search and Filter Section -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="card">
             <div class="card-body">
                 <form method="get" class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="text" class="form-control" name="search" 
                                placeholder="Search datasets..." value="{{ search_query }}">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select class="form-select" name="type">
                             <option value="all">All Types</option>
                             {% for value, display in dataset_types %}
@@ -33,6 +59,14 @@
                                     {{ display }}
                                 </option>
                             {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" name="moderation">
+                            <option value="all" {% if moderation_status == 'all' %}selected{% endif %}>All Status</option>
+                            <option value="pending" {% if moderation_status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="approved" {% if moderation_status == 'approved' %}selected{% endif %}>Approved</option>
+                            <option value="rejected" {% if moderation_status == 'rejected' %}selected{% endif %}>Rejected</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -58,6 +92,15 @@
         <div class="d-flex justify-content-between align-items-center">
             <h6 class="text-muted mb-0">
                 Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ total_datasets }} datasets
+                {% if search_query %}
+                    for "{{ search_query }}"
+                {% endif %}
+                {% if dataset_type != 'all' %}
+                    ({{ dataset_type }} type)
+                {% endif %}
+                {% if moderation_status != 'all' %}
+                    ({{ moderation_status }} status)
+                {% endif %}
             </h6>
             <div class="dropdown">
                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
@@ -66,6 +109,8 @@
                 </button>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="#" onclick="bulkAction('delete')">Delete Selected</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="bulkAction('approve')">Approve Selected</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="bulkAction('reject')">Reject Selected</a></li>
                     <li><a class="dropdown-item" href="#" onclick="bulkAction('feature')">Feature Selected</a></li>
                 </ul>
             </div>
@@ -89,6 +134,7 @@
                                     <th>Dataset</th>
                                     <th>Author</th>
                                     <th>Type</th>
+                                    <th>Status</th>
                                     <th>Rating</th>
                                     <th>Downloads</th>
                                     <th>Created</th>
@@ -123,6 +169,19 @@
                                         </span>
                                     </td>
                                     <td>
+                                        {% if dataset.moderation_queue %}
+                                            {% if dataset.moderation_queue.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif dataset.moderation_queue.status == 'approved' %}
+                                                <span class="badge bg-success">Approved</span>
+                                            {% elif dataset.moderation_queue.status == 'rejected' %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">Not Reviewed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
                                         <span class="text-warning">
                                             <i class="fas fa-star"></i> {{ dataset.rating|floatformat:1 }}
                                         </span>
@@ -138,6 +197,26 @@
                                             <ul class="dropdown-menu">
                                                 <li><a class="dropdown-item" href="#">View Details</a></li>
                                                 <li><a class="dropdown-item" href="#">Edit</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                {% if dataset.moderation_queue %}
+                                                    {% if dataset.moderation_queue.status == 'pending' %}
+                                                        <li><a class="dropdown-item text-success" href="#" 
+                                                               onclick="moderateDataset({{ dataset.id }}, 'approve')">Approve</a></li>
+                                                        <li><a class="dropdown-item text-warning" href="#" 
+                                                               onclick="moderateDataset({{ dataset.id }}, 'reject')">Reject</a></li>
+                                                    {% elif dataset.moderation_queue.status == 'rejected' %}
+                                                        <li><a class="dropdown-item text-success" href="#" 
+                                                               onclick="moderateDataset({{ dataset.id }}, 'approve')">Approve</a></li>
+                                                    {% elif dataset.moderation_queue.status == 'approved' %}
+                                                        <li><a class="dropdown-item text-warning" href="#" 
+                                                               onclick="moderateDataset({{ dataset.id }}, 'reject')">Reject</a></li>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <li><a class="dropdown-item text-success" href="#" 
+                                                           onclick="moderateDataset({{ dataset.id }}, 'approve')">Approve</a></li>
+                                                    <li><a class="dropdown-item text-warning" href="#" 
+                                                           onclick="moderateDataset({{ dataset.id }}, 'reject')">Reject</a></li>
+                                                {% endif %}
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li><a class="dropdown-item text-danger" href="#" 
                                                        onclick="deleteDataset({{ dataset.id }})">Delete</a></li>
@@ -156,10 +235,10 @@
                             <ul class="pagination justify-content-center">
                                 {% if page_obj.has_previous %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if dataset_type != 'all' %}&type={{ dataset_type }}{% endif %}">First</a>
+                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if dataset_type != 'all' %}&type={{ dataset_type }}{% endif %}{% if moderation_status != 'all' %}&moderation={{ moderation_status }}{% endif %}">First</a>
                                     </li>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if dataset_type != 'all' %}&type={{ dataset_type }}{% endif %}">Previous</a>
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if dataset_type != 'all' %}&type={{ dataset_type }}{% endif %}{% if moderation_status != 'all' %}&moderation={{ moderation_status }}{% endif %}">Previous</a>
                                     </li>
                                 {% endif %}
 
@@ -169,10 +248,10 @@
 
                                 {% if page_obj.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if dataset_type != 'all' %}&type={{ dataset_type }}{% endif %}">Next</a>
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if dataset_type != 'all' %}&type={{ dataset_type }}{% endif %}{% if moderation_status != 'all' %}&moderation={{ moderation_status }}{% endif %}">Next</a>
                                     </li>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if dataset_type != 'all' %}&type={{ dataset_type }}{% endif %}">Last</a>
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if dataset_type != 'all' %}&type={{ dataset_type }}{% endif %}{% if moderation_status != 'all' %}&moderation={{ moderation_status }}{% endif %}">Last</a>
                                     </li>
                                 {% endif %}
                             </ul>
@@ -182,7 +261,7 @@
                     <div class="text-center py-5">
                         <i class="fas fa-database fa-3x text-muted mb-3"></i>
                         <h5>No datasets found</h5>
-                        <p class="text-muted">Try adjusting your search criteria</p>
+                        <p class="text-muted">Try adjusting your search criteria or filters</p>
                     </div>
                 {% endif %}
             </div>
@@ -206,16 +285,45 @@ function bulkAction(action) {
         return;
     }
     
-    if (confirm(`Are you sure you want to ${action} ${selected.length} dataset(s)?`)) {
+    let confirmMessage;
+    switch(action) {
+        case 'approve':
+            confirmMessage = `Are you sure you want to approve ${selected.length} dataset(s)?`;
+            break;
+        case 'reject':
+            confirmMessage = `Are you sure you want to reject ${selected.length} dataset(s)?`;
+            break;
+        case 'delete':
+            confirmMessage = `Are you sure you want to delete ${selected.length} dataset(s)? This action cannot be undone.`;
+            break;
+        case 'feature':
+            confirmMessage = `Are you sure you want to feature ${selected.length} dataset(s)?`;
+            break;
+        default:
+            confirmMessage = `Are you sure you want to ${action} ${selected.length} dataset(s)?`;
+    }
+    
+    if (confirm(confirmMessage)) {
         // Implement bulk action logic here
         console.log(`Bulk ${action}:`, selected);
+        // You would typically send an AJAX request here
+    }
+}
+
+function moderateDataset(datasetId, action) {
+    const actionText = action === 'approve' ? 'approve' : 'reject';
+    if (confirm(`Are you sure you want to ${actionText} this dataset?`)) {
+        // Implement moderation logic here
+        console.log(`${action} dataset:`, datasetId);
+        // You would typically send an AJAX request here
     }
 }
 
 function deleteDataset(datasetId) {
-    if (confirm('Are you sure you want to delete this dataset?')) {
+    if (confirm('Are you sure you want to delete this dataset? This action cannot be undone.')) {
         // Implement delete logic here
         console.log('Delete dataset:', datasetId);
+        // You would typically send an AJAX request here
     }
 }
 </script>

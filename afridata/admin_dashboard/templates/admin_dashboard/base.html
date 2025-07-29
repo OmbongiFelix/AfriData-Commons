@@ -8,207 +8,641 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css" rel="stylesheet">
     <style>
+        :root {
+            --sidebar-bg: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            --primary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #17a2b8;
+            --text-muted: #6c757d;
+        }
+
         body {
             background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         .sidebar {
             min-height: 100vh;
-            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            background: var(--sidebar-bg);
+            box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: transform 0.3s ease;
         }
-        .sidebar .nav-link {
-            color: #ecf0f1;
-            padding: 12px 20px;
-            border-radius: 8px;
-            margin: 2px 10px;
-            transition: all 0.3s ease;
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
         }
-        .sidebar .nav-link:hover {
-            background-color: rgba(255,255,255,0.1);
-            color: #fff;
-            transform: translateX(5px);
-        }
-        .sidebar .nav-link.active {
-            background-color: #3498db;
-            color: #fff;
-        }
-        .content-wrapper {
-            padding: 20px;
-        }
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .stat-card.success {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        .stat-card.warning {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        .stat-card.info {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-        .navbar-brand {
-            font-weight: bold;
-            color: #2c3e50 !important;
-        }
-        .table-hover tbody tr:hover {
-            background-color: rgba(52, 152, 219, 0.1);
-        }
-        .btn-action {
-            padding: 5px 10px;
-            font-size: 0.8rem;
-            border-radius: 5px;
-        }
+
         .sidebar-brand {
             padding: 20px;
             text-align: center;
             color: #ecf0f1;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
+
         .sidebar-brand h4 {
             margin: 0;
             font-weight: 300;
+            font-size: 1.2rem;
         }
+
+        .sidebar-section {
+            margin: 15px 10px 25px 10px;
+        }
+
+        .sidebar-section-title {
+            color: #95a5a6;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            padding-left: 10px;
+        }
+
+        .sidebar .nav-link {
+            color: #ecf0f1;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+            text-align: center;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: #fff;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .sidebar .nav-link.active::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            background-color: #fff;
+            border-radius: 2px;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            transition: margin-left 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .content-wrapper {
+            padding: 20px;
+        }
+
+        .top-navbar {
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .stat-card.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-card.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-card.info {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .stat-card.danger {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: #2c3e50 !important;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+
+        .btn-action {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            border-radius: 5px;
+            margin: 1px;
+        }
+
         .chart-container {
             position: relative;
             height: 400px;
             margin: 20px 0;
         }
+
         .notification-badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #e74c3c;
+            top: -8px;
+            right: -8px;
+            background: var(--danger-color);
             color: white;
             border-radius: 50%;
-            padding: 2px 6px;
+            padding: 3px 7px;
             font-size: 0.7rem;
+            font-weight: bold;
+            min-width: 18px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            font-size: 1.1rem;
+        }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-radius: 10px;
+            padding: 10px 0;
+        }
+
+        .dropdown-item {
+            padding: 8px 20px;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+        }
+
+        .alert {
+            border: none;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            border-left-color: var(--success-color);
+            background-color: rgba(39, 174, 96, 0.1);
+        }
+
+        .alert-danger {
+            border-left-color: var(--danger-color);
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+
+        .alert-warning {
+            border-left-color: var(--warning-color);
+            background-color: rgba(243, 156, 18, 0.1);
+        }
+
+        .alert-info {
+            border-left-color: var(--info-color);
+            background-color: rgba(23, 162, 184, 0.1);
+        }
+
+        .page-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active { background: rgba(39, 174, 96, 0.2); color: var(--success-color); }
+        .status-inactive { background: rgba(149, 165, 166, 0.2); color: #95a5a6; }
+        .status-pending { background: rgba(243, 156, 18, 0.2); color: var(--warning-color); }
+        .status-blocked { background: rgba(231, 76, 60, 0.2); color: var(--danger-color); }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .content-wrapper {
+                padding: 15px;
+            }
+        }
+
+        /* Custom scrollbar for sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
         }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="container-fluid p-0">
+        <div class="row g-0">
             <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+            <nav class="sidebar" id="sidebar">
                 <div class="sidebar-brand">
                     <h4><i class="fas fa-chart-line"></i> Admin Panel</h4>
+                    <small class="text-muted">Management Dashboard</small>
                 </div>
+                
                 <div class="position-sticky">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_home' %}active{% endif %}" 
-                               href="{% url 'admin_dashboard:dashboard_home' %}">
-                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'admin_dashboard:user_management' %}">
-                                <i class="fas fa-users me-2"></i> Users
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'dataset' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'admin_dashboard:dataset_management' %}">
-                                <i class="fas fa-database me-2"></i> Datasets
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'community' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'admin_dashboard:community_management' %}">
-                                <i class="fas fa-comments me-2"></i> Community
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'api' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'admin_dashboard:api_management' %}">
-                                <i class="fas fa-key me-2"></i> API Management
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'logs' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'admin_dashboard:system_logs' %}">
-                                <i class="fas fa-list-alt me-2"></i> System Logs
-                            </a>
-                        </li>
-                        <hr style="border-color: rgba(255,255,255,0.2); margin: 20px 10px;">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin_dashboard:export_data' %}?type=users">
-                                <i class="fas fa-download me-2"></i> Export Data
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/admin/">
-                                <i class="fas fa-cog me-2"></i> Django Admin
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/">
-                                <i class="fas fa-home me-2"></i> Back to Site
-                            </a>
-                        </li>
-                    </ul>
+                    <!-- Main Navigation -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">Dashboard</div>
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_home' %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:dashboard_home' %}">
+                                    <i class="fas fa-tachometer-alt"></i> Overview
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:analytics_api' %}">
+                                    <i class="fas fa-chart-bar"></i> Analytics
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'metrics' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:system_metrics' %}">
+                                    <i class="fas fa-pulse"></i> System Metrics
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- User Management -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">User Management</div>
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'user_management' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:user_management' %}">
+                                    <i class="fas fa-users"></i> All Users
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'user_moderation' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:user_moderation' %}">
+                                    <i class="fas fa-user-shield"></i> Moderation
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'token_management' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:token_management' %}">
+                                    <i class="fas fa-coins"></i> Token Management
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Content Management -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">Content</div>
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'dataset_management' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:dataset_management' %}">
+                                    <i class="fas fa-database"></i> Datasets
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'moderation_queue' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:moderation_queue' %}">
+                                    <i class="fas fa-tasks"></i> Moderation Queue
+                                    {% if pending_datasets > 0 %}
+                                        <span class="notification-badge">{{ pending_datasets }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'community_management' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:community_management' %}">
+                                    <i class="fas fa-comments"></i> Community
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- System -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">System</div>
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'api_management' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:api_management' %}">
+                                    <i class="fas fa-key"></i> API Management
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'bulk_actions' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:bulk_actions' %}">
+                                    <i class="fas fa-layer-group"></i> Bulk Actions
+                                    {% if pending_bulk_actions > 0 %}
+                                        <span class="notification-badge">{{ pending_bulk_actions }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'system_logs' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:system_logs' %}">
+                                    <i class="fas fa-list-alt"></i> System Logs
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'notifications' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:notifications' %}">
+                                    <i class="fas fa-bell"></i> Notifications
+                                    {% if unread_notifications > 0 %}
+                                        <span class="notification-badge">{{ unread_notifications }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Reports & Settings -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">Administration</div>
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'reports' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:reports' %}">
+                                    <i class="fas fa-file-alt"></i> Reports
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'system_settings' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard:system_settings' %}">
+                                    <i class="fas fa-cog"></i> Settings
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'admin_dashboard:export_data' %}?type=users">
+                                    <i class="fas fa-download"></i> Export Data
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Quick Links -->
+                    <div class="sidebar-section">
+                        <hr style="border-color: rgba(255,255,255,0.2); margin: 10px;">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/admin/" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i> Django Admin
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/" target="_blank">
+                                    <i class="fas fa-home"></i> Back to Site
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </nav>
 
             <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <main class="main-content" id="mainContent">
                 <!-- Top navbar -->
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">{% block page_title %}Dashboard{% endblock %}</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle position-relative" type="button" 
-                                    id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-bell"></i>
-                                {% if unread_notifications > 0 %}
-                                    <span class="notification-badge">{{ unread_notifications }}</span>
-                                {% endif %}
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                                <li><h6 class="dropdown-header">Notifications</h6></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-info-circle text-info"></i> System update available</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-exclamation-triangle text-warning"></i> High API usage detected</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#">View all notifications</a></li>
-                            </ul>
+                <div class="top-navbar">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="page-title mb-0">{% block page_title %}Dashboard{% endblock %}</h1>
+                            <p class="page-subtitle">{% block page_subtitle %}Welcome to the admin dashboard{% endblock %}</p>
                         </div>
-                        <div class="dropdown ms-2">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
-                                    id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user"></i> {{ user.username }}
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-user-edit"></i> Profile</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Settings</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'admin:logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                            </ul>
+                        
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- Quick Stats -->
+                            <div class="d-none d-md-flex align-items-center gap-3 me-3">
+                                <div class="text-center">
+                                    <small class="text-muted d-block">Active Users</small>
+                                    <strong class="text-success">{{ active_users|default:0 }}</strong>
+                                </div>
+                                <div class="text-center">
+                                    <small class="text-muted d-block">Pending</small>
+                                    <strong class="text-warning">{{ pending_datasets|default:0 }}</strong>
+                                </div>
+                            </div>
+
+                            <!-- Notifications Dropdown -->
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary position-relative" type="button" 
+                                        id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-bell"></i>
+                                    {% if unread_notifications > 0 %}
+                                        <span class="notification-badge">{{ unread_notifications }}</span>
+                                    {% endif %}
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" style="width: 300px;" aria-labelledby="notificationsDropdown">
+                                    <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                        <span>Notifications</span>
+                                        <small class="text-muted">{{ unread_notifications }} unread</small>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    
+                                    <!-- Sample notifications - replace with dynamic content -->
+                                    <li>
+                                        <a class="dropdown-item py-2" href="{% url 'admin_dashboard:moderation_queue' %}">
+                                            <div class="d-flex align-items-start">
+                                                <i class="fas fa-exclamation-triangle text-warning me-2 mt-1"></i>
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-bold">Pending Moderation</div>
+                                                    <small class="text-muted">{{ pending_datasets }} datasets awaiting review</small>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    
+                                    {% if pending_bulk_actions > 0 %}
+                                    <li>
+                                        <a class="dropdown-item py-2" href="{% url 'admin_dashboard:bulk_actions' %}">
+                                            <div class="d-flex align-items-start">
+                                                <i class="fas fa-tasks text-info me-2 mt-1"></i>
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-bold">Bulk Actions</div>
+                                                    <small class="text-muted">{{ pending_bulk_actions }} actions in progress</small>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-center py-2" href="{% url 'admin_dashboard:notifications' %}">
+                                            <small>View all notifications</small>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <!-- User Dropdown -->
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                                        id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user me-1"></i>
+                                    <span class="d-none d-md-inline">{{ user.username }}</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li class="dropdown-header">
+                                        <div class="fw-bold">{{ user.get_full_name|default:user.username }}</div>
+                                        <small class="text-muted">{{ user.email }}</small>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-user-edit me-2"></i> Profile</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'admin_dashboard:system_settings' %}"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'admin_dashboard:system_logs' %}"><i class="fas fa-history me-2"></i> Activity Log</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{% url 'admin:logout' %}"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Messages -->
                 {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
+                    <div class="content-wrapper">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                <div class="d-flex align-items-center">
+                                    {% if message.tags == 'success' %}
+                                        <i class="fas fa-check-circle me-2"></i>
+                                    {% elif message.tags == 'error' or message.tags == 'danger' %}
+                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                    {% elif message.tags == 'warning' %}
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                    {% else %}
+                                        <i class="fas fa-info-circle me-2"></i>
+                                    {% endif %}
+                                    <div class="flex-grow-1">{{ message }}</div>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
                 {% endif %}
 
                 <!-- Content wrapper -->
@@ -223,6 +657,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script>
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            sidebar.classList.toggle('show');
+            mainContent.classList.toggle('expanded');
+        }
+
         // Auto-dismiss alerts after 5 seconds
         setTimeout(function() {
             var alerts = document.querySelectorAll('.alert');
@@ -231,6 +674,286 @@
                 bsAlert.close();
             });
         }, 5000);
+
+        // Real-time dashboard updates (if on dashboard page)
+        {% if request.resolver_match.url_name == 'dashboard_home' %}
+        function updateDashboardStats() {
+            fetch('{% url "admin_dashboard:dashboard_stats_api" %}')
+                .then(response => response.json())
+                .then(data => {
+                    // Update notification badges
+                    const notificationBadges = document.querySelectorAll('.notification-badge');
+                    notificationBadges.forEach(badge => {
+                        if (badge.closest('a[href*="moderation_queue"]') && data.datasets.pending_moderation > 0) {
+                            badge.textContent = data.datasets.pending_moderation;
+                            badge.style.display = 'inline-block';
+                        } else if (badge.closest('a[href*="bulk_actions"]') && data.moderation.pending_bulk_actions > 0) {
+                            badge.textContent = data.moderation.pending_bulk_actions;
+                            badge.style.display = 'inline-block';
+                        } else if (badge.closest('a[href*="notifications"]') && data.notifications.unread > 0) {
+                            badge.textContent = data.notifications.unread;
+                            badge.style.display = 'inline-block';
+                        } else if (data.notifications.unread === 0) {
+                            badge.style.display = 'none';
+                        }
+                    });
+                    
+                    // Update quick stats in header
+                    const activeUsersEl = document.querySelector('.text-success');
+                    if (activeUsersEl) {
+                        activeUsersEl.textContent = data.users.active;
+                    }
+                    
+                    const pendingEl = document.querySelector('.text-warning');
+                    if (pendingEl) {
+                        pendingEl.textContent = data.datasets.pending_moderation;
+                    }
+                })
+                .catch(error => console.log('Dashboard update failed:', error));
+        }
+
+        // Update dashboard stats every 30 seconds
+        setInterval(updateDashboardStats, 30000);
+        {% endif %}
+
+        // Handle responsive sidebar
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('show');
+                mainContent.classList.remove('expanded');
+            }
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.querySelector('.sidebar-toggle');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (window.innerWidth <= 768 && 
+                sidebar.classList.contains('show') &&
+                !sidebar.contains(event.target) &&
+                !sidebarToggle.contains(event.target)) {
+                sidebar.classList.remove('show');
+                mainContent.classList.remove('expanded');
+            }
+        });
+
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Initialize popovers
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl);
+        });
+
+        // Enhanced notification handling
+        function markNotificationAsRead(notificationId) {
+            fetch(`/admin-dashboard/notifications/${notificationId}/mark-read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update notification count
+                    const badges = document.querySelectorAll('.notification-badge');
+                    badges.forEach(badge => {
+                        const currentCount = parseInt(badge.textContent);
+                        if (currentCount > 1) {
+                            badge.textContent = currentCount - 1;
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    });
+                }
+            })
+            .catch(error => console.error('Error marking notification as read:', error));
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Alt + D for Dashboard
+            if (e.altKey && e.key === 'd') {
+                e.preventDefault();
+                window.location.href = '{% url "admin_dashboard:dashboard_home" %}';
+            }
+            
+            // Alt + U for Users
+            if (e.altKey && e.key === 'u') {
+                e.preventDefault();
+                window.location.href = '{% url "admin_dashboard:user_management" %}';
+            }
+            
+            // Alt + M for Moderation Queue
+            if (e.altKey && e.key === 'm') {
+                e.preventDefault();
+                window.location.href = '{% url "admin_dashboard:moderation_queue" %}';
+            }
+            
+            // Alt + S for Settings
+            if (e.altKey && e.key === 's') {
+                e.preventDefault();
+                window.location.href = '{% url "admin_dashboard:system_settings" %}';
+            }
+            
+            // Escape to close sidebar on mobile
+            if (e.key === 'Escape' && window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const mainContent = document.getElementById('mainContent');
+                sidebar.classList.remove('show');
+                mainContent.classList.remove('expanded');
+            }
+        });
+
+        // Add loading states for forms
+        document.addEventListener('submit', function(e) {
+            const submitBtn = e.target.querySelector('button[type="submit"], input[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                const originalText = submitBtn.textContent;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+                
+                // Re-enable after 10 seconds as fallback
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }, 10000);
+            }
+        });
+
+        // Enhanced table interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to table rows with actions
+            const actionRows = document.querySelectorAll('tr[data-id]');
+            actionRows.forEach(row => {
+                row.style.cursor = 'pointer';
+                row.addEventListener('click', function(e) {
+                    // Don't trigger if clicking on buttons or links
+                    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button') || e.target.closest('a')) {
+                        return;
+                    }
+                    
+                    // Navigate to detail view if available
+                    const detailUrl = row.dataset.detailUrl;
+                    if (detailUrl) {
+                        window.location.href = detailUrl;
+                    }
+                });
+            });
+
+            // Bulk selection functionality
+            const selectAllCheckbox = document.querySelector('#selectAll');
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+            const bulkActionContainer = document.querySelector('#bulkActionContainer');
+            
+            if (selectAllCheckbox && itemCheckboxes.length > 0) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    itemCheckboxes.forEach(checkbox => {
+                        checkbox.checked = this.checked;
+                    });
+                    toggleBulkActions();
+                });
+                
+                itemCheckboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
+                        selectAllCheckbox.checked = checkedBoxes.length === itemCheckboxes.length;
+                        selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < itemCheckboxes.length;
+                        toggleBulkActions();
+                    });
+                });
+            }
+            
+            function toggleBulkActions() {
+                const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
+                if (bulkActionContainer) {
+                    bulkActionContainer.style.display = checkedBoxes.length > 0 ? 'block' : 'none';
+                    const countSpan = bulkActionContainer.querySelector('.selected-count');
+                    if (countSpan) {
+                        countSpan.textContent = checkedBoxes.length;
+                    }
+                }
+            }
+        });
+
+        // Confirmation dialogs for destructive actions
+        function confirmAction(message, callback) {
+            if (confirm(message)) {
+                callback();
+            }
+        }
+
+        // Add click handlers for delete buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-danger') || e.target.closest('.btn-danger')) {
+                const btn = e.target.classList.contains('btn-danger') ? e.target : e.target.closest('.btn-danger');
+                const action = btn.dataset.action || 'delete';
+                const itemName = btn.dataset.itemName || 'this item';
+                
+                e.preventDefault();
+                confirmAction(`Are you sure you want to ${action} ${itemName}? This action cannot be undone.`, function() {
+                    if (btn.tagName === 'A') {
+                        window.location.href = btn.href;
+                    } else if (btn.form) {
+                        btn.form.submit();
+                    }
+                });
+            }
+        });
+
+        // Search functionality enhancement
+        const searchInputs = document.querySelectorAll('input[type="search"], .search-input');
+        searchInputs.forEach(input => {
+            let searchTimeout;
+            input.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const searchIcon = this.parentNode.querySelector('.fa-search');
+                if (searchIcon) {
+                    searchIcon.className = 'fas fa-spinner fa-spin';
+                }
+                
+                searchTimeout = setTimeout(() => {
+                    if (searchIcon) {
+                        searchIcon.className = 'fas fa-search';
+                    }
+                    // Auto-submit search form
+                    if (this.form && this.value.length >= 2) {
+                        this.form.submit();
+                    }
+                }, 1000);
+            });
+        });
+
+        // Enhanced status indicators
+        function updateStatus(element, status) {
+            element.className = `status-badge status-${status}`;
+            element.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        }
+
+        // Add smooth scrolling to anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>

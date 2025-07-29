@@ -45,6 +45,17 @@
                 </select>
             </div>
             <div class="col-md-3">
+                <label for="admin" class="form-label">Admin User</label>
+                <select class="form-select" id="admin" name="admin">
+                    <option value="all" {% if admin_filter == 'all' %}selected{% endif %}>All Admin Users</option>
+                    {% for user in admin_users %}
+                        <option value="{{ user.id }}" {% if admin_filter == user.id|stringformat:"s" %}selected{% endif %}>
+                            {{ user.email }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
                 <label for="date" class="form-label">Date Range</label>
                 <select class="form-select" id="date" name="date">
                     <option value="all" {% if date_filter == 'all' %}selected{% endif %}>All Time</option>
@@ -52,6 +63,12 @@
                     <option value="week" {% if date_filter == 'week' %}selected{% endif %}>Last 7 Days</option>
                     <option value="month" {% if date_filter == 'month' %}selected{% endif %}>Last 30 Days</option>
                 </select>
+            </div>
+            <div class="col-md-9">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ search_query }}" 
+                       placeholder="Search by IP address, description, or object...">
             </div>
             <div class="col-md-3 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
@@ -141,10 +158,10 @@
         <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}page=1">First</a>
+                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.admin %}admin={{ request.GET.admin }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}page=1">First</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.admin %}admin={{ request.GET.admin }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
                 </li>
             {% endif %}
             
@@ -156,10 +173,10 @@
             
             {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.admin %}admin={{ request.GET.admin }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last</a>
+                    <a class="page-link" href="?{% if request.GET.action %}action={{ request.GET.action }}&{% endif %}{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.admin %}admin={{ request.GET.admin }}&{% endif %}{% if request.GET.date %}date={{ request.GET.date }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last</a>
                 </li>
             {% endif %}
         </ul>

@@ -4,6 +4,23 @@
 {% block page_title %}Dashboard Overview{% endblock %}
 
 {% block content %}
+<!-- Alert Section for Pending Actions -->
+{% if unread_notifications or pending_bulk_actions or active_moderation_actions %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning d-flex align-items-center" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <div>
+                <strong>Attention Required:</strong>
+                {% if unread_notifications %}{{ unread_notifications }} unread notification{{ unread_notifications|pluralize }}{% endif %}
+                {% if pending_bulk_actions %}{% if unread_notifications %}, {% endif %}{{ pending_bulk_actions }} pending bulk action{{ pending_bulk_actions|pluralize }}{% endif %}
+                {% if active_moderation_actions %}{% if unread_notifications or pending_bulk_actions %}, {% endif %}{{ active_moderation_actions }} active moderation action{{ active_moderation_actions|pluralize }}{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row">
     <!-- Statistics Cards -->
     <div class="col-xl-3 col-md-6 mb-4">
@@ -13,6 +30,7 @@
                     <div>
                         <div class="h5 mb-0 text-white">{{ total_users }}</div>
                         <div class="small text-white-75">Total Users</div>
+                        <div class="small text-white-50">+{{ new_users_30d }} this month</div>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-users fa-2x text-white-50"></i>
@@ -29,6 +47,7 @@
                     <div>
                         <div class="h5 mb-0 text-white">{{ total_datasets }}</div>
                         <div class="small text-white-75">Total Datasets</div>
+                        <div class="small text-white-50">{{ pending_datasets }} pending review</div>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-database fa-2x text-white-50"></i>
@@ -45,6 +64,7 @@
                     <div>
                         <div class="h5 mb-0 text-white">{{ total_api_keys }}</div>
                         <div class="small text-white-75">Active API Keys</div>
+                        <div class="small text-white-50">{{ api_usage_today }} calls today</div>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-key fa-2x text-white-50"></i>
@@ -59,8 +79,9 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <div class="h5 mb-0 text-white">{{ api_usage_today }}</div>
-                        <div class="small text-white-75">API Calls Today</div>
+                        <div class="h5 mb-0 text-white">{{ recent_login_attempts }}</div>
+                        <div class="small text-white-75">Login Attempts (24h)</div>
+                        <div class="small text-white-50">{{ failed_login_attempts }} failed</div>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-chart-line fa-2x text-white-50"></i>
@@ -91,8 +112,8 @@
                         <div class="small text-muted">Verified</div>
                     </div>
                     <div class="col-4">
-                        <div class="h4 text-warning">{{ recent_login_attempts }}</div>
-                        <div class="small text-muted">Logins (24h)</div>
+                        <div class="h4 text-warning">{{ new_users_30d }}</div>
+                        <div class="small text-muted">New (30d)</div>
                     </div>
                 </div>
                 <div class="chart-container">
@@ -127,6 +148,24 @@
                     </div>
                     <small class="text-muted">Community engagement: 75%</small>
                 </div>
+                
+                <!-- Token Adjustments Summary -->
+                {% if token_adjustments_30d.total_adjustments %}
+                <div class="mt-3 pt-3 border-top">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="h6 text-info">{{ token_adjustments_30d.total_adjustments }}</div>
+                            <div class="small text-muted">Token Adjustments</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="h6 text-{% if token_adjustments_30d.total_amount > 0 %}success{% else %}danger{% endif %}">
+                                {% if token_adjustments_30d.total_amount > 0 %}+{% endif %}{{ token_adjustments_30d.total_amount|floatformat:0 }}
+                            </div>
+                            <div class="small text-muted">Total Amount (30d)</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -155,6 +194,9 @@
                             {% if user.is_verified %}
                                 <br><span class="badge bg-success">Verified</span>
                             {% endif %}
+                            {% if not user.is_active %}
+                                <br><span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
@@ -163,8 +205,142 @@
         </div>
     </div>
     
-    <!-- Recent Datasets -->
+    <!-- Top Rated Datasets -->
     <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-star text-warning"></i> Top Rated Datasets
+                </h6>
+                <a href="{% url 'admin_dashboard:dataset_management' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for dataset in top_datasets %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="fw-bold">{{ dataset.title|truncatechars:30 }}</div>
+                                <small class="text-muted">by {{ dataset.author.username }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-secondary">{{ dataset.dataset_type|upper }}</span>
+                                <br><small class="text-muted">{{ dataset.created_at|date:"M d" }}</small>
+                            </div>
+                        </div>
+                        <div class="mt-1">
+                            <small class="text-warning">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= dataset.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                                ({{ dataset.rating }})
+                            </small>
+                            <small class="text-muted ms-2">{{ dataset.downloads }} downloads</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Status -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-server text-warning"></i> System Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- System Metrics -->
+                {% if recent_metrics %}
+                    {% with recent_metrics.0 as latest_metric %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small">CPU Usage</span>
+                            <span class="small {% if latest_metric.cpu_usage < 70 %}text-success{% elif latest_metric.cpu_usage < 90 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ latest_metric.cpu_usage|floatformat:1 }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar {% if latest_metric.cpu_usage < 70 %}bg-success{% elif latest_metric.cpu_usage < 90 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                 style="width: {{ latest_metric.cpu_usage }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small">Memory Usage</span>
+                            <span class="small {% if latest_metric.memory_usage < 70 %}text-success{% elif latest_metric.memory_usage < 90 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ latest_metric.memory_usage|floatformat:1 }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar {% if latest_metric.memory_usage < 70 %}bg-success{% elif latest_metric.memory_usage < 90 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                 style="width: {{ latest_metric.memory_usage }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small">Disk Usage</span>
+                            <span class="small {% if latest_metric.disk_usage < 70 %}text-success{% elif latest_metric.disk_usage < 90 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ latest_metric.disk_usage|floatformat:1 }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar {% if latest_metric.disk_usage < 70 %}bg-success{% elif latest_metric.disk_usage < 90 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                 style="width: {{ latest_metric.disk_usage }}%"></div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                {% else %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small">Server Load</span>
+                            <span class="small text-success">Normal</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: 35%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small">Database</span>
+                            <span class="small text-success">Connected</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: 100%"></div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small">API Response Time</span>
+                        <span class="small text-info">120ms</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-info" style="width: 85%"></div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info py-2 mb-0">
+                    <small>
+                        <i class="fas fa-info-circle"></i>
+                        Last backup: {{ "now"|date:"M d, Y H:i" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Datasets -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h6 class="card-title mb-0">
@@ -202,49 +378,34 @@
         </div>
     </div>
     
-    <!-- System Status -->
-    <div class="col-lg-4 mb-4">
+    <!-- Security Dashboard -->
+    <div class="col-lg-6 mb-4">
         <div class="card">
             <div class="card-header">
                 <h6 class="card-title mb-0">
-                    <i class="fas fa-server text-warning"></i> System Status
+                    <i class="fas fa-shield-alt text-danger"></i> Security Overview
                 </h6>
             </div>
             <div class="card-body">
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small">Server Load</span>
-                        <span class="small text-success">Normal</span>
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <div class="h5 text-success">{{ recent_login_attempts }}</div>
+                        <div class="small text-muted">Total Logins</div>
                     </div>
-                    <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-success" style="width: 35%"></div>
+                    <div class="col-4">
+                        <div class="h5 text-danger">{{ failed_login_attempts }}</div>
+                        <div class="small text-muted">Failed Attempts</div>
                     </div>
-                </div>
-                
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small">Database</span>
-                        <span class="small text-success">Connected</span>
-                    </div>
-                    <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                    <div class="col-4">
+                        <div class="h5 text-warning">{{ active_moderation_actions }}</div>
+                        <div class="small text-muted">Active Actions</div>
                     </div>
                 </div>
                 
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small">API Response Time</span>
-                        <span class="small text-info">120ms</span>
-                    </div>
-                    <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-info" style="width: 85%"></div>
-                    </div>
-                </div>
-                
-                <div class="alert alert-info py-2 mb-0">
+                <div class="alert alert-{% if failed_login_attempts > 10 %}warning{% else %}success{% endif %} py-2">
                     <small>
-                        <i class="fas fa-info-circle"></i>
-                        Last backup: {{ "now"|date:"M d, Y H:i" }}
+                        <i class="fas fa-{% if failed_login_attempts > 10 %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
+                        Security Status: {% if failed_login_attempts > 10 %}Monitor{% else %}Normal{% endif %}
                     </small>
                 </div>
             </div>
@@ -271,6 +432,7 @@
                                 <th>Topic</th>
                                 <th>Created</th>
                                 <th>Views</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -286,6 +448,13 @@
                                 <td><span class="badge bg-secondary">{{ thread.topic.name }}</span></td>
                                 <td>{{ thread.created_at|timesince }} ago</td>
                                 <td>{{ thread.views }}</td>
+                                <td>
+                                    {% if thread.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -343,7 +512,38 @@ fetch('{% url "admin_dashboard:analytics_api" %}?type=users')
     .then(response => response.json())
     .then(data => {
         console.log('Analytics data loaded:', data);
+        // Update chart with real data if available
+        if (data.monthly_registrations) {
+            userChart.data.datasets[0].data = data.monthly_registrations;
+            userChart.update();
+        }
     })
     .catch(error => console.error('Error loading analytics:', error));
+
+// Auto-refresh dashboard every 5 minutes
+setInterval(function() {
+    location.reload();
+}, 300000);
+
+// Real-time status updates
+function updateSystemStatus() {
+    // TODO: Implement system_status_api endpoint
+    console.log('System status update disabled - endpoint not implemented yet');
+    return;
+    
+    
+    {% comment %}
+    fetch('{% url "admin_dashboard:system_status_api" %}')
+        .then(response => response.json())
+        .then(data => {
+            // Update system metrics if available
+            console.log('System status updated:', data);
+        })
+        .catch(error => console.error('Error updating system status:', error));
+    {% endcomment %}
+}
+
+// Update system status every minute
+//setInterval(updateSystemStatus, 60000);
 </script>
 {% endblock %}

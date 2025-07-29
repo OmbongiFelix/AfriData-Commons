@@ -1,0 +1,400 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Token Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .stats-card.positive {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .stats-card.negative {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .filter-form {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .adjustment-type-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        font-weight: bold;
+    }
+    .adjustment-type-credit {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .adjustment-type-debit {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .adjustment-type-bonus {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+    .adjustment-type-penalty {
+        background-color: #ffeaa7;
+        color: #6c4e00;
+    }
+    .amount-positive {
+        color: #28a745;
+        font-weight: bold;
+    }
+    .amount-negative {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    .table-responsive {
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">
+                <i class="fas fa-coins"></i> Token Management
+            </h1>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h5><i class="fas fa-chart-line"></i> Total Adjustments</h5>
+                <h2>{{ stats.total_adjustments|default:0 }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h5><i class="fas fa-balance-scale"></i> Net Amount</h5>
+                <h2>{{ stats.total_amount|default:0|floatformat:0 }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card positive">
+                <h5><i class="fas fa-arrow-up"></i> Total Credits</h5>
+                <h2>+{{ stats.positive_adjustments|default:0|floatformat:0 }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card negative">
+                <h5><i class="fas fa-arrow-down"></i> Total Debits</h5>
+                <h2>{{ stats.negative_adjustments|default:0|floatformat:0 }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="filter-form">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="type" class="form-label">Adjustment Type</label>
+                <select name="type" id="type" class="form-select">
+                    <option value="all" {% if adjustment_type == 'all' %}selected{% endif %}>All Types</option>
+                    {% for value, label in adjustment_types %}
+                        <option value="{{ value }}" {% if adjustment_type == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="date_from" class="form-label">From Date</label>
+                <input type="date" name="date_from" id="date_from" class="form-control" 
+                       value="{{ date_from|default:'' }}">
+            </div>
+            <div class="col-md-3">
+                <label for="date_to" class="form-label">To Date</label>
+                <input type="date" name="date_to" id="date_to" class="form-control" 
+                       value="{{ date_to|default:'' }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-filter"></i> Filter
+                </button>
+                <a href="{% url 'admin_dashboard:token_management' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Count -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <p class="text-muted">
+                Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} adjustments
+            </p>
+        </div>
+    </div>
+
+    <!-- Token Adjustments Table -->
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Admin User</th>
+                    <th>Target User</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Reference Dataset</th>
+                    <th>Reason</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for adjustment in page_obj %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ adjustment.created_at|date:"M d, Y" }}</div>
+                        <small class="text-muted">{{ adjustment.created_at|time:"H:i" }}</small>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-user-shield text-primary me-2"></i>
+                            <div>
+                                <div class="fw-bold">{{ adjustment.admin_user.get_full_name|default:adjustment.admin_user.username }}</div>
+                                <small class="text-muted">{{ adjustment.admin_user.email }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-user text-secondary me-2"></i>
+                            <div>
+                                <div class="fw-bold">{{ adjustment.target_user.get_full_name|default:adjustment.target_user.username }}</div>
+                                <small class="text-muted">{{ adjustment.target_user.email }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="adjustment-type-badge adjustment-type-{{ adjustment.adjustment_type }}">
+                            {{ adjustment.get_adjustment_type_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if adjustment.amount > 0 %}
+                            <span class="amount-positive">+{{ adjustment.amount|floatformat:0 }}</span>
+                        {% else %}
+                            <span class="amount-negative">{{ adjustment.amount|floatformat:0 }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if adjustment.reference_dataset %}
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-database text-info me-2"></i>
+                                <div>
+                                    <div class="fw-bold">{{ adjustment.reference_dataset.name }}</div>
+                                    <small class="text-muted">ID: {{ adjustment.reference_dataset.id }}</small>
+                                </div>
+                            </div>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if adjustment.reason %}
+                            <div class="text-truncate" style="max-width: 200px;" title="{{ adjustment.reason }}">
+                                {{ adjustment.reason }}
+                            </div>
+                        {% else %}
+                            <span class="text-muted">No reason provided</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-info" 
+                                    data-bs-toggle="modal" data-bs-target="#detailModal{{ adjustment.id }}"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            {% if perms.admin_dashboard.delete_tokenadjustment %}
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    onclick="confirmDelete({{ adjustment.id }})"
+                                    title="Delete Adjustment">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Detail Modal for each adjustment -->
+                <div class="modal fade" id="detailModal{{ adjustment.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Adjustment Details #{{ adjustment.id }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Basic Information</h6>
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Created:</strong></td>
+                                                <td>{{ adjustment.created_at|date:"F d, Y H:i" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Type:</strong></td>
+                                                <td>{{ adjustment.get_adjustment_type_display }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Amount:</strong></td>
+                                                <td>
+                                                    {% if adjustment.amount > 0 %}
+                                                        <span class="amount-positive">+{{ adjustment.amount }}</span>
+                                                    {% else %}
+                                                        <span class="amount-negative">{{ adjustment.amount }}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Users</h6>
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Admin:</strong></td>
+                                                <td>{{ adjustment.admin_user.get_full_name|default:adjustment.admin_user.username }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Target:</strong></td>
+                                                <td>{{ adjustment.target_user.get_full_name|default:adjustment.target_user.username }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                                {% if adjustment.reference_dataset %}
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <h6>Reference Dataset</h6>
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h6 class="card-title">{{ adjustment.reference_dataset.name }}</h6>
+                                                <p class="card-text">ID: {{ adjustment.reference_dataset.id }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if adjustment.reason %}
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <h6>Reason</h6>
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <p class="card-text">{{ adjustment.reason }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <div class="text-muted">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <h5>No token adjustments found</h5>
+                            <p>Try adjusting your filters or check back later.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Token adjustments pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if adjustment_type != 'all' %}&type={{ adjustment_type }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if adjustment_type != 'all' %}&type={{ adjustment_type }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if adjustment_type != 'all' %}&type={{ adjustment_type }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if adjustment_type != 'all' %}&type={{ adjustment_type }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if adjustment_type != 'all' %}&type={{ adjustment_type }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(adjustmentId) {
+    if (confirm('Are you sure you want to delete this token adjustment? This action cannot be undone.')) {
+        // You would implement the delete functionality here
+        // This could be an AJAX call or a form submission
+        console.log('Delete adjustment:', adjustmentId);
+        // Example: window.location.href = `/admin/token-adjustment/${adjustmentId}/delete/`;
+    }
+}
+
+// Auto-submit form when filter changes (optional)
+document.getElementById('type').addEventListener('change', function() {
+    this.form.submit();
+});
+
+// Clear dates when clear button is clicked
+function clearFilters() {
+    document.getElementById('type').value = 'all';
+    document.getElementById('date_from').value = '';
+    document.getElementById('date_to').value = '';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,786 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Admin Notifications{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notification-item {
+        transition: all 0.2s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .notification-item.unread {
+        background-color: #f8f9ff;
+        border-left-color: #3b82f6;
+    }
+    
+    .notification-item.read {
+        background-color: #f9fafb;
+        border-left-color: #d1d5db;
+    }
+    
+    .notification-item:hover {
+        background-color: #f3f4f6;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .priority-high {
+        border-left-color: #ef4444 !important;
+    }
+    
+    .priority-medium {
+        border-left-color: #f59e0b !important;
+    }
+    
+    .priority-low {
+        border-left-color: #10b981 !important;
+    }
+    
+    .filter-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .filter-badge.active {
+        background-color: #3b82f6;
+        color: white;
+    }
+    
+    .filter-badge:not(.active) {
+        background-color: #e5e7eb;
+        color: #374151;
+    }
+    
+    .priority-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .priority-high {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+    
+    .priority-medium {
+        background-color: #fef3c7;
+        color: #d97706;
+    }
+    
+    .priority-low {
+        background-color: #d1fae5;
+        color: #059669;
+    }
+    
+    .bulk-actions {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: none;
+    }
+    
+    .bulk-actions.show {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Admin Notifications</h1>
+            <p class="text-muted mb-0">Manage system notifications and alerts</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" onclick="markAllAsRead()">
+                <i class="fas fa-check-double"></i> Mark All Read
+            </button>
+            <button class="btn btn-outline-danger" onclick="clearReadNotifications()">
+                <i class="fas fa-trash"></i> Clear Read
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Notifications
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ page_obj.paginator.count }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bell fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Unread
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ page_obj.object_list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                High Priority
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ page_obj.object_list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                This Week
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ page_obj.object_list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-week fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <!-- Read Status Filter -->
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Read Status</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="?read=all&priority={{ priority_filter }}" 
+                           class="filter-badge {% if read_status == 'all' %}active{% endif %}">
+                            All
+                        </a>
+                        <a href="?read=unread&priority={{ priority_filter }}" 
+                           class="filter-badge {% if read_status == 'unread' %}active{% endif %}">
+                            Unread
+                        </a>
+                        <a href="?read=read&priority={{ priority_filter }}" 
+                           class="filter-badge {% if read_status == 'read' %}active{% endif %}">
+                            Read
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Priority Filter -->
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Priority</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="?read={{ read_status }}&priority=all" 
+                           class="filter-badge {% if priority_filter == 'all' %}active{% endif %}">
+                            All
+                        </a>
+                        {% for value, label in priority_choices %}
+                        <a href="?read={{ read_status }}&priority={{ value }}" 
+                           class="filter-badge {% if priority_filter == value %}active{% endif %}">
+                            {{ label }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Search</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="search" 
+                               placeholder="Search notifications..." value="{{ request.GET.search }}">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="bulk-actions" id="bulkActions">
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-bold">
+                <span id="selectedCount">0</span> notifications selected
+            </span>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-success" onclick="bulkMarkAsRead()">
+                    <i class="fas fa-check"></i> Mark as Read
+                </button>
+                <button class="btn btn-sm btn-warning" onclick="bulkMarkAsUnread()">
+                    <i class="fas fa-envelope"></i> Mark as Unread
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="bulkDelete()">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+                    Clear Selection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="card shadow">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Notifications</h6>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                <label class="form-check-label" for="selectAll">
+                    Select All
+                </label>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if page_obj.object_list %}
+                <div class="list-group list-group-flush">
+                    {% for notification in page_obj.object_list %}
+                    <div class="list-group-item notification-item {% if not notification.is_read %}unread{% else %}read{% endif %} priority-{{ notification.priority|lower }}" 
+                         data-notification-id="{{ notification.id }}">
+                        <div class="d-flex align-items-start">
+                            <!-- Checkbox -->
+                            <div class="form-check me-3 mt-1">
+                                <input class="form-check-input notification-checkbox" type="checkbox" 
+                                       value="{{ notification.id }}" onchange="updateBulkActions()">
+                            </div>
+
+                            <!-- Icon -->
+                            <div class="me-3 mt-1">
+                                {% if notification.priority == 'high' %}
+                                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                                {% elif notification.priority == 'medium' %}
+                                    <i class="fas fa-exclamation-circle text-warning"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle text-success"></i>
+                                {% endif %}
+                            </div>
+
+                            <!-- Content -->
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-1 {% if not notification.is_read %}fw-bold{% endif %}">
+                                        {{ notification.title }}
+                                    </h6>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="priority-badge priority-{{ notification.priority|lower }}">
+                                            {{ notification.get_priority_display }}
+                                        </span>
+                                        {% if not notification.is_read %}
+                                        <span class="badge bg-primary">New</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <p class="mb-2 text-muted">{{ notification.message|truncatewords:30 }}</p>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i>
+                                        {{ notification.created_at|timesince }} ago
+                                        {% if notification.created_by %}
+                                        • by {{ notification.created_by.get_full_name|default:notification.created_by.username }}
+                                        {% endif %}
+                                    </small>
+                                    
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                type="button" data-bs-toggle="dropdown">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            {% if not notification.is_read %}
+                                            <li>
+                                                <a class="dropdown-item" href="#" 
+                                                   onclick="markAsRead({{ notification.id }})">
+                                                    <i class="fas fa-check"></i> Mark as Read
+                                                </a>
+                                            </li>
+                                            {% else %}
+                                            <li>
+                                                <a class="dropdown-item" href="#" 
+                                                   onclick="markAsUnread({{ notification.id }})">
+                                                    <i class="fas fa-envelope"></i> Mark as Unread
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                            <li>
+                                                <a class="dropdown-item" href="#" 
+                                                   onclick="viewDetails({{ notification.id }})">
+                                                    <i class="fas fa-eye"></i> View Details
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" 
+                                                   onclick="deleteNotification({{ notification.id }})">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No notifications found</h5>
+                    <p class="text-muted">
+                        {% if read_status != 'all' or priority_filter != 'all' %}
+                            Try adjusting your filters to see more notifications.
+                        {% else %}
+                            All caught up! No notifications to display.
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Notifications pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&read={{ read_status }}&priority={{ priority_filter }}">
+                        <i class="fas fa-angle-double-left"></i> First
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&read={{ read_status }}&priority={{ priority_filter }}">
+                        <i class="fas fa-angle-left"></i> Previous
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}&read={{ read_status }}&priority={{ priority_filter }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&read={{ read_status }}&priority={{ priority_filter }}">
+                        Next <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&read={{ read_status }}&priority={{ priority_filter }}">
+                        Last <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <div class="text-center text-muted mt-2">
+        Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} notifications
+    </div>
+    {% endif %}
+</div>
+
+<!-- Notification Details Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">Notification Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="notificationModalBody">
+                <!-- Content loaded via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="markReadFromModal">Mark as Read</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// CSRF token for AJAX requests
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+// Update bulk actions visibility
+function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.notification-checkbox:checked');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (checkboxes.length > 0) {
+        bulkActions.classList.add('show');
+        selectedCount.textContent = checkboxes.length;
+    } else {
+        bulkActions.classList.remove('show');
+    }
+}
+
+// Toggle select all
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.notification-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateBulkActions();
+}
+
+// Clear selection
+function clearSelection() {
+    const checkboxes = document.querySelectorAll('.notification-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    document.getElementById('selectAll').checked = false;
+    updateBulkActions();
+}
+
+// Mark single notification as read
+async function markAsRead(notificationId) {
+    try {
+        const response = await fetch(`/admin/notifications/${notificationId}/mark-read/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error marking notification as read');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error marking notification as read');
+    }
+}
+
+// Mark single notification as unread
+async function markAsUnread(notificationId) {
+    try {
+        const response = await fetch(`/admin/notifications/${notificationId}/mark-unread/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error marking notification as unread');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error marking notification as unread');
+    }
+}
+
+// Mark all notifications as read
+async function markAllAsRead() {
+    if (!confirm('Are you sure you want to mark all notifications as read?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/admin/notifications/mark-all-read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error marking all notifications as read');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error marking all notifications as read');
+    }
+}
+
+// Clear read notifications
+async function clearReadNotifications() {
+    if (!confirm('Are you sure you want to delete all read notifications? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/admin/notifications/clear-read/', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error clearing read notifications');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error clearing read notifications');
+    }
+}
+
+// Bulk mark as read
+async function bulkMarkAsRead() {
+    const selectedIds = Array.from(document.querySelectorAll('.notification-checkbox:checked'))
+                             .map(cb => cb.value);
+    
+    if (selectedIds.length === 0) return;
+    
+    try {
+        const response = await fetch('/admin/notifications/bulk-mark-read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ notification_ids: selectedIds }),
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error marking notifications as read');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error marking notifications as read');
+    }
+}
+
+// Bulk mark as unread
+async function bulkMarkAsUnread() {
+    const selectedIds = Array.from(document.querySelectorAll('.notification-checkbox:checked'))
+                             .map(cb => cb.value);
+    
+    if (selectedIds.length === 0) return;
+    
+    try {
+        const response = await fetch('/admin/notifications/bulk-mark-unread/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ notification_ids: selectedIds }),
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error marking notifications as unread');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error marking notifications as unread');
+    }
+}
+
+// Bulk delete
+async function bulkDelete() {
+    const selectedIds = Array.from(document.querySelectorAll('.notification-checkbox:checked'))
+                             .map(cb => cb.value);
+    
+    if (selectedIds.length === 0) return;
+    
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} notifications? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/admin/notifications/bulk-delete/', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ notification_ids: selectedIds }),
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error deleting notifications');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error deleting notifications');
+    }
+}
+
+// Delete single notification
+async function deleteNotification(notificationId) {
+    if (!confirm('Are you sure you want to delete this notification? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/notifications/${notificationId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error deleting notification');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error deleting notification');
+    }
+}
+
+// View notification details
+async function viewDetails(notificationId) {
+    try {
+        const response = await fetch(`/admin/notifications/${notificationId}/details/`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('notificationModalBody').innerHTML = `
+                <div class="mb-3">
+                    <h6>Title</h6>
+                    <p>${data.title}</p>
+                </div>
+                <div class="mb-3">
+                    <h6>Message</h6>
+                    <p>${data.message}</p>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Priority</h6>
+                        <span class="priority-badge priority-${data.priority.toLowerCase()}">${data.priority_display}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Status</h6>
+                        <span class="badge ${data.is_read ? 'bg-success' : 'bg-warning'}">${data.is_read ? 'Read' : 'Unread'}</span>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>Created</h6>
+                        <p>${new Date(data.created_at).toLocaleString()}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Created By</h6>
+                        <p>${data.created_by || 'System'}</p>
+                    </div>
+                </div>
+            `;
+            
+            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+            modal.show();
+            
+            // Set up mark as read button
+            document.getElementById('markReadFromModal').onclick = () => {
+                markAsRead(notificationId);
+                modal.hide();
+            };
+        } else {
+            alert('Error loading notification details');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error loading notification details');
+    }
+}
+
+// Auto-refresh notifications every 30 seconds
+setInterval(() => {
+    if (document.visibilityState === 'visible') {
+        // Only refresh if no notifications are selected
+        const selectedCount = document.querySelectorAll('.notification-checkbox:checked').length;
+        if (selectedCount === 0) {
+            location.reload();
+        }
+    }
+}, 30000);
+</script>
+{% endblock %}

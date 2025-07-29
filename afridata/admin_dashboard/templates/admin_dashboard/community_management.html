@@ -20,7 +20,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <h4 class="text-primary">{{ topics.count }}</h4>
+                <h4 class="text-primary">{{ community_stats.total_topics }}</h4>
                 <p class="text-muted mb-0">Topics</p>
             </div>
         </div>
@@ -28,7 +28,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <h4 class="text-info">{{ recent_threads.count }}</h4>
+                <h4 class="text-info">{{ community_stats.total_threads }}</h4>
                 <p class="text-muted mb-0">Total Threads</p>
             </div>
         </div>
@@ -36,7 +36,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <h4 class="text-success">{{ recent_posts.count }}</h4>
+                <h4 class="text-success">{{ community_stats.total_posts }}</h4>
                 <p class="text-muted mb-0">Total Posts</p>
             </div>
         </div>
@@ -44,8 +44,8 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <h4 class="text-warning">{{ active_users.count }}</h4>
-                <p class="text-muted mb-0">Active Users</p>
+                <h4 class="text-warning">{{ community_stats.total_votes }}</h4>
+                <p class="text-muted mb-0">Total Votes</p>
             </div>
         </div>
     </div>
@@ -137,7 +137,7 @@
             <div class="card-body">
                 {% if recent_threads %}
                     <div class="list-group list-group-flush">
-                        {% for thread in recent_threads|slice:":10" %}
+                        {% for thread in recent_threads %}
                         <div class="list-group-item px-0">
                             <div class="d-flex justify-content-between">
                                 <div class="flex-grow-1">
@@ -184,7 +184,7 @@
             <div class="card-body">
                 {% if recent_posts %}
                     <div class="list-group list-group-flush">
-                        {% for post in recent_posts|slice:":10" %}
+                        {% for post in recent_posts %}
                         <div class="list-group-item px-0">
                             <div class="d-flex justify-content-between">
                                 <div class="flex-grow-1">
@@ -243,7 +243,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for activity in active_users|slice:":10" %}
+                                {% for activity in active_users %}
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
